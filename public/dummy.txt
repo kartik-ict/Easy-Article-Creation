@@ -1,0 +1,26 @@
+[
+  {
+    "Name": {
+      "Title": "John Doe"
+    },
+    "WeeklyWeight": 75,
+    "WeeklySteps": 10000,
+    "WeeklyExerciseMin": 150
+  },
+  {
+    "Name": {
+      "Title": "Jane Smith"
+    },
+    "WeeklyWeight": 65,
+    "WeeklySteps": 12000,
+    "WeeklyExerciseMin": 180
+  },
+  {
+    "Name": {
+      "Title": "Tom Johnson"
+    },
+    "WeeklyWeight": 80,
+    "WeeklySteps": 9000,
+    "WeeklyExerciseMin": 120
+  }
+]
