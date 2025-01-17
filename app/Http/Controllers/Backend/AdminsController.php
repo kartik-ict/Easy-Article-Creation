@@ -29,7 +29,7 @@ class AdminsController extends Controller
     public function index()
     {
         if (is_null($this->user) || !$this->user->can('admin.view')) {
-            abort(403, __('admin.unauthorized_view_admin'));
+            abort(403, __('admins.unauthorized_view_admin'));
         }
 
         $admins = Admin::all();
@@ -44,7 +44,7 @@ class AdminsController extends Controller
     public function create()
     {
         if (is_null($this->user) || !$this->user->can('admin.create')) {
-            abort(403, __('admin.unauthorized_create_admin'));
+            abort(403, __('admins.unauthorized_create_admin'));
         }
 
         $roles = Role::all();
@@ -60,7 +60,7 @@ class AdminsController extends Controller
     public function store(Request $request)
     {
         if (is_null($this->user) || !$this->user->can('admin.create')) {
-            abort(403, __('admin.unauthorized_create_admin'));
+            abort(403, __('admins.unauthorized_create_admin'));
         }
 
         // Validation Data
@@ -83,7 +83,8 @@ class AdminsController extends Controller
             $admin->assignRole($request->roles);
         }
 
-        session()->flash('success', __('admin.admin_created'));
+        session()->flash('success', __('admins.admin_created'));
+
         return redirect()->route('admin.admins.index');
     }
 
@@ -96,11 +97,12 @@ class AdminsController extends Controller
     public function edit(int $id)
     {
         if (is_null($this->user) || !$this->user->can('admin.edit')) {
-            abort(403, __('admin.unauthorized_edit_admin'));
+            abort(403, __('admins.unauthorized_edit_admin'));
         }
 
         $admin = Admin::find($id);
         $roles = Role::all();
+
         return view('backend.pages.admins.edit', compact('admin', 'roles'));
     }
 
@@ -114,12 +116,12 @@ class AdminsController extends Controller
     public function update(Request $request, int $id)
     {
         if (is_null($this->user) || !$this->user->can('admin.edit')) {
-            abort(403, __('admin.unauthorized_edit_admin'));
+            abort(403, __('admins.unauthorized_edit_admin'));
         }
 
         // Super Admin prevention
         if ($id === 1) {
-            session()->flash('error', __('admin.super_admin_update_restriction'));
+            session()->flash('error', __('admins.super_admin_update_restriction'));
             return back();
         }
 
@@ -144,8 +146,9 @@ class AdminsController extends Controller
             $admin->assignRole($request->roles);
         }
 
-        session()->flash('success', __('admin.admin_updated'));
-        return back();
+        session()->flash('success', __('admins.admin_updated'));
+
+        return redirect()->route('admin.admins.index');
     }
     
     
@@ -169,12 +172,12 @@ class AdminsController extends Controller
     public function destroy(int $id)
     {
         if (is_null($this->user) || !$this->user->can('admin.delete')) {
-            abort(403, __('admin.unauthorized_delete_admin'));
+            abort(403, __('admins.unauthorized_delete_admin'));
         }
 
         // Super Admin prevention
         if ($id === 1) {
-            session()->flash('error', __('admin.super_admin_delete_restriction'));
+            session()->flash('error', __('admins.super_admin_delete_restriction'));
             return back();
         }
 
@@ -183,7 +186,7 @@ class AdminsController extends Controller
             $admin->delete();
         }
 
-        session()->flash('success', __('admin.admin_deleted'));
+        session()->flash('success', __('admins.admin_deleted'));
         return back();
     }
 }

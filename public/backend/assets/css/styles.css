@@ -2834,4 +2834,16 @@ table.dataTable thead td {
     color: #555;
 }
 
+.sidebar-header {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.sidebar-header .logo a {
+    max-width: 100%;
+    display: block;
+}
+.sidebar-header a h2 {
+    font-size: 18px;
+}
+
 /*-------------------- END Offset Sidebar ------------------- */

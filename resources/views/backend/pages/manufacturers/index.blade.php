@@ -44,7 +44,7 @@
                     <div class="card-body">
                         <h4 class="header-title float-left">Fabrikant Lijst</h4>
                         <p class="float-right mb-2">
-                            @if (Auth::guard('admin')->user()->can('role.create'))
+                            @if (Auth::guard('admin')->user()->can('manufacture.create'))
                                 <a class="btn btn-primary text-white" href="{{ route('admin.manufacturers.create') }}">Nieuwe
                                     fabrikant creëren</a>
                             @endif
@@ -90,14 +90,15 @@
         };
 
         const userPermissions = {
-            canEdit: {{ Auth::guard('admin')->user()->can('role.edit') ? 'true' : 'false' }},
-            canDelete: {{ Auth::guard('admin')->user()->can('role.delete') ? 'true' : 'false' }},
+            canEdit: {{ Auth::guard('admin')->user()->can('manufacture.edit') ? 'true' : 'false' }},
+            canDelete: {{ Auth::guard('admin')->user()->can('manufacture.delete') ? 'true' : 'false' }},
         };
 
         $(document).ready(function () {
             $('#manufacturersTable').DataTable({
                 processing: true,
                 serverSide: true,
+                searching: false,
                 ajax: {
                     url: '{{ route("admin.manufacturers.getData") }}',
                     type: 'GET',

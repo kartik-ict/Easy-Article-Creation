@@ -34,6 +34,18 @@ return [
         ],
     ],
     'save_admin' => 'Save Admin',
-    'edit_admin' => 'Beheerder Bewerken',
-    'admin_panel' => 'Beheerderspaneel',
+    'edit_admin' => 'Edit Admin',
+    'admin_panel' => 'Administrator panel',
+
+    'super_admin_update_restriction' => 'Sorry !!! You are not authorized to update this administrator, this is the Super Admin. Please create a new administrator if you want to test!',
+    'super_admin_delete_restriction' => 'Sorry !!! You are not authorized to delete this administrator, this is the Super Admin. Please create a new administrator if you want to test!',
+
+    'admin_created' => 'Admin successfully created.',
+    'admin_updated' => 'Admin successfully updated.',
+    'admin_deleted' => 'Admin successfully deleted.',
+    'unauthorized_view_admin' => 'You are not authorized to view the list of admins.',
+    'unauthorized_create_admin' => 'You are not authorized to create a new admin.',
+    'unauthorized_edit_admin' => 'You are not authorized to edit this admin.',
+    'unauthorized_delete_admin' => 'You are not authorized to delete this admin.',
+
 ];

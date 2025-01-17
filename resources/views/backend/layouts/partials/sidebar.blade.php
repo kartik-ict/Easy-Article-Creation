@@ -63,25 +63,27 @@
                         </li>
                     @endif
 
-                    <li>
-                        <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-user"></i><span>
+                        @if ($usr->can('catalogue.view'))
+                            <li>
+                                <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-list"></i><span>
                             {{ trans('custom.catalog') }}
                         </span></a>
-                        <ul class="collapse {{ Route::is('admin.admins.create') || Route::is('admin.admins.index') || Route::is('admin.admins.edit') || Route::is('admin.admins.show') ? 'in' : '' }}">
+                                <ul class="collapse {{ Route::is('admin.product.index') || Route::is('product.create') || Route::is('admin.manufacturers.create') || Route::is('admin.manufacturers.index') || Route::is('admin.manufacturers.edit') || Route::is('admin.manufacturers.show') ? 'in' : '' }}">
 
-                            @if ($usr->can('admin.view'))
-                                <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
-                                    <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
-                                </li>
-                            @endif
+                                    @if ($usr->can('product.view'))
+                                        <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
+                                            <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
+                                        </li>
+                                    @endif
 
-                            @if ($usr->can('admin.create'))
-                                <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
-                                    <a href="{{ route('admin.manufacturers.index') }}">{{ trans('custom.manufacturers') }}</a>
-                                </li>
-                            @endif
-                        </ul>
-                    </li>
+                                    @if ($usr->can('manufacture.view'))
+                                        <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
+                                            <a href="{{ route('admin.manufacturers.index') }}">{{ trans('custom.manufacturers') }}</a>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </li>
+                        @endif
                 </ul>
             </nav>
         </div>
