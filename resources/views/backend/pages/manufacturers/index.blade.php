@@ -99,6 +99,10 @@
                 processing: true,
                 serverSide: true,
                 searching: false,
+                responsive: true,
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Dutch.json"
+                },
                 ajax: {
                     url: '{{ route("admin.manufacturers.getData") }}',
                     type: 'GET',
