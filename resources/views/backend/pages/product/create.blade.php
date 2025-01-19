@@ -49,7 +49,8 @@
 
                                     <div class="form-group mb-3">
                                         <label for="manufacturer">Manufacturer:</label>
-                                        <select id="manufacturer" name="manufacturer" class="form-control" required></select>
+                                        <select id="manufacturer-select" class="js-example-basic-single form-control" name="manufacturer" required>
+                                        </select>
                                     </div>
 
                                     <div class="form-group mb-3">
@@ -104,30 +105,38 @@
     </div>
 @endsection
 @section('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
-        $(document).ready(function() {
-            $('#manufacturer').select2({
-                placeholder: 'Search Manufacturer',
+        $(document).ready(function () {
+            $('#manufacturer-select').select2({
+                placeholder: 'Select a manufacturer',
                 ajax: {
-                    url: '{{ route("api.manufacturer.search") }}',
+                    url: '{{ route("product.manufacturerSearch") }}',
+                    type: 'POST', // POST request as required by your method
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token
+                    },
                     dataType: 'json',
                     delay: 250,
-                    data: function(params) {
+                    data: function (params) {
                         return {
-                            q: params.term // search term
+                            search: params.term || '', // Search term (empty for full list)
                         };
                     },
-                    processResults: function(data) {
+                    processResults: function (data) {
                         return {
-                            results: data.map(item => ({
-                                id: item.id,
-                                text: item.name
-                            }))
+                            results: data.manufacturers.map(function (manufacturer) {
+                                return {
+                                    id: manufacturer.id,
+                                    text: manufacturer.name,
+                                };
+                            }),
                         };
                     },
-                    cache: true
-                }
+                    cache: true,
+                },
+                minimumInputLength: 0, // Allow dropdown to show full list without typing
             });
         });
     </script>

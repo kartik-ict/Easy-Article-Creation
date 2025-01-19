@@ -7,6 +7,7 @@
         <div class="logo">
             <a href="{{ route('admin.dashboard') }}">
                 <h2 class="text-white">{{ trans('custom.side_bar_title') }}</h2>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </a>
         </div>
     </div>
@@ -70,11 +71,11 @@
                         </span></a>
                                 <ul class="collapse {{ Route::is('admin.product.index') || Route::is('product.create') || Route::is('admin.manufacturers.create') || Route::is('admin.manufacturers.index') || Route::is('admin.manufacturers.edit') || Route::is('admin.manufacturers.show') ? 'in' : '' }}">
 
-                                    @if ($usr->can('product.view'))
+{{--                                    @if ($usr->can('product.view'))--}}
                                         <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
                                             <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
                                         </li>
-                                    @endif
+{{--                                    @endif--}}
 
                                     @if ($usr->can('manufacture.view'))
                                         <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">

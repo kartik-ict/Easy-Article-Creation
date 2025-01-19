@@ -31,7 +31,9 @@ class ProductController extends Controller
         $product = $this->shopwareProductService->searchByEAN($ean);
 
         if (!$product) {
-            return response()->json(['error' => 'Product not found'], 404);
+            return response()->json([
+                'error' => __('messages.product_not_found'),
+            ], 404);
         }
 
         return response()->json(['product' => $product], 200);
@@ -40,5 +42,25 @@ class ProductController extends Controller
     public function create()
     {
         return view('backend.pages.product.create');
+    }
+
+    public function manufacturerSearch(Request $request)
+    {
+        $searchTerm = $request->input('search', null); // Optional search parameter
+
+        $manufacturers = $this->shopwareProductService->searchManufacturer($searchTerm);
+
+        if ($manufacturers) {
+            return response()->json([
+                'error' => __('messages.no_manufacturers_found'),
+            ], 404);
+        }
+
+        return response()->json(['manufacturers' => $manufacturers->map(function ($manufacturer) {
+            return [
+                'id' => $manufacturer->getId(),
+                'name' => $manufacturer->getName(),
+            ];
+        })], 200);
     }
 }

@@ -144,6 +144,10 @@ class RolesController extends Controller
             $role->name = $request->name;
             $role->save();
             $role->syncPermissions($permissions);
+        }else{
+            $role->name = $request->name;
+            $role->save();
+            $role->syncPermissions([]);
         }
 
         session()->flash('success', __('roles.role_updated'));

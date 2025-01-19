@@ -60,5 +60,6 @@ Route::group(['prefix' => 'admin'], function () {
     Route::put('/product/update/{id}', [ProductController::class, 'update'])->name('product.update');
     Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
     Route::post('/product/store', [ProductController::class, 'store'])->name('product.store');
+    Route::get('/manufacturer/search', [ProductController::class, 'manufacturerSearch'])->name('product.manufacturerSearch');
 
 });
