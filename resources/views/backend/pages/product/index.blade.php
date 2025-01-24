@@ -1,7 +1,7 @@
 @extends('backend.layouts.master')
 
 @section('title')
-    Produkt
+    {{ __('product.title') }}
 @endsection
 
 @section('styles')
@@ -19,10 +19,10 @@
         <div class="row align-items-center">
             <div class="col-sm-6">
                 <div class="breadcrumbs-area clearfix">
-                    <h4 class="page-title pull-left">Product</h4>
+                    <h4 class="page-title pull-left">{{ __('product.title') }}</h4>
                     <ul class="breadcrumbs pull-left">
                         <li><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li><span>Product</span></li>
+                        <li><span>{{ __('product.title') }}</span></li>
                     </ul>
                 </div>
             </div>
@@ -35,27 +35,29 @@
     <div class="main-content-inner">
         <div class="row">
 
-            <h2 class="mb-4">Search Product by EAN</h2>
+            <h2 class="mb-4">{{ __('product.search_product_ean') }}</h2>
             <div class="card p-4">
                 <p class="float-right mb-2">
                     @if (Auth::guard('admin')->user()->can('role.create'))
-                        <a class="btn btn-primary text-white" href="{{ route('product.create') }}"> Nieuw product maken </a>
+                        <a class="btn btn-primary text-white" href="{{ route('product.create') }}">
+                            {{ __('product.create_new_product') }}
+                        </a>
                     @endif
                 </p>
                 <div class="clearfix"></div>
                 <!-- Step 1 -->
                 <div id="step1">
                     <div class="form-group">
-                        <label for="ean">Enter EAN Number</label>
-                        <input type="text" id="ean" class="form-control" placeholder="Enter EAN number">
+                        <label for="ean">{{ __('product.enter_ean') }}</label>
+                        <input type="text" id="ean" class="form-control" placeholder="{{ __('product.enter_ean') }}">
                     </div>
-                    <button id="searchBtn" class="btn btn-primary mt-3">Search</button>
+                    <button id="searchBtn" class="btn btn-primary mt-3">{{ __('product.search') }}</button>
                 </div>
 
                 <!-- Loader -->
                 <div id="loader" style="display: none;" class="text-center mt-3">
                     <div class="spinner-border text-dark" role="status">
-                        <span class="visually-hidden">Loading...</span>
+                        <span class="visually-hidden">{{ __('product.loading') }}</span>
                     </div>
                 </div>
 
@@ -64,9 +66,9 @@
                     <table class="table table-bordered">
                         <thead>
                         <tr>
-                            <th>Product Name</th>
-                            <th>EAN Number</th>
-                            <th>Action</th>
+                            <th>{{ __('product.product_name') }}</th>
+                            <th>{{ __('product.ean_number') }}</th>
+                            <th>{{ __('product.action') }}</th>
                         </tr>
                         </thead>
                         <tbody id="resultBody"></tbody>
@@ -85,7 +87,7 @@
                 const ean = $('#ean').val();
 
                 if (!ean) {
-                    alert('Please enter an EAN number!');
+                    alert('{{ __('product.enter_ean_alert') }}');
                     return;
                 }
 
@@ -104,19 +106,19 @@
                             $('#resultBody').html(`
                             <tr>
                                 <td>${response.product.name}</td>
-                                <td>${response.product.ean}</td>
+                                <td>${response.product.productNumber}</td>
                                 <td>
-                                    <a href="/product/edit/${response.product.id}" class="btn btn-sm btn-primary">Edit</a>
+                                    <a href="/product/edit/${response.product.id}" class="btn btn-sm btn-primary">{{ __('product.edit') }}</a>
                                 </td>
                             </tr>
                         `);
                         } else {
-                            alert('No product found with the given EAN number.');
+                            alert('{{ __('product.no_product_found') }}');
                         }
                     },
                     error: function () {
                         $('#loader').hide();
-                        alert('An error occurred while searching for the product.');
+                        alert('{{ __('product.error_occurred') }}');
                     }
                 });
             });

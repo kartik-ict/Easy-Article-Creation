@@ -2847,3 +2847,8 @@ table.dataTable thead td {
 }
 
 /*-------------------- END Offset Sidebar ------------------- */
+.js-example-basic-single {
+    width: 100% !important;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

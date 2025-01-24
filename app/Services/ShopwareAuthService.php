@@ -4,10 +4,10 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Session;
 use Vin\ShopwareSdk\Data\AccessToken;
-use \Vin\ShopwareSdk\Client\AdminAuthenticator;
-use \Vin\ShopwareSdk\Client\GrantType\ClientCredentialsGrantType;
+use Vin\ShopwareSdk\Client\AdminAuthenticator;
+use Vin\ShopwareSdk\Client\GrantType\ClientCredentialsGrantType;
 
 class ShopwareAuthService
 {
@@ -34,9 +34,10 @@ class ShopwareAuthService
 
             $tokenData = json_decode($response->getBody(), true);
 
-            // Cache the token with its expiration time
-            $expiresIn = $tokenData['expires_in'] ?? 3600; // Default to 1 hour
-            Cache::put('shopware_api_token', $tokenData['access_token'], $expiresIn - 60); // Store token for slightly less time to avoid expiry issues
+            // Store token and expiry in session
+            $expiresIn = $tokenData['expires_in'] ?? 600;
+            Session::put('shopware_api_token', $tokenData['access_token']);
+            Session::put('shopware_api_token_expiry', now()->addSeconds($expiresIn - 60)); // Buffer expiry by 1 minute
 
             return $tokenData['access_token'];
         } catch (RequestException $e) {
@@ -48,46 +49,66 @@ class ShopwareAuthService
     // Get token (generate if not available or expired)
     public function getToken()
     {
-        if (Cache::has('shopware_api_token')) {
-            return Cache::get('shopware_api_token');
+        // Check if token exists and is valid
+        if (Session::has('shopware_api_token') && Session::has('shopware_api_token_expiry')) {
+            if (Session::get('shopware_api_token_expiry') > now()) {
+                return Session::get('shopware_api_token');
+            }
         }
 
+        // Generate a new token if expired or missing
         return $this->generateToken();
     }
 
     // Generic API Request Method
-    public function makeApiRequest($method, $endpoint, $data = [])
+    public function makeApiRequest($method, $endpoint, $data = [], $retries = 3)
     {
-        try {
-            $token = $this->getToken();
+        $retryDelay = 1;
 
-            $response = $this->client->request($method, $this->apiUrl . $endpoint, [
-                'headers' => [
-                    'Accept' => 'application/vnd.api+json, application/json',
-                    'Authorization' => 'Bearer ' . $token,
-                ],
-                'json' => $data,
-            ]);
+        for ($i = 0; $i <= $retries; $i++) {
+            try {
+                $token = $this->getToken(); // Get or generate token
 
-            if ($response->getStatusCode() == 204) {
-                return ['success' => true];
-            } else {
+                $response = $this->client->request($method, $this->apiUrl . $endpoint, [
+                    'headers' => [
+                        'Accept' => 'application/vnd.api+json, application/json',
+                        'Authorization' => 'Bearer ' . $token,
+                    ],
+                    'json' => $data,
+                ]);
+
+                if ($response->getStatusCode() === 204) {
+                    return ['success' => true];
+                }
+
                 return json_decode($response->getBody(), true);
+            } catch (RequestException $e) {
+                $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : null;
+
+                if ($statusCode === 429 && $i < $retries) {
+                    // If rate-limited, wait before retrying
+                    sleep($retryDelay);
+                    $retryDelay *= 2; // Double the delay for exponential backoff
+                    continue;
+                }
+
+                // If unauthorized (token expired), clear session and retry
+                if ($statusCode === 401) {
+                    Session::forget(['shopware_api_token', 'shopware_api_token_expiry']);
+                    return $this->makeApiRequest($method, $endpoint, $data); // Retry with new token
+                }
+
+                // Return error for non-retriable responses
+                $errorMessage = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : $e->getMessage();
+                return ['error' => $errorMessage];
             }
-        } catch (RequestException $e) {
-            $errorMessage = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : $e->getMessage();
-
-            // If unauthorized (token expired), refresh token and retry once
-            if ($e->getResponse() && $e->getResponse()->getStatusCode() === 401) {
-                $newToken = $this->generateToken();
-
-                return $this->makeApiRequest($method, $endpoint, $data); // Retry with new token
-            }
-
-            return ['error' => $errorMessage];
         }
+
+        // If all retries fail, return an error
+        return ['error' => 'Too many requests. Please try again later.'];
     }
 
+    // Generate SDK Token (Optional)
     public function getSDKToken(): AccessToken
     {
         $grantType = new ClientCredentialsGrantType(config('shopware.client_id'), config('shopware.client_secret'));

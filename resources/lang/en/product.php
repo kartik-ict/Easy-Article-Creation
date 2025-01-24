@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'title' => 'Product',
+    'search_product_ean' => 'Search Product by EAN',
+    'create_new_product' => 'Create New Product',
+    'enter_ean' => 'Enter EAN Number',
+    'search' => 'Search',
+    'loading' => 'Loading...',
+    'product_name' => 'Product Name',
+    'ean_number' => 'EAN Number',
+    'action' => 'Action',
+    'edit' => 'Edit',
+    'no_product_found' => 'No product found with the given EAN number.',
+    'error_occurred' => 'An error occurred while searching for the product.',
+    'enter_ean_alert' => 'Please enter an EAN number!',
+    'create_product' => 'Create Product',
+    'name' => 'Name',
+    'stock' => 'Stock',
+    'manufacturer' => 'Manufacturer',
+    'tax_id' => 'Tax ID',
+    'product_number' => 'Product Number',
+    'description' => 'Description',
+    'sales_channel' => 'Sales Channel',
+    'category' => 'Category',
+    'media_url' => 'Media URL',
+    'submit' => 'Submit',
+    'searching' => 'Searching for data...',
+    'loading_more' => 'Loading more results...',
+    'no_results_found' => 'No results found.',
+    'taxRate' => 'Select a tax rate…',
+
+];

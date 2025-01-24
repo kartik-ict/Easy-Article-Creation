@@ -59,7 +59,14 @@ Route::group(['prefix' => 'admin'], function () {
     Route::get('/product/edit/{id}', [ProductController::class, 'edit'])->name('product.edit');
     Route::put('/product/update/{id}', [ProductController::class, 'update'])->name('product.update');
     Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
-    Route::post('/product/store', [ProductController::class, 'store'])->name('product.store');
-    Route::get('/manufacturer/search', [ProductController::class, 'manufacturerSearch'])->name('product.manufacturerSearch');
+    Route::post('/product/savedata', [ProductController::class, 'SaveData'])->name('product.saveData');
+    Route::post('/manufacturer/search', [ProductController::class, 'manufacturerSearch'])->name('product.manufacturerSearch');
+    Route::post('/sales-channel/search', [ProductController::class, 'searchSalesChannel'])->name('product.salesChannelSearch');
+    Route::post('/sales-channel/search', [ProductController::class, 'searchSalesChannel'])->name('product.salesChannelSearch');
+    Route::post('/category', [ProductController::class, 'categorySearch'])->name('product.categorySearch');
+    Route::post('/fetch-tax-providers', [ProductController::class, 'fetchTaxProviders'])->name('product.fetchTax');
+
+
+
 
 });

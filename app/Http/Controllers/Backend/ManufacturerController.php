@@ -24,8 +24,8 @@ class ManufacturerController extends Controller
     public function getAjaxData(Request $request)
     {
         try {
-            $page = $request->input('page', 1); // Default to page 1
-            $limit = $request->input('limit', 20); // Default to 20 records per page
+            $page = $request->input('page', 1);
+            $limit = $request->input('limit', 20);
 
             $queryParams = http_build_query([
                     'limit' => $limit,
@@ -48,8 +48,8 @@ class ManufacturerController extends Controller
 
                 return response()->json([
                     'draw' => $request->input('draw', 1), // for DataTables (helps with pagination state)
-                    'recordsTotal' => 17751,
-                    'recordsFiltered' => 17751,
+                    'recordsTotal' => 17752,
+                    'recordsFiltered' => 17752,
                     'data' => $formattedManufacturers
                 ]);
             }
