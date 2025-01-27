@@ -64,16 +64,16 @@ class RolePermissionSeeder extends Seeder
                     'role.delete'
                 ]
             ],
-            [
-                'group_name' => 'profile',
-                'permissions' => [
-                    // profile Permissions
-                    'profile.view',
-                    'profile.edit',
-                    'profile.delete',
-                    'profile.update',
-                ]
-            ],
+            // [
+            //     'group_name' => 'profile',
+            //     'permissions' => [
+            //         // profile Permissions
+            //         'profile.view',
+            //         'profile.edit',
+            //         'profile.delete',
+            //         'profile.update',
+            //     ]
+            // ],
             [
                 'group_name' => 'manufacture',
                 'permissions' => [

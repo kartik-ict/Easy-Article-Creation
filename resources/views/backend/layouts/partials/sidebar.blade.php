@@ -64,18 +64,18 @@
                         </li>
                     @endif
 
-                        @if ($usr->can('catalogue.view'))
+                        <!-- @if ($usr->can('catalogue.view')) -->
                             <li>
                                 <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-list"></i><span>
                             {{ trans('custom.catalog') }}
                         </span></a>
                                 <ul class="collapse {{ Route::is('admin.product.index') || Route::is('product.create') || Route::is('admin.manufacturers.create') || Route::is('admin.manufacturers.index') || Route::is('admin.manufacturers.edit') || Route::is('admin.manufacturers.show') ? 'in' : '' }}">
 
-{{--                                    @if ($usr->can('product.view'))--}}
+<!-- {{--                                    @if ($usr->can('product.view'))--}} -->
                                         <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
                                             <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
                                         </li>
-{{--                                    @endif--}}
+<!-- {{--                                    @endif--}} -->
 
                                     @if ($usr->can('manufacture.view'))
                                         <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
@@ -84,7 +84,7 @@
                                     @endif
                                 </ul>
                             </li>
-                        @endif
+                        <!-- @endif -->
                 </ul>
             </nav>
         </div>

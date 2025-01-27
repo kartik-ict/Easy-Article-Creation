@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Services\ShopwareAuthService;
+use App\Services\CurrencyService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\ShopwareProductService;
@@ -12,11 +13,13 @@ class ProductController extends Controller
 {
     protected $shopwareProductService;
     private $shopwareApiService;
+    private $currencyId;
 
-    public function __construct(ShopwareProductService $shopwareProductService, ShopwareAuthService $shopwareApiService)
+    public function __construct(ShopwareProductService $shopwareProductService, ShopwareAuthService $shopwareApiService, CurrencyService $currencyId)
     {
         $this->shopwareProductService = $shopwareProductService;
         $this->shopwareApiService = $shopwareApiService;
+        $this->currencyId = $currencyId;
     }
 
     public function index()
@@ -52,9 +55,9 @@ class ProductController extends Controller
         }
 
         $productData = [
-           'name' => $product['data']['0']['attributes']['translated']['name'],
-           'productNumber' => $product['data']['0']['attributes']['productNumber'],
-        ] ;
+            'name' => $product['data']['0']['attributes']['translated']['name'],
+            'productNumber' => $product['data']['0']['attributes']['productNumber'],
+        ];
 
         return response()->json(['product' => $productData], 200);
     }
@@ -144,52 +147,104 @@ class ProductController extends Controller
     }
     public function SaveData(Request $request)
     {
+
+        $currencyId = $this->currencyId->getCurrencyId();
+
         // Validate the incoming data
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'stock' => 'required|integer',
-            'manufacturer' => 'required|integer',
-            'taxId' => 'required|integer',
+            'manufacturer' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'taxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'productNumber' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'salesChannel' => 'required|integer',
-            'category' => 'required|integer',
+            'ean' => 'nullable|string|max:255',
+            'salesChannel.*' => 'required|string',
+            'category.*' => 'required|string',
             'mediaUrl' => 'nullable|url',
+            'priceGross' => 'required|numeric',
+            'priceNet' => 'required|numeric',
+            'active_for_all' => 'nullable|boolean'
         ]);
 
-        $uuid = (string) \Str::uuid();
+        // Generate a UUID for the new product
+        $uuid = str_replace('-', '', (string) \Str::uuid());
+
+        // Prepare visibilities
+        $visibilities = [];
+        foreach ($validatedData['salesChannel'] as $salesChannelId) {
+            $visibilityId = str_replace('-', '', (string) \Str::uuid()); // Generate a random ID
+            $visibilities[] = [
+                'id' => $visibilityId,
+                'productId' => $uuid,
+                'salesChannelId' => $salesChannelId,
+                'visibility' => 30 // Default visibility
+            ];
+        }
+
+        // Prepare categories
+        $categories = [];
+        foreach ($validatedData['category'] as $categoryId) {
+            $categories[] = ['id' => $categoryId];
+        }
+
         // Prepare the data for the API request
         $data = [
-            'id' => $uuid,  // Set the generated UUID here
+            'id' => $uuid,
             'name' => $validatedData['name'],
-            'stock' => $validatedData['stock'],
-            'manufacturer' => $validatedData['manufacturer'],
+            'stock' => intval($validatedData['stock']),
+            'manufacturerId' => $validatedData['manufacturer'],
             'taxId' => $validatedData['taxId'],
             'productNumber' => $validatedData['productNumber'],
             'description' => $validatedData['description'],
-            'salesChannel' => $validatedData['salesChannel'],
-            'category' => $validatedData['category'],
+            'ean' => $validatedData['ean'],
+            'categories' => $categories,
+            'visibilities' => $visibilities,
             'mediaUrl' => $validatedData['mediaUrl'],
+            'active' => boolval($validatedData['active_for_all']),
+            'price' => [
+                [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['priceGross']),
+                    'net' => floatval($validatedData['priceNet']),
+                    'linked' => true
+                ]
+            ]
         ];
 
         try {
             // Make the API request to create the product
-            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/products', $data);
+            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
             // If the API call is successful
             if (isset($response['data'])) {
-                // Return a success message or redirect the user
                 return redirect()->route('product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
             }
         } catch (\Exception $e) {
-            // Handle any errors from the API
+            // Log and return error
             \Log::error('Error creating product: ' . $e->getMessage());
             return back()->withErrors(__('product.failed_to_create_product'));
         }
     }
 
+    public function updateStock(Request $request)
+    {
+        $request->validate([
+            'stock' => 'required|integer|min:0',
+            'ean' => 'required|string'
+        ]);
 
+        $product = Product::where('ean', $request->ean)->first();
 
+        if ($product) {
+            $product->stock = $request->stock;
+            $product->save();
+
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['error' => 'Product not found'], 404);
+    }
 }
