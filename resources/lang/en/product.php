@@ -4,7 +4,6 @@ return [
     'title' => 'Product',
     'search_product_ean' => 'Search Product by EAN',
     'create_new_product' => 'Create New Product',
-    'enter_ean' => 'Enter EAN Number',
     'search' => 'Search',
     'loading' => 'Loading...',
     'product_name' => 'Product Name',
@@ -47,6 +46,12 @@ return [
     'product_details' => 'Product Data',
     'update'=> "Update Stock",
     'select_grade_alert' => 'Select Option',
-    'enter_stock_alert' => 'Enter the Stock'
+    'enter_stock_alert' => 'Enter the Stock',
+    'current_stock' => 'Current Stock',
+    'next' => 'Next',
+    'previous' => 'Previous',
+    'enter_new_stock' => 'Enter a new stock',
+    'stock_updated'=> 'Stock updated successfully.',
+    'stock_update_failed' => 'Stock update failed.',
 
 ];

@@ -4,7 +4,6 @@ return [
     'title' => 'Product',
     'search_product_ean' => 'Zoek product op EAN',
     'create_new_product' => 'Nieuw product maken',
-    'enter_ean' => 'Voer EAN-nummer in',
     'search' => 'Zoeken',
     'loading' => 'Laden...',
     'product_name' => 'Productnaam',
@@ -47,5 +46,12 @@ return [
     'product_details' => 'Productgegevens',
     'update'=> "Voorraad bijwerken",
     'select_grade_alert' => 'Selecteer optie',
-    'enter_stock_alert' => 'Voer de voorraad in'
+    'enter_stock_alert' => 'Voer de voorraad in',
+    'current_stock' => 'Huidige voorraad',
+    'next' => 'Volgende',
+    'previous' => 'Vorige',
+    'new_stock' => 'Nieuwe voorraad',
+    'enter_new_stock' => 'Voer een nieuwe voorraad in',
+    'stock_updated'=> 'Voorraad bijgewerkt.',
+    'stock_update_failed' => 'Voorraadupdate mislukt.',
 ];

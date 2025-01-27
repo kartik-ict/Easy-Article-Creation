@@ -57,6 +57,8 @@ class ProductController extends Controller
         $productData = [
             'name' => $product['data']['0']['attributes']['translated']['name'],
             'productNumber' => $product['data']['0']['attributes']['productNumber'],
+            'stock' => $product['data']['0']['attributes']['stock'],
+            'id' => $product['data']['0']['id'],
         ];
 
         return response()->json(['product' => $productData], 200);
@@ -232,19 +234,25 @@ class ProductController extends Controller
     public function updateStock(Request $request)
     {
         $request->validate([
-            'stock' => 'required|integer|min:0',
-            'ean' => 'required|string'
+            'product_id' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'new_stock' => 'required|integer|min:0'
         ]);
 
-        $product = Product::where('ean', $request->ean)->first();
+        $data = [
+            'id' => $request->product_id,
+            'stock' => intval($request->new_stock)
+        ];
+        // Using common API call function
+        try {
+            $response = $this->shopwareApiService->makeApiRequest(
+                'PATCH',
+                '/api/product/' . $request->product_id,
+                $data
+            );
 
-        if ($product) {
-            $product->stock = $request->stock;
-            $product->save();
-
-            return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'response' => $response]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        return response()->json(['error' => 'Product not found'], 404);
     }
 }
