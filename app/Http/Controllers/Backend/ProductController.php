@@ -38,16 +38,22 @@ class ProductController extends Controller
             'filter' => [
                 [
                     'type' => 'equals',
-                    'field' => 'productNumber',
+                    'field' => 'ean',
                     'value' => $ean,
                 ]
             ],
-            'limit' => 1,
+            "associations"=> [
+                "options" => [
+                    "group" => [
+                        "total-count-mode" => 1
+                    ],
+                ],
+                "total-count-mode" => 1
+            ],
         ];
 
         // Make API request using the common function
         $product = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product', $payload);
-
         if (!$product['data']) {
             return response()->json([
                 'error' => __('messages.product_not_found'),
@@ -56,9 +62,10 @@ class ProductController extends Controller
 
         $productData = [
             'name' => $product['data']['0']['attributes']['translated']['name'],
-            'productNumber' => $product['data']['0']['attributes']['productNumber'],
+            'ean' => $product['data']['0']['attributes']['ean'],
             'stock' => $product['data']['0']['attributes']['stock'],
             'id' => $product['data']['0']['id'],
+            'productData' => $product['data'],
         ];
 
         return response()->json(['product' => $productData], 200);
@@ -254,5 +261,25 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function propertyGroupSearch(Request $request)
+    {
+        // Prepare the data payload for the API request
+        $data = [
+            'page' => $request->get('page', 1),
+            'limit' => 25,             // You can adjust this limit if needed
+//            'term' => $request->get('term', ''),
+            'total-count-mode' => 1    // Flag to include the total count in the response
+        ];
+
+        // Make the API request using the common function
+        $response =  $this->shopwareApiService->makeApiRequest('GET', '/api/property-group', $data);
+
+        // Return the data in the required format for select2
+        return response()->json([
+            'propertyGroups' => $response['data'] ?? [], // Manufacturer data
+            'total' => $response['total'] ?? 0,          // Total manufacturers available
+        ]);
     }
 }

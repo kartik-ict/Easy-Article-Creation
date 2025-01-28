@@ -138,6 +138,37 @@
                             <button id="updateDataBtn" class="btn btn-primary btn-next">{{ __('product.update_stock') }}</button>
                         </div>
                     </div>
+                    <!-- Additional Section for Yes Selection (Initially hidden) -->
+
+                    <div id="yesStepDetails" style="display:none;" class="step">
+                        <div class="step-header">{{ __('product.step3_additional_product_details') }}</div>
+
+                        <div class="form-group">
+                            <label for="productName">{{ __('product.product_name') }}</label>
+                            <span id="productName"></span> <!-- To display the product name -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productPrice">{{ __('product.product_price') }}</label>
+                            <span id="productPrice"></span> <!-- To display the product price -->
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productDescription">{{ __('product.product_description') }}</label>
+                            <span id="productDescription"></span> <!-- To display the product description -->
+                        </div>
+
+                        <!-- Property Group Selection -->
+                        <div class="form-group">
+                            <label for="propertyOptions">{{ __('product.property_group') }}</label>
+                            <select id="propertyOptions" class="js-example-basic-single form-control">
+                            </select>
+                        </div>
+
+                        <!-- Back and Next Buttons -->
+                        <button id="back3YesStep" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
+                        <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
+                    </div>
 
                 </div>
             </div>
@@ -146,11 +177,14 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         $(document).ready(function () {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
             let selectedGrade = "";
+            let selectedPropertyGroup = "";
 
             // Step 1: Search product by EAN
             $('#searchBtn').on('click', function () {
@@ -174,36 +208,70 @@
                     method: "POST",
                     data: { ean, _token: "{{ csrf_token() }}" },
                     success: function (response) {
-                        if (response.product) {
-                            productDetails = response.product;
-                            $('#productDetails').html(`
-                        <p><strong>{{ __('product.product_name') }}:</strong> ${response.product.name}</p>
-                        <p><strong>{{ __('product.ean_number') }}:</strong> ${response.product.productNumber}</p>
-                        <p><strong>{{ __('product.stock') }}:</strong> ${response.product.stock || '0'}</p>
-                    `);
-                            $('#gradeSection').show();  // Show grade selection section
-                            $('#backBtn').show();  // Show back button
-                            $('#nextBtn').show();  // Show next button
+                        if (response.product && response.product.productData && response.product.productData.length > 0) {
+                            let productTable = `
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>{{ __('product.product_name') }}</th>
+                            <th>{{ __('product.ean_number') }}</th>
+                            <th>{{ __('product.stock') }}</th>
+                            <th>{{ __('product.property_group_option') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                            response.product.productData.forEach(product => {
+                                // Map property group option names based on option IDs
+                                let propertyGroupNames = '';
+                                if (product.attributes.optionIds) {
+                                    product.attributes.optionIds.forEach(optionId => {
+                                        let matchingOption = response.product.productData.attributes.optionIds.find(option =>
+                                            option.id === optionId && option.type === "property_group_option"
+                                        );
+                                        console.log("matchingOption",matchingOption);
+                                        if (matchingOption) {
+                                            propertyGroupNames += `${matchingOption.attributes.name || 'N/A'}<br>`;
+                                        }
+                                    });
+                                }
+
+                                productTable += `
+                    <tr>
+                        <td>${product.attributes.translated.name || '-'}</td>
+                        <td>${product.attributes.ean || '-'}</td>
+                        <td>${product.attributes.stock || '0'}</td>
+                        <td>${propertyGroupNames || '-'}</td>
+                    </tr>`;
+                            });
+
+                            productTable += `</tbody></table>`;
+
+                            $('#productDetails').html(productTable);
+                            $('#gradeSection').show();
+                            $('#backBtn').show();
+                            $('#nextBtn').show();
                         } else {
-                            alert('{{ __('product.no_product_found') }}');
-                            $('#productDetails').html('{{ __('product.no_product_found') }}');
-                            $('#nextBtn').hide();  // Hide next button if no product is found
+                            $('#productDetails').html('<p class="text-danger">{{ __('product.no_product_found') }}</p>');
+                            $('#nextBtn').hide();
                         }
                     },
                     error: function () {
                         alert('{{ __('product.error_occurred') }}');
-                        $('#productDetails').html('{{ __('product.error_occurred') }}');
-                        $('#nextBtn').hide();  // Hide next button on error
+                        $('#productDetails').html('<p class="text-danger">{{ __('product.error_occurred') }}</p>');
+                        $('#nextBtn').hide();
                     }
                 });
+
             });
 
             // Handle grade selection
             $('#differentGrade').on('change', function () {
                 selectedGrade = $(this).val();
                 if (selectedGrade === "no") {
-                    $('#newStockSection').show();  // Show new stock input
+                    $('#newStockSectionnewStockSection').show();  // Show new stock input
                     $('#updateDataBtn').show();  // Show update button
+                }else if (selectedGrade === "yes") {
                 } else {
                     $('#newStockSection').hide();  // Hide new stock input
                     $('#updateDataBtn').hide();  // Hide update button
@@ -217,7 +285,13 @@
                     $('#step2').hide();
                     $('#step3').show();
                     $('#currentStock').val(productDetails.stock);  // Show current stock
-                } else {
+                } else if (selectedGrade === "yes") {
+                    $('#step2').hide();
+                    $('#yesStepDetails').show(); // Assuming #yesStepDetails is the container for Yes flow
+
+                    // Populate product details
+                    $('#productName').text(productDetails.name);
+                }else {
                     alert('{{ __('product.select_grade_alert') }}');
                 }
             });
@@ -236,6 +310,11 @@
                 $('#step3').hide();
                 $('#step2').show();
                 $('#nextBtn').show();  // Show next button again
+            });
+
+            $('#back3YesStep').on('click', function () {
+                $('#yesStepDetails').hide();  // Hide Step 3 (Yes Step Details)
+                $('#step2').show();  // Show Step 2
             });
 
             // Handle Update Data button (Update stock)
@@ -266,6 +345,97 @@
                     }
                 });
             });
+
+            // API CALLING For The PropertyGroup
+
+            let currentPage = 1;
+            let isLoading = false;
+            let isEndOfResults = false;
+
+            $('#propertyOptions').select2({
+                width: '50%',
+                placeholder: '@lang("product.propertyGroup")',
+                ajax: {
+                    url: '{{ route("product.propertyGroupSearch") }}',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        if (params.term) {
+                            currentPage = 1;
+                        }
+
+                        return {
+                            page: currentPage,
+                            limit: 25,
+                            term: params.term || '',
+                            'total-count-mode': 1
+                        };
+                    },
+                    processResults: function (data) {
+                        isEndOfResults = (data.propertyGroups.length < 25);
+
+                        const results = data.propertyGroups.map(function (group) {
+                            return {
+                                id: group.id,
+                                text: group.attributes.translated.name
+                            };
+                        });
+
+                        return {
+                            results: results,
+                            pagination: {
+                                more: !isEndOfResults
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0,
+                allowClear: true,
+                language: {
+                    searching: function () {
+                        return "Zoeken, even geduld...";
+                    },
+                    loadingMore: function () {
+                        return "Meer resultaten laden...";
+                    },
+                    noResults: function () {
+                        return "Geen resultaten gevonden.";
+                    }
+                }
+            });
+
+// Reset flags and handle scrolling for pagination
+            $('#propertyOptions').on('select2:open', function () {
+                currentPage = 1;
+                isLoading = false;
+                isEndOfResults = false;
+
+                const dropdown = $('.select2-results__options');
+
+                dropdown.on('scroll', function () {
+                    const scrollTop = dropdown.scrollTop();
+                    const containerHeight = dropdown.innerHeight();
+                    const scrollHeight = dropdown[0].scrollHeight;
+
+                    if (scrollTop + containerHeight >= scrollHeight - 10 && !isEndOfResults) {
+                        isLoading = true;
+                        currentPage++;
+                        $('#propertyOptions').select2('open');
+                    }
+                });
+            });
+
+            $('#propertyOptions').on('select2:close', function () {
+                currentPage = 1;
+                isLoading = false;
+                isEndOfResults = false;
+            });
+
         });
     </script>
 @endsection

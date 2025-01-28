@@ -54,4 +54,9 @@ return [
     'enter_new_stock' => 'Voer een nieuwe voorraad in',
     'stock_updated'=> 'Voorraad bijgewerkt.',
     'stock_update_failed' => 'Voorraadupdate mislukt.',
+    'step3_additional_product_details' => 'Stap 3: Voer de vereiste productinformatie in',
+    'product_price' => 'Productprijs',
+    'product_description' => 'Productbeschrijving',
+    'property_group' => 'Eigenschappengroep',
+
 ];
