@@ -53,9 +53,10 @@ return [
     'enter_new_stock' => 'Enter a new stock',
     'stock_updated'=> 'Stock updated successfully.',
     'stock_update_failed' => 'Stock update failed.',
-    'step3_additional_product_details' => 'Step 3: Enter the Required Product Information',
+    'step3_show_product_details' => 'Step 3: Product Information',
     'product_price' => 'Product Price',
     'product_description' => 'Product Description',
     'property_group' => 'Property Group',
+    'step4' => 'Step 4 : Enter the Required Product Information',
 
 ];

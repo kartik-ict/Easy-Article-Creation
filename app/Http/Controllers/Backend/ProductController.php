@@ -42,30 +42,42 @@ class ProductController extends Controller
                     'value' => $ean,
                 ]
             ],
-            "associations"=> [
-                "options" => [
-                    "group" => [
-                        "total-count-mode" => 1
-                    ],
+            'associations' => [
+                'children' => [],
+                'manufacturer' => [],
+                'tax' => [],
+                'categories' => [],
+                'media' => [],
+                'options' => [
+                    'associations' => [
+                        'group' => []
+                    ]
                 ],
-                "total-count-mode" => 1
+                'properties' => [
+                    'associations' => [
+                        'group' => []
+                    ]
+                ],
             ],
+            'inheritance' => true,
+            'total-count-mode' => 1,
         ];
 
         // Make API request using the common function
-        $product = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product', $payload);
+        $product = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product?inheritance=true', $payload);
+
         if (!$product['data']) {
             return response()->json([
                 'error' => __('messages.product_not_found'),
             ], 404);
         }
-
         $productData = [
             'name' => $product['data']['0']['attributes']['translated']['name'],
             'ean' => $product['data']['0']['attributes']['ean'],
             'stock' => $product['data']['0']['attributes']['stock'],
             'id' => $product['data']['0']['id'],
             'productData' => $product['data'],
+            'included' => $product['included'],
         ];
 
         return response()->json(['product' => $productData], 200);

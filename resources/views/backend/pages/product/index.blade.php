@@ -83,7 +83,7 @@
             <div class="col-lg-12">
                 <div class="card p-4">
                     <h2 class="mb-4">{{ __('product.search_product_ean') }}</h2>
-
+                    <div id="route-container" data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
                     <!-- Step 1: Search EAN -->
                     <div id="step1" class="step">
                         <div class="step-header">Step 1: {{ __('product.enter_ean') }}</div>
@@ -120,55 +120,152 @@
                     <div id="step3" style="display: none;" class="step">
                         <div class="step-header">Step 3: {{ __('product.update_stock') }}</div>
                         <div id="step3Content">
-                            <!-- Current Stock Displayed as Disabled Input -->
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <label>{{ __('product.current_stock') }}</label>
-                                    <input type="number" id="currentStock" class="form-control" disabled>
-                                </div>
-                                <!-- Update Stock Field -->
-                                <div id="newStockSection" style="display:none;" class="col-6">
-                                    <label>{{ __('product.new_stock') }}</label>
-                                    <input type="number" id="newStock" class="form-control" placeholder="{{ __('product.enter_new_stock') }}">
-                                </div>
-                            </div>
+                            <!-- Product Table with Stock Information -->
+                            <table class="table table-bordered mt-3" id="productTable">
+                                <thead>
+                                <tr>
+                                    <th>{{ __('product.product_name') }}</th>
+                                    <th>{{ __('product.ean_number') }}</th>
+                                    <th>{{ __('product.current_stock') }}</th>
+                                    <th>{{ __('product.new_stock') }}</th>
+                                    <th>{{ __('product.action') }}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Dynamic rows will be inserted here -->
+                                </tbody>
+                            </table>
 
                             <!-- Back and Update Data Buttons -->
                             <button id="backStep2Btn" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
-                            <button id="updateDataBtn" class="btn btn-primary btn-next">{{ __('product.update_stock') }}</button>
+{{--                            <button id="updateDataBtn" class="btn btn-primary btn-next">{{ __('product.update_stock') }}</button>--}}
                         </div>
                     </div>
+
                     <!-- Additional Section for Yes Selection (Initially hidden) -->
 
                     <div id="yesStepDetails" style="display:none;" class="step">
-                        <div class="step-header">{{ __('product.step3_additional_product_details') }}</div>
+                        <div class="step-header">{{ __('product.step3_show_product_details') }}</div>
 
-                        <div class="form-group">
-                            <label for="productName">{{ __('product.product_name') }}</label>
-                            <span id="productName"></span> <!-- To display the product name -->
-                        </div>
+                        <table class="table table-bordered mt-3" id="productTable-update">
+                            <thead>
+                            <tr>
+                                <th>{{ __('product.product_name') }}</th>
+                                <th>{{ __('product.ean_number') }}</th>
+                                <th>{{ __('product.current_stock') }}</th>
+                                <th>{{ __('product.action') }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
 
-                        <div class="form-group">
-                            <label for="productPrice">{{ __('product.product_price') }}</label>
-                            <span id="productPrice"></span> <!-- To display the product price -->
-                        </div>
 
-                        <div class="form-group">
-                            <label for="productDescription">{{ __('product.product_description') }}</label>
-                            <span id="productDescription"></span> <!-- To display the product description -->
-                        </div>
+                        <!-- Product Edit Modal -->
+                        <div class="modal fade" id="productEditModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{{ __('product.step4') }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="product-form" action="{{ route('product.saveData') }}" method="POST">
+                                            @csrf
+                                            <div class="row">
+                                                <!-- Left Column -->
+                                                <div class="col-md-6">
+                                                    <h5 class="mb-3">{{ __('product.general_information') }}</h5>
 
-                        <!-- Property Group Selection -->
-                        <div class="form-group">
-                            <label for="propertyOptions">{{ __('product.property_group') }}</label>
-                            <select id="propertyOptions" class="js-example-basic-single form-control">
-                            </select>
+                                                    <div class="form-group mb-3">
+                                                        <label for="name">@lang('product.name'):</label>
+                                                        <input type="text" class="form-control" id="name" name="name" required>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="stock">@lang('product.stock'):</label>
+                                                        <input type="number" class="form-control" id="stock" name="stock" required>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="manufacturer">@lang('product.manufacturer'):</label>
+                                                        <select id="manufacturer-select" class="js-example-basic-single form-control" name="manufacturer" required>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="taxId">@lang('product.tax_id'):</label>
+                                                        <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="productNumber">@lang('product.product_number'):</label>
+                                                        <input type="text" class="form-control" id="productNumber" name="productNumber" required>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="price_gross">{{ __('product.price_gross') }}</label>
+                                                        <input type="number" name="priceGross" id="priceGross" class="form-control" step="any" required placeholder="{{ __('product.enter_price_gross') }}">
+                                                    </div>
+
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1">
+                                                        <label class="form-check-label" for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Right Column -->
+                                                <div class="col-md-6">
+                                                    <h5 class="mb-3">{{ __('product.additional_information') }}</h5>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="description">@lang('product.description'):</label>
+                                                        <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="salesChannel">@lang('product.sales_channel'):</label>
+                                                        <select id="sales-channel-select" class="js-example-basic-single form-control" name="salesChannel[]" multiple required>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="category">@lang('product.category'):</label>
+                                                        <select id="category-select" class="js-example-basic-single form-control" name="category[]" multiple required>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="ean">@lang('product.ean'):</label>
+                                                        <input type="text" id="eanForm" class="form-control" name="eanForm" placeholder="@lang('product.enter_ean')" required>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label for="mediaUrl">@lang('product.media_url'):</label>
+                                                        <input type="url" class="form-control" id="mediaUrl" name="mediaUrl">
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="price_net">{{ __('product.price_net') }}</label>
+                                                        <input type="number" name="priceNet" id="priceNet" class="form-control" step="any" placeholder="{{ __('product.calculated_price_net') }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn btn-success w-100">{{ __('product.submit') }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Back and Next Buttons -->
                         <button id="back3YesStep" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
                         <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
                     </div>
+
+                </div>
 
                 </div>
             </div>
@@ -178,12 +275,15 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
 
     <script>
         $(document).ready(function () {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
+            let allProductData = [];
             let selectedGrade = "";
+            let productRow = "";
             let selectedPropertyGroup = "";
 
             // Step 1: Search product by EAN
@@ -208,44 +308,15 @@
                     method: "POST",
                     data: { ean, _token: "{{ csrf_token() }}" },
                     success: function (response) {
-                        if (response.product && response.product.productData && response.product.productData.length > 0) {
+                        if (response.product) {
+                            allProductData = response.product;
+                            const productName = response.product.name || '-';
+                            const eanNumber = response.product.ean || '-';
+
                             let productTable = `
-                <table class="table table-bordered mt-3">
-                    <thead>
-                        <tr>
-                            <th>{{ __('product.product_name') }}</th>
-                            <th>{{ __('product.ean_number') }}</th>
-                            <th>{{ __('product.stock') }}</th>
-                            <th>{{ __('product.property_group_option') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
-                            response.product.productData.forEach(product => {
-                                // Map property group option names based on option IDs
-                                let propertyGroupNames = '';
-                                if (product.attributes.optionIds) {
-                                    product.attributes.optionIds.forEach(optionId => {
-                                        let matchingOption = response.product.productData.attributes.optionIds.find(option =>
-                                            option.id === optionId && option.type === "property_group_option"
-                                        );
-                                        console.log("matchingOption",matchingOption);
-                                        if (matchingOption) {
-                                            propertyGroupNames += `${matchingOption.attributes.name || 'N/A'}<br>`;
-                                        }
-                                    });
-                                }
-
-                                productTable += `
-                    <tr>
-                        <td>${product.attributes.translated.name || '-'}</td>
-                        <td>${product.attributes.ean || '-'}</td>
-                        <td>${product.attributes.stock || '0'}</td>
-                        <td>${propertyGroupNames || '-'}</td>
-                    </tr>`;
-                            });
-
-                            productTable += `</tbody></table>`;
+                    <p><strong>{{ __('product.product_name') }}:</strong> ${productName}</p>
+                    <p><strong>{{ __('product.ean_number') }}:</strong> ${eanNumber}</p>
+                `;
 
                             $('#productDetails').html(productTable);
                             $('#gradeSection').show();
@@ -262,6 +333,7 @@
                         $('#nextBtn').hide();
                     }
                 });
+
 
             });
 
@@ -284,13 +356,84 @@
                     // Transition to Step 3
                     $('#step2').hide();
                     $('#step3').show();
-                    $('#currentStock').val(productDetails.stock);  // Show current stock
+                    $('#productTable tbody').empty();
+
+                    if (Array.isArray(allProductData.productData)) {
+                        allProductData.productData.forEach(product => {
+                            let propertyGroupNames = '';
+
+                            // Handling product attributes like options (property group)
+                            if (product.attributes?.optionIds?.length) {
+                                product.attributes.optionIds.forEach(optionId => {
+
+                                    // Find matching property group options from the included data
+                                    const matchingOption = allProductData.included.find(data => {
+                                        return data.id === optionId && data.type === "property_group_option";
+                                    });
+
+                                    if (matchingOption && matchingOption.attributes?.name) {
+                                        propertyGroupNames += `${matchingOption.attributes.name}<br>`;
+                                    } else {
+                                        propertyGroupNames += 'N/A<br>';
+                                    }
+                                });
+                            }
+
+                            // Create a new row for the table
+                            const productRow = `
+            <tr data-product-id="${product.id}">
+                <td>${product.attributes.translated?.name + "("+propertyGroupNames+")" || '-'}</td>
+                <td>${product.attributes.ean || '-'}</td>
+                <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
+                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
+
+            </tr>
+        `;
+
+                            // Append the new row to the table
+                            $('#productTable tbody').append(productRow);
+                        });
+                    }
+
+
                 } else if (selectedGrade === "yes") {
                     $('#step2').hide();
-                    $('#yesStepDetails').show(); // Assuming #yesStepDetails is the container for Yes flow
+                    $('#yesStepDetails').show();
+                    $('#productTable-update tbody').empty();
 
-                    // Populate product details
-                    $('#productName').text(productDetails.name);
+                    if (Array.isArray(allProductData.productData)) {
+                        allProductData.productData.forEach(product => {
+                            let propertyGroupNames = '';
+
+                            // Handling product attributes like options (property group)
+                            if (product.attributes?.optionIds?.length) {
+                                product.attributes.optionIds.forEach(optionId => {
+
+                                    // Find matching property group options from the included data
+                                    const matchingOption = allProductData.included.find(data => {
+                                        return data.id === optionId && data.type === "property_group_option";
+                                    });
+
+                                    if (matchingOption && matchingOption.attributes?.name) {
+                                        propertyGroupNames += `${matchingOption.attributes.name}<br>`;
+                                    } else {
+                                        propertyGroupNames += 'N/A<br>';
+                                    }
+                                });
+                            }
+
+                            // Create a new row for the table
+                            const productRow = `
+            <tr data-product-id="${product.id}">
+                <td>${product.attributes.translated?.name + "("+propertyGroupNames+")" || '-'}</td>
+                <td>${product.attributes.ean || '-'}</td>
+                <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
+                <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>`;
+
+                            $('#productTable-update tbody').append(productRow);
+                        });
+                    }
                 }else {
                     alert('{{ __('product.select_grade_alert') }}');
                 }
@@ -318,123 +461,93 @@
             });
 
             // Handle Update Data button (Update stock)
-            $('#updateDataBtn').on('click', function () {
-                const newStock = $('#newStock').val();
+            $(document).on('click', '.update-stock-btn', function () {
+                const row = $(this).closest('tr'); // Get the clicked row
+                const productId = $(this).data('product-id'); // Get the product ID from the clicked button
+                const currentStock = row.find('.current-stock').text(); // Get the current stock value from the clicked row
+                const newStockInput = row.find('.new-stock'); // Get the new stock input for this row
+
+                const newStock = newStockInput.val(); // Get the new stock value from input
+
+                // Ensure that new stock value is entered
                 if (!newStock) {
-                    alert('{{ __('product.enter_new_stock_alert') }}');
+                    alert('{{ __('product.enter_new_stock_alert') }}'); // Show alert if new stock value is not entered
                     return;
                 }
+
+                // Show loader while updating stock
                 $('#step3Content').html('<div class="loader"></div>');
-                // Update stock logic
+
+                // AJAX request to update stock
                 $.ajax({
                     url: "{{ route('product.update_stock') }}",
                     method: 'POST',
                     data: {
-                        product_id: productDetails.id,
-                        new_stock: newStock,
-                        _token: "{{ csrf_token() }}"
+                        product_id: productId, // Pass product ID dynamically
+                        new_stock: newStock,    // Pass new stock value
+                        _token: "{{ csrf_token() }}" // CSRF token
                     },
                     success: function (response) {
-                        alert('{{ __('product.stock_updated') }}');
-                        location.reload();
+                        alert('{{ __('product.stock_updated') }}'); // Show success alert
+                        location.reload(); // Reload the page to see updated stock values
                         $('#step3').hide();
                         $('#step1').show();
                     },
                     error: function () {
-                        alert('{{ __('product.error_updating_stock') }}');
+                        alert('{{ __('product.error_updating_stock') }}'); // Show error alert if update fails
                     }
                 });
             });
 
-            // API CALLING For The PropertyGroup
+            // Handle the Yes Flow
 
-            let currentPage = 1;
-            let isLoading = false;
-            let isEndOfResults = false;
+            $(document).on('click', '.edit-details-btn', function () {
+                const productId = $(this).data('product-id');
 
-            $('#propertyOptions').select2({
-                width: '50%',
-                placeholder: '@lang("product.propertyGroup")',
-                ajax: {
-                    url: '{{ route("product.propertyGroupSearch") }}',
-                    type: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        if (params.term) {
-                            currentPage = 1;
-                        }
+                // Find the product details from allProductData
+                const productData = allProductData.productData.find(product => product.id === productId);
 
-                        return {
-                            page: currentPage,
-                            limit: 25,
-                            term: params.term || '',
-                            'total-count-mode': 1
-                        };
-                    },
-                    processResults: function (data) {
-                        isEndOfResults = (data.propertyGroups.length < 25);
+                if (productData) {
+                    // Populate the modal form with product data
+                    $('#name').val(productData.attributes.translated.name || '');
+                    $('#eanForm').val(productData.attributes.ean || '');
+                    $('#stock').val(productData.attributes.stock || '');
+                    $('#description').val(productData.attributes.description || '');
 
-                        const results = data.propertyGroups.map(function (group) {
-                            return {
-                                id: group.id,
-                                text: group.attributes.translated.name
-                            };
-                        });
+                    // For the `productNumber` field, if there's a `productNumber` field in your data:
+                    $('#productNumber').val(productData.attributes.productNumber || '');
 
-                        return {
-                            results: results,
-                            pagination: {
-                                more: !isEndOfResults
-                            }
-                        };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 0,
-                allowClear: true,
-                language: {
-                    searching: function () {
-                        return "Zoeken, even geduld...";
-                    },
-                    loadingMore: function () {
-                        return "Meer resultaten laden...";
-                    },
-                    noResults: function () {
-                        return "Geen resultaten gevonden.";
+                    // For the `priceGross` and `priceNet` fields, if they are part of the `price` array:
+                    if (productData.attributes.price && productData.attributes.price.length > 0) {
+                        $('#priceGross').val(productData.attributes.price[0].gross || ''); // Assuming gross is the first value in the price object
+                        $('#priceNet').val(productData.attributes.price[0].net || ''); // Assuming net is the first value in the price object
                     }
+
+                    // For the manufacturer, if the manufacturer data is provided in the object (like `manufacturerId`):
+                    $('#manufacturer-select').val(productData.attributes.manufacturerId || '').trigger('change');
+
+                    // For the tax provider, if you have the taxId:
+                    $('#tax-provider-select').val(productData.attributes.taxId || '').trigger('change');
+
+                    // For the salesChannel, assuming it’s an array:
+                    $('#sales-channel-select').val(productData.attributes.sales || []).trigger('change');
+
+                    // For the category, assuming it’s an array of categoryIds:
+                    $('#category-select').val(productData.attributes.categoryIds || []).trigger('change');
+
+                    // For the `active_for_all` checkbox, if `available` is true, set it to checked:
+                    $('#active_for_all').prop('checked', productData.attributes.available || false);
+
+
+                    // Show the modal
+                    $('#productEditModal').modal('show');
+                } else {
+                    alert("Product details not found.");
                 }
             });
 
-// Reset flags and handle scrolling for pagination
-            $('#propertyOptions').on('select2:open', function () {
-                currentPage = 1;
-                isLoading = false;
-                isEndOfResults = false;
 
-                const dropdown = $('.select2-results__options');
 
-                dropdown.on('scroll', function () {
-                    const scrollTop = dropdown.scrollTop();
-                    const containerHeight = dropdown.innerHeight();
-                    const scrollHeight = dropdown[0].scrollHeight;
-
-                    if (scrollTop + containerHeight >= scrollHeight - 10 && !isEndOfResults) {
-                        isLoading = true;
-                        currentPage++;
-                        $('#propertyOptions').select2('open');
-                    }
-                });
-            });
-
-            $('#propertyOptions').on('select2:close', function () {
-                currentPage = 1;
-                isLoading = false;
-                isEndOfResults = false;
-            });
 
         });
     </script>
