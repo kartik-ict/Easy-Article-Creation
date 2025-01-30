@@ -2852,3 +2852,6 @@ table.dataTable thead td {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+.select2-container {
+    width: 100% !important;
+}

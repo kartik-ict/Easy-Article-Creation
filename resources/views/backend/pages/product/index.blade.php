@@ -84,6 +84,9 @@
                 <div class="card p-4">
                     <h2 class="mb-4">{{ __('product.search_product_ean') }}</h2>
                     <div id="route-container" data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
+                    <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"></div>
+                    <div id="route-container-category" data-category-search="{{ route('product.categorySearch') }}"></div>
+                    <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
                     <!-- Step 1: Search EAN -->
                     <div id="step1" class="step">
                         <div class="step-header">Step 1: {{ __('product.enter_ean') }}</div>
@@ -263,6 +266,9 @@
                         <!-- Back and Next Buttons -->
                         <button id="back3YesStep" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
                         <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
+                        <button id="createNewVariantBtn" class="btn btn-primary mt-3">
+                            {{ __('product.create_new_variant') }}
+                        </button>
                     </div>
 
                 </div>
@@ -282,6 +288,7 @@
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
             let allProductData = [];
+            let apiResponse = [];
             let selectedGrade = "";
             let productRow = "";
             let selectedPropertyGroup = "";
@@ -310,6 +317,7 @@
                     success: function (response) {
                         if (response.product) {
                             allProductData = response.product;
+                            apiResponse = response;
                             const productName = response.product.name || '-';
                             const eanNumber = response.product.ean || '-';
 
@@ -386,10 +394,8 @@
                 <td>${product.attributes.ean || '-'}</td>
                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
                 <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
-                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
-
-            </tr>
-        `;
+                {{--<td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>--}}
+            </tr>`;
 
                             // Append the new row to the table
                             $('#productTable tbody').append(productRow);
@@ -500,12 +506,70 @@
             });
 
             // Handle the Yes Flow
-
             $(document).on('click', '.edit-details-btn', function () {
                 const productId = $(this).data('product-id');
 
                 // Find the product details from allProductData
+
                 const productData = allProductData.productData.find(product => product.id === productId);
+
+                const manufacturerId = productData.attributes.manufacturerId;
+                const categoryselectIds = productData.attributes.categoryIds;
+
+
+                const categoriesId = allProductData.included.find(
+                    item => item.id === manufacturerId && item.type === "category"
+                );
+
+                const manufacturerData = allProductData.included.find(
+                    item => item.id === manufacturerId && item.type === "product_manufacturer"
+                );
+
+                if (manufacturerData) {
+                    const manufacturerName = manufacturerData.attributes.translated.name;
+                    const newOption = new Option(manufacturerName, manufacturerId, true, true);
+
+                    $('#manufacturer-select').append(newOption).trigger('change');
+                }
+
+                function findIncludedData(id, type) {
+                    return allProductData.included.find(
+                        item => item.id === id && item.type === type
+                    );
+                }
+
+                const taxId = productData.attributes.taxId;
+                const taxData = findIncludedData(taxId, "tax");
+                if (taxData) {
+                    const taxName = taxData.attributes.translated.name;
+                    const newTaxOption = new Option(taxName, taxId, true, true);
+                    $('#tax-select').append(newTaxOption).trigger('change');
+                }
+
+                function findIncludedData(id, type) {
+                    return allProductData.included.find(
+                        item => item.id === id && item.type === type
+                    );
+                }
+
+                // Handle Category
+                const categoryId = productData.attributes.categoryId;
+                const categoryData = findIncludedData(categoryId, "category");
+                if (categoryData) {
+                    const categoryName = categoryData.attributes.translated.name;
+                    const newCategoryOption = new Option(categoryName, categoryId, true, true);
+                    $('#category-select').append(newCategoryOption).trigger('change');
+                }
+
+                // Handle Sales Channel
+                const salesChannelId = productData.attributes.salesChannelId;
+                const salesChannelData = findIncludedData(salesChannelId, "sales_channel");
+                if (salesChannelData) {
+                    const salesChannelName = salesChannelData.attributes.translated.name;
+                    const newSalesChannelOption = new Option(salesChannelName, salesChannelId, true, true);
+                    $('#sales-channel-select').append(newSalesChannelOption).trigger('change');
+                }
+
 
                 if (productData) {
                     // Populate the modal form with product data
@@ -523,9 +587,6 @@
                         $('#priceNet').val(productData.attributes.price[0].net || ''); // Assuming net is the first value in the price object
                     }
 
-                    // For the manufacturer, if the manufacturer data is provided in the object (like `manufacturerId`):
-                    $('#manufacturer-select').val(productData.attributes.manufacturerId || '').trigger('change');
-
                     // For the tax provider, if you have the taxId:
                     $('#tax-provider-select').val(productData.attributes.taxId || '').trigger('change');
 
@@ -537,7 +598,6 @@
 
                     // For the `active_for_all` checkbox, if `available` is true, set it to checked:
                     $('#active_for_all').prop('checked', productData.attributes.available || false);
-
 
                     // Show the modal
                     $('#productEditModal').modal('show');
