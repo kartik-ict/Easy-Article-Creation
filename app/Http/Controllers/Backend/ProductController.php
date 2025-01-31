@@ -388,4 +388,24 @@ class ProductController extends Controller
             'total' => $response['total'] ?? 0,          // Total manufacturers available
         ]);
     }
+
+    public function propertyGroupOption(Request $request)
+    {
+        // Prepare the data payload for the API request
+        $data = [
+            'page' => $request->get('page', 1),
+            'limit' => 25,             // You can adjust this limit if needed
+//            'term' => $request->get('term', ''),
+            'total-count-mode' => 1    // Flag to include the total count in the response
+        ];
+
+        // Make the API request using the common function
+        $response =  $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group-option', $data);
+
+        // Return the data in the required format for select2
+        return response()->json([
+            'propertyGroups' => $response['data'] ?? [], // Manufacturer data
+            'total' => $response['total'] ?? 0,          // Total manufacturers available
+        ]);
+    }
 }

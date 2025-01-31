@@ -56,12 +56,8 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 @endsection
@@ -99,6 +95,9 @@
                     <div id="route-container-category"
                          data-category-search="{{ route('product.categorySearch') }}"></div>
                     <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
+                    <div id="route-container-property" data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
+                    <div id="route-container-property-option" data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
+
                     <!-- Step 1: Search EAN -->
                     <div id="step1" class="step">
                         <div class="step-header">Step 1: {{ __('product.enter_ean') }}</div>
@@ -357,9 +356,18 @@
                         <button id="back3YesStep"
                                 class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
                         <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
-                        <button id="createNewVariantBtn" class="btn btn-primary mt-3">
+                        <button id="newVariantButton" class="btn btn-primary mt-3">
                             {{ __('product.create_new_variant') }}
                         </button>
+
+
+                        <div id="propertyGroupSection" style="display: none;">
+                            <label for="propertyGroupSelect">Select Property Group:</label>
+                            <select id="propertyGroupSelect" class="form-control col-6"></select>
+
+                            <label for="propertyGroupOptionSelect col-6">Select Property Group Option:</label>
+                            <select id="propertyGroupOptionSelect" class="form-control col-6"></select>
+                        </div>
                     </div>
 
                 </div>
@@ -554,7 +562,8 @@
                 <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
                 <td>${product.attributes.ean || '-'}</td>
                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>`;
+                {{--<td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>--}}
+                `;
 
                             $('#productTable-update tbody').append(productRow);
                         });

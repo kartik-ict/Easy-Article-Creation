@@ -68,6 +68,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::post('/fetch-tax-providers', [ProductController::class, 'fetchTaxProviders'])->name('product.fetchTax');
     Route::post('/product/update-stock', [ProductController::class, 'updateStock'])->name('product.update_stock');
     Route::post('/product/propertyGroupSearch', [ProductController::class, 'propertyGroupSearch'])->name('product.propertyGroupSearch');
+    Route::post('/product/propertyGroupOptionSearch', [ProductController::class, 'propertyGroupOption'])->name('product.propertyGroupOptionSearch');
 
 
 
