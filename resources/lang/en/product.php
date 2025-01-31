@@ -70,5 +70,8 @@ return [
     'cancel' => 'Cancel',
     'save' => 'Save',
     'property_option_saved_successfully' => 'Property Option saved successfully.',
+    'select_property_group_first' => 'Select Property Group First',
+    'general_information' => 'Product Additional Information',
+    'enter_new_stock_alert' => 'Enter a new stock',
 
 ];

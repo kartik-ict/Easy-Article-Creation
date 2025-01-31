@@ -71,5 +71,9 @@ return [
     'cancel' => 'Annuleren',
     'save' => 'opslaan',
     'property_option_saved_successfully' => 'Optie opgeslagen.',
+    'select_property_group_first' => 'Selecteer Vastgoedgroep',
+    'general_information' => 'Product Algemene informatie ',
+    'additional_information' => 'Product Aanvullende Informatie',
+    'enter_new_stock_alert' => 'Voer een nieuwe voorraad in',
 
 ];

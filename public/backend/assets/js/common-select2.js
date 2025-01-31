@@ -69,7 +69,7 @@ $('#manufacturer-select').select2({
             }
         },
         // Add this to ensure Select2 works inside the modal
-        // dropdownParent: $('#productEditModal'),
+        dropdownParent: $('#productEditModal'),
     });
 
 
@@ -246,7 +246,7 @@ let currentPageCategory = 1; // Current page for pagination
 let isLoadingCategory = false; // Prevent multiple concurrent requests
 let isEndOfResultsCategory = false; // Flag to indicate end of results
 
-$('#category-select').select2({
+$('#category-select-modal').select2({
     placeholder: 'Categorie',
     ajax: {
         url: categorySearchUrl,
@@ -303,11 +303,12 @@ $('#category-select').select2({
         noResults: function() {
             return "Geen resultaten gevonden."; // Dutch translation for "no results found"
         }
-    }
+    },
+    dropdownParent: $('#productEditModal'),
 });
 
 // When dropdown is opened, reset the page number and flags
-$('#category-select').on('select2:open', function() {
+$('#category-select-modal').on('select2:open', function() {
     currentPageCategory = 1; // Start from page 1
     isLoadingCategory = false;
     isEndOfResultsCategory = false;
@@ -328,10 +329,10 @@ $('#category-select').on('select2:open', function() {
 
             // Trigger the next page load
             $.ajax({
-                url: '{{ route("product.categorySearch") }}',
+                url: categorySearchUrl,
                 type: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': csrfToken_common
                 },
                 dataType: 'json',
                 data: {
@@ -350,7 +351,7 @@ $('#category-select').on('select2:open', function() {
 
                     results.forEach(function(result) {
                         const option = new Option(result.text, result.id, false, false);
-                        $('#category-select').append(option).trigger('change');
+                        $('#category-select-modal').append(option).trigger('change');
                     });
 
                     isEndOfResultsCategory = (data.categories.length < 25);
@@ -364,7 +365,7 @@ $('#category-select').on('select2:open', function() {
 });
 
 // Optionally, handle closing the dropdown manually if required
-$('#category-select').on('select2:close', function() {
+$('#category-select-modal').on('select2:close', function() {
     // Reset page when dropdown is closed, if needed
     currentPageCategory = 1;
     isLoadingCategory = false; // Reset loading flag when dropdown closes
@@ -400,24 +401,35 @@ $('#tax-provider-select').select2({
             };
         }
     },
-    placeholder: '@lang("product.taxRate")',
+    placeholder: 'Selecteer een belastingtarief',
     minimumResultsForSearch: Infinity,
     language: {
         searching: function() {
-            return "Zoeken, even geduld..."; // Dutch translation for "searching"
+            return "Zoeken, even geduld...";
         },
         loadingMore: function() {
-            return "Meer resultaten laden..."; // Dutch translation for "loading more results"
+            return "Meer resultaten laden...";
         },
         noResults: function() {
-            return "Geen resultaten gevonden."; // Dutch translation for "no results found"
+            return "Geen resultaten gevonden.";
         }
-    }
+    },
+    dropdownParent: $('#productEditModal'),
+
 }).on('select2:select', function(e) {
     const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
 
     // Update the tax rate for calculation
     $('#priceGross').data('taxRate', selectedTaxRate);
+});
+
+$('#priceGross').on('input', function() {
+    const priceGross = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || 0;
+
+    // Calculate net price
+    const priceNet = priceGross / (1 + taxRate / 100);
+    $('#priceNet').val(priceNet.toFixed(5));
 });
 
 $('#newVariantButton').click(function () {
@@ -595,7 +607,7 @@ $('#createPropertyGroupOptionBtn').on('click', function () {
         $('#selectedPropertyGroupName').val(selectedGroupName); // Display the group name
         $('#selectedPropertyGroupId').val(selectedGroup); // Pass the group ID to the hidden input
     } else {
-        alert("@lang('product.select_property_group_first')");
+        alert("Selecteer Vastgoedgroep");
     }
 });
 
@@ -641,15 +653,12 @@ $('#addPropertyOptionBtn').on('click', function () {
 
     if (selectedGroupId && selectedGroupOption) {
         // Show the modal if valid values are selected
-        $('#createPropertyGroupOptionModal').modal('show');
-
-        // Clear previous form values if any
-        $('#product-form')[0].reset();
+        $('#productEditModal').modal('show');
 
         // Populate fields if needed (set defaults here)
         $('#selectedPropertyGroupId').val(selectedGroupId);
     } else {
-        alert("@lang('product.select_property_group_first')");
+        alert("Selecteer Vastgoedgroep");
     }
 });
 
