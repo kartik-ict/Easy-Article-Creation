@@ -478,25 +478,25 @@
                         if (response.product.bol === true) {
                             $('#gradeSection').hide();
                             $('#bolSection').show();
+                            const categories = response.product.productData[0].categories || '-';
+                            const manufacturer = response.product.productData[0].brand || response.product.productData[0].manufacturer || '-';
+
+                            let productCategories = `
+                                <p><strong>{{ __('Categories') }}:</strong></p>
+                                <ul id="bolCat">
+                                    ${categories.map(category => `<li>${category}</li>`).join(',')}
+                                </ul>
+                            `;
+                            $('#productCategories').html(productCategories);
+
+                            let productManufacturer = `
+                            <p><strong>{{ __('product.manufacturer') }}:</strong><span id="manufacturerValue">${manufacturer}</span></p>
+                            `;
+                            $('#productManufacturer').html(productManufacturer);
                         } else {
                             $('#gradeSection').show();
                             $('#bolSection').hide();
                         }
-                        const categories = response.product.productData[0].categories || '-';
-                        const manufacturer = response.product.productData[0].brand || response.product.productData[0].manufacturer || '-';
-
-                        let productCategories = `
-                            <p><strong>{{ __('Categories') }}:</strong></p>
-                            <ul id="bolCat">
-                                ${categories.map(category => `<li>${category}</li>`).join(',')}
-                            </ul>
-                        `;
-                        $('#productCategories').html(productCategories);
-
-                        let productManufacturer = `
-                        <p><strong>{{ __('product.manufacturer') }}:</strong><span id="manufacturerValue">${manufacturer}</span></p>
-                        `;
-                        $('#productManufacturer').html(productManufacturer);
 
                         if (response.product) {
                             allProductData = response.product;
@@ -580,7 +580,7 @@
                 <td>${product.attributes.ean || '-'}</td>
                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
                 <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
-                {{--<td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>--}}
+                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                             </tr>`;
 
                             // Append the new row to the table

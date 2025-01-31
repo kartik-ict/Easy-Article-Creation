@@ -6,7 +6,7 @@ const taxSearchUrl = $('#route-container-tax').data('tax-search');
 const propertySearchUrl = $('#route-container-property').data('property-search');
 const propertyOptionSearchUrl = $('#route-container-property-option').data('property-search-option');
 const propertyOptionSave = $('#route-container-property-option-save').data('property-option-save');
-const csrfToken = $('meta[name="csrf-token"]').attr('content');
+const csrfToken_common = $('meta[name="csrf-token"]').attr('content');
 
 let currentPage = 1; // Start from the first page
 let isLoading = false;
@@ -612,7 +612,7 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
                 optionName: optionName,
             },
             headers: {
-                'X-CSRF-TOKEN': csrfToken
+                'X-CSRF-TOKEN': csrfToken_common
             },
             success: function (response) {
                 // Handle the success (e.g., close the modal and display a success message)
@@ -636,8 +636,20 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
 
 // Add Property Option button functionality
 $('#addPropertyOptionBtn').on('click', function () {
-    const selectedGroup = $('#propertyGroupSelect').val();
-    if (selectedGroup) {
+    const selectedGroupId = $('#propertyGroupSelect').val();
+    const selectedGroupOption = $('#propertyGroupOptionSelect').val();
+
+    if (selectedGroupId && selectedGroupOption) {
+        // Show the modal if valid values are selected
+        $('#createPropertyGroupOptionModal').modal('show');
+
+        // Clear previous form values if any
+        $('#product-form')[0].reset();
+
+        // Populate fields if needed (set defaults here)
+        $('#selectedPropertyGroupId').val(selectedGroupId);
+    } else {
+        alert("@lang('product.select_property_group_first')");
     }
 });
 
