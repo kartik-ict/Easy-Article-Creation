@@ -64,8 +64,10 @@ $('#manufacturer-select').select2({
                 return "Geen resultaten gevonden."; // Dutch translation for "no results found"
             }
         },
+
+        // comment due to popup modal
         // Add this to ensure Select2 works inside the modal
-        dropdownParent: $('#productEditModal'),
+        // dropdownParent: $('#productEditModal'),
     });
 
 

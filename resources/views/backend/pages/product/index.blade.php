@@ -8,8 +8,10 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.jqueryui.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.jqueryui.min.css">
     <style>
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -54,8 +56,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 @endsection
@@ -83,15 +89,22 @@
             <div class="col-lg-12">
                 <div class="card p-4">
                     <h2 class="mb-4">{{ __('product.search_product_ean') }}</h2>
-                    <div id="route-container" data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
+                    <div id="route-container"
+                         data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
+
+                    <div id="route-container-sw-manufacturer-search"
+                         data-sw-manufacturer-search="{{ route('sw.manufacturers.search') }}"></div>
+
                     <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"></div>
-                    <div id="route-container-category" data-category-search="{{ route('product.categorySearch') }}"></div>
+                    <div id="route-container-category"
+                         data-category-search="{{ route('product.categorySearch') }}"></div>
                     <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
                     <!-- Step 1: Search EAN -->
                     <div id="step1" class="step">
                         <div class="step-header">Step 1: {{ __('product.enter_ean') }}</div>
                         <div class="form-group col-6">
-                            <input type="text" id="ean" class="form-control" placeholder="{{ __('product.enter_ean') }}">
+                            <input type="text" id="ean" class="form-control"
+                                   placeholder="{{ __('product.enter_ean') }}">
                         </div>
                         <button id="searchBtn" class="btn btn-primary mt-2">{{ __('product.search') }}</button>
                     </div>
@@ -103,7 +116,6 @@
                             <!-- Loading Spinner initially -->
                             <div class="loader"></div>
                         </div>
-
                         <!-- Ask about grade -->
                         <div class="form-group mt-4 col-6" style="display:none;" id="gradeSection">
                             <label>{{ __('product.is_different_grade') }}</label>
@@ -113,10 +125,55 @@
                                 <option value="yes">{{ __('product.yes') }}</option>
                             </select>
                         </div>
+                        <div class="form-group mt-4 col-12" style="display:none;" id="bolSection">
+                            <div class="form-group row">
+                                <div class="form-group row col-12">
+                                    <div class="col-6">
+                                        <div id="productCategories">
+                                            <p>{{ __('product.categories') }}</p>
+                                        </div>
+                                        <div>
+                                            <a class="btn btn-primary btn-next" id="searchSwCategory">Search categories in Shopware </a>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3 col-6">
+                                        <label for="category">@lang('product.category'):</label>
+                                        <select id="category-select" class="js-example-basic-single form-control"
+                                                name="category[]" multiple required>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row col-12">
+
+                                    <div class="col-6">
+                                        <div id="productManufacturer">
+                                            <p id="productManufacturerName">
+                                                <strong>{{ __('product.manufacturer') }}</strong>: <span
+                                                    id="manufacturerValue">{{ $manufacturer ?? '' }}</span></p>
+                                        </div>
+                                        <div>
+                                            <a class="btn btn-primary btn-next" id="searchSwManufacturer">Search
+                                                Manufacturer in Shopware </a>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3 col-6">
+                                        <label for="manufacturer">@lang('product.manufacturer'):</label>
+                                        <select id="manufacturer-sw-search"
+                                                class="js-example-basic-single form-control"
+                                                name="manufacturer" required>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
 
                         <!-- Back and Next Buttons -->
-                        <button id="backBtn" class="btn btn-secondary btn-back" style="display:none;">{{ __('product.previous') }}</button>
-                        <button id="nextBtn" class="btn btn-primary btn-next" style="display:none;">{{ __('product.next') }}</button>
+                        <button id="backBtn" class="btn btn-secondary btn-back"
+                                style="display:none;">{{ __('product.previous') }}</button>
+                        <button id="nextBtn" class="btn btn-primary btn-next"
+                                style="display:none;">{{ __('product.next') }}</button>
                     </div>
 
                     <!-- Step 3: Update Stock (Initially hidden) -->
@@ -140,8 +197,9 @@
                             </table>
 
                             <!-- Back and Update Data Buttons -->
-                            <button id="backStep2Btn" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
-{{--                            <button id="updateDataBtn" class="btn btn-primary btn-next">{{ __('product.update_stock') }}</button>--}}
+                            <button id="backStep2Btn"
+                                    class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
+                            {{--                            <button id="updateDataBtn" class="btn btn-primary btn-next">{{ __('product.update_stock') }}</button>--}}
                         </div>
                     </div>
 
@@ -166,15 +224,18 @@
 
 
                         <!-- Product Edit Modal -->
-                        <div class="modal fade" id="productEditModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                        <div class="modal fade" id="productEditModal" tabindex="-1" role="dialog"
+                             aria-labelledby="editModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title">{{ __('product.step4') }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <form id="product-form" action="{{ route('product.saveData') }}" method="POST">
+                                        <form id="product-form" action="{{ route('product.saveData') }}"
+                                              method="POST">
                                             @csrf
                                             <div class="row">
                                                 <!-- Left Column -->
@@ -183,39 +244,54 @@
 
                                                     <div class="form-group mb-3">
                                                         <label for="name">@lang('product.name'):</label>
-                                                        <input type="text" class="form-control" id="name" name="name" required>
+                                                        <input type="text" class="form-control" id="name"
+                                                               name="name"
+                                                               required>
                                                     </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="stock">@lang('product.stock'):</label>
-                                                        <input type="number" class="form-control" id="stock" name="stock" required>
+                                                        <input type="number" class="form-control" id="stock"
+                                                               name="stock" required>
                                                     </div>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="manufacturer">@lang('product.manufacturer'):</label>
-                                                        <select id="manufacturer-select" class="js-example-basic-single form-control" name="manufacturer" required>
+                                                        <label for="manufacturer">@lang('product.manufacturer')
+                                                            :</label>
+                                                        <select id="manufacturer-select"
+                                                                class="js-example-basic-single form-control"
+                                                                name="manufacturer" required>
                                                         </select>
                                                     </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="taxId">@lang('product.tax_id'):</label>
-                                                        <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>
+                                                        <select id="tax-provider-select"
+                                                                class="js-example-basic-single form-control"
+                                                                name="taxId" required>
                                                         </select>
                                                     </div>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="productNumber">@lang('product.product_number'):</label>
-                                                        <input type="text" class="form-control" id="productNumber" name="productNumber" required>
+                                                        <label for="productNumber">@lang('product.product_number')
+                                                            :</label>
+                                                        <input type="text" class="form-control" id="productNumber"
+                                                               name="productNumber" required>
                                                     </div>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="price_gross">{{ __('product.price_gross') }}</label>
-                                                        <input type="number" name="priceGross" id="priceGross" class="form-control" step="any" required placeholder="{{ __('product.enter_price_gross') }}">
+                                                        <label
+                                                            for="price_gross">{{ __('product.price_gross') }}</label>
+                                                        <input type="number" name="priceGross" id="priceGross"
+                                                               class="form-control" step="any" required
+                                                               placeholder="{{ __('product.enter_price_gross') }}">
                                                     </div>
 
                                                     <div class="form-check form-switch mb-3">
-                                                        <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1">
-                                                        <label class="form-check-label" for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                                                        <input type="checkbox" class="form-check-input"
+                                                               name="active_for_all" id="active_for_all" value="1">
+                                                        <label class="form-check-label"
+                                                               for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                                                     </div>
                                                 </div>
 
@@ -224,39 +300,53 @@
                                                     <h5 class="mb-3">{{ __('product.additional_information') }}</h5>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="description">@lang('product.description'):</label>
-                                                        <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                                                        <label for="description">@lang('product.description')
+                                                            :</label>
+                                                        <textarea class="form-control" id="description"
+                                                                  name="description" rows="5"></textarea>
                                                     </div>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="salesChannel">@lang('product.sales_channel'):</label>
-                                                        <select id="sales-channel-select" class="js-example-basic-single form-control" name="salesChannel[]" multiple required>
+                                                        <label for="salesChannel">@lang('product.sales_channel')
+                                                            :</label>
+                                                        <select id="sales-channel-select"
+                                                                class="js-example-basic-single form-control"
+                                                                name="salesChannel[]" multiple required>
                                                         </select>
                                                     </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="category">@lang('product.category'):</label>
-                                                        <select id="category-select" class="js-example-basic-single form-control" name="category[]" multiple required>
+                                                        <select id="category-select"
+                                                                class="js-example-basic-single form-control"
+                                                                name="category[]" multiple required>
                                                         </select>
                                                     </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="ean">@lang('product.ean'):</label>
-                                                        <input type="text" id="eanForm" class="form-control" name="eanForm" placeholder="@lang('product.enter_ean')" required>
+                                                        <input type="text" id="eanForm" class="form-control"
+                                                               name="eanForm"
+                                                               placeholder="@lang('product.enter_ean')"
+                                                               required>
                                                     </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="mediaUrl">@lang('product.media_url'):</label>
-                                                        <input type="url" class="form-control" id="mediaUrl" name="mediaUrl">
+                                                        <input type="url" class="form-control" id="mediaUrl"
+                                                               name="mediaUrl">
                                                     </div>
 
                                                     <div class="form-group">
                                                         <label for="price_net">{{ __('product.price_net') }}</label>
-                                                        <input type="number" name="priceNet" id="priceNet" class="form-control" step="any" placeholder="{{ __('product.calculated_price_net') }}">
+                                                        <input type="number" name="priceNet" id="priceNet"
+                                                               class="form-control" step="any"
+                                                               placeholder="{{ __('product.calculated_price_net') }}">
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button type="submit" class="btn btn-success w-100">{{ __('product.submit') }}</button>
+                                            <button type="submit"
+                                                    class="btn btn-success w-100">{{ __('product.submit') }}</button>
                                         </form>
                                     </div>
                                 </div>
@@ -264,7 +354,8 @@
                         </div>
 
                         <!-- Back and Next Buttons -->
-                        <button id="back3YesStep" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
+                        <button id="back3YesStep"
+                                class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
                         <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
                         <button id="createNewVariantBtn" class="btn btn-primary mt-3">
                             {{ __('product.create_new_variant') }}
@@ -273,15 +364,16 @@
 
                 </div>
 
-                </div>
             </div>
         </div>
+    </div>
     </div>
 @endsection
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
+    <script src="{{ asset('backend/assets/js/common-bol.js') }}"></script>
 
     <script>
         $(document).ready(function () {
@@ -313,21 +405,48 @@
                 $.ajax({
                     url: "{{ route('product.search') }}",
                     method: "POST",
-                    data: { ean, _token: "{{ csrf_token() }}" },
+                    data: {ean, _token: "{{ csrf_token() }}"},
                     success: function (response) {
+
+                        if (response.product.bol === true) {
+                            $('#gradeSection').hide();
+                            $('#bolSection').show();
+                        } else {
+                            $('#gradeSection').show();
+                            $('#bolSection').hide();
+                        }
+                        const categories = response.product.productData[0].categories || '-';
+                        const manufacturer = response.product.productData[0].brand || response.product.productData[0].manufacturer || '-';
+
+                        let productCategories = `
+                            <p><strong>{{ __('Categories') }}:</strong></p>
+                            <ul id="bolCat">
+                                ${categories.map(category => `<li>${category}</li>`).join(',')}
+                            </ul>
+                        `;
+                        $('#productCategories').html(productCategories);
+
+                        let productManufacturer = `
+                        <p><strong>{{ __('product.manufacturer') }}:</strong><span id="manufacturerValue">${manufacturer}</span></p>
+                        `;
+                        $('#productManufacturer').html(productManufacturer);
+
                         if (response.product) {
                             allProductData = response.product;
                             apiResponse = response;
                             const productName = response.product.name || '-';
                             const eanNumber = response.product.ean || '-';
+                            // const categories = response.product.productData[0].categories || '-';
+                            const categories = response.product.productData[0].categories || '-';
+                            // const eanNumber = response.product.ean || '-';
 
                             let productTable = `
                     <p><strong>{{ __('product.product_name') }}:</strong> ${productName}</p>
                     <p><strong>{{ __('product.ean_number') }}:</strong> ${eanNumber}</p>
                 `;
-
                             $('#productDetails').html(productTable);
-                            $('#gradeSection').show();
+
+                            //$('#gradeSection').show();
                             $('#backBtn').show();
                             $('#nextBtn').show();
                         } else {
@@ -351,7 +470,7 @@
                 if (selectedGrade === "no") {
                     $('#newStockSectionnewStockSection').show();  // Show new stock input
                     $('#updateDataBtn').show();  // Show update button
-                }else if (selectedGrade === "yes") {
+                } else if (selectedGrade === "yes") {
                 } else {
                     $('#newStockSection').hide();  // Hide new stock input
                     $('#updateDataBtn').hide();  // Hide update button
@@ -390,12 +509,12 @@
                             // Create a new row for the table
                             const productRow = `
             <tr data-product-id="${product.id}">
-                <td>${product.attributes.translated?.name + "("+propertyGroupNames+")" || '-'}</td>
+                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
                 <td>${product.attributes.ean || '-'}</td>
                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
                 <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
                 {{--<td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>--}}
-            </tr>`;
+                            </tr>`;
 
                             // Append the new row to the table
                             $('#productTable tbody').append(productRow);
@@ -432,7 +551,7 @@
                             // Create a new row for the table
                             const productRow = `
             <tr data-product-id="${product.id}">
-                <td>${product.attributes.translated?.name + "("+propertyGroupNames+")" || '-'}</td>
+                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
                 <td>${product.attributes.ean || '-'}</td>
                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
                 <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>`;
@@ -440,7 +559,7 @@
                             $('#productTable-update tbody').append(productRow);
                         });
                     }
-                }else {
+                } else {
                     alert('{{ __('product.select_grade_alert') }}');
                 }
             });
@@ -605,8 +724,6 @@
                     alert("Product details not found.");
                 }
             });
-
-
 
 
         });
