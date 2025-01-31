@@ -51,6 +51,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::patch('/api/manufacturers/{id}', [ManufacturerController::class, 'update'])->name('admin.manufacturers.update');
     Route::get('/admin/manufacturers/{id}/edit', [ManufacturerController::class, 'edit'])->name('admin.manufacturers.edit');
     Route::delete('/api/manufacturers/{id}', [ManufacturerController::class, 'destroy'])->name('admin.manufacturers.delete');
+    Route::post('/manufacturers/swSearch', [ManufacturerController::class, 'swSearch'])->name('sw.manufacturers.search');
 
     // Product Module
 

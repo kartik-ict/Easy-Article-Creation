@@ -69,7 +69,7 @@ $('#manufacturer-select').select2({
             }
         },
         // Add this to ensure Select2 works inside the modal
-        dropdownParent: $('#productEditModal'),
+        // dropdownParent: $('#productEditModal'),
     });
 
 

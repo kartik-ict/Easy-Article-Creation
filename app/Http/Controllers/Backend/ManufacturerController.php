@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Services\ShopwareAuthService;
 use App\Http\Controllers\Controller;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 
 class ManufacturerController extends Controller
@@ -142,6 +143,33 @@ class ManufacturerController extends Controller
             return redirect()->route('admin.manufacturers.index')->with('success', 'Fabrikant succesvol verwijderd!');
         } else {
             return redirect()->back()->with('error', 'Fabrikant niet bijgewerkt.');
+        }
+    }
+
+    public function swSearch(Request $request)
+    {
+        $request->validate([
+            'productManufacturer' => 'required|string',
+        ]);
+
+        $productManufacturer = $request->input('productManufacturer');
+        $payload = [
+            'filter' => [
+                [
+                    'type' => 'equals',
+                    'field' => 'name',
+                    'value' => $productManufacturer,
+                ]
+            ],
+            'inheritance' => true,
+            'total-count-mode' => 1,
+        ];
+
+        // Make API request using the common function
+        $productManufacturer = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product-manufacturer', $payload);
+        if ($productManufacturer) {
+//            dd($productManufacturer['data']);
+            return response()->json(['productManufacturer' => $productManufacturer['data']], 200);
         }
     }
 }
