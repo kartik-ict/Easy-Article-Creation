@@ -214,6 +214,7 @@
                                 <th>{{ __('product.product_name') }}</th>
                                 <th>{{ __('product.ean_number') }}</th>
                                 <th>{{ __('product.current_stock') }}</th>
+                                <th>{{ __('product.new_stock') }}</th>
                                 <th>{{ __('product.action') }}</th>
                             </tr>
                             </thead>
@@ -306,30 +307,30 @@
                                                                   name="description" rows="5"></textarea>
                                                     </div>
 
-                                                    <div class="form-group mb-3">
-                                                        <label for="salesChannel">@lang('product.sales_channel')
-                                                            :</label>
-                                                        <select id="sales-channel-select"
-                                                                class="js-example-basic-single form-control"
-                                                                name="salesChannel[]" multiple required>
-                                                        </select>
-                                                    </div>
+{{--                                                    <div class="form-group mb-3">--}}
+{{--                                                        <label for="salesChannel">@lang('product.sales_channel')--}}
+{{--                                                            :</label>--}}
+{{--                                                        <select id="sales-channel-select"--}}
+{{--                                                                class="js-example-basic-single form-control"--}}
+{{--                                                                name="salesChannel[]" multiple required>--}}
+{{--                                                        </select>--}}
+{{--                                                    </div>--}}
 
                                                     <div class="form-group mb-3">
                                                         <label for="category">@lang('product.category'):</label>
-                                                        <select id="category-select"
+                                                        <select id="category-select-modal"
                                                                 class="js-example-basic-single form-control"
                                                                 name="category[]" multiple required>
                                                         </select>
                                                     </div>
 
-                                                    <div class="form-group mb-3">
-                                                        <label for="ean">@lang('product.ean'):</label>
-                                                        <input type="text" id="eanForm" class="form-control"
-                                                               name="eanForm"
-                                                               placeholder="@lang('product.enter_ean')"
-                                                               required>
-                                                    </div>
+{{--                                                    <div class="form-group mb-3">--}}
+{{--                                                        <label for="ean">@lang('product.ean'):</label>--}}
+{{--                                                        <input type="text" id="eanForm" class="form-control"--}}
+{{--                                                               name="eanForm"--}}
+{{--                                                               placeholder="@lang('product.enter_ean')"--}}
+{{--                                                               required>--}}
+{{--                                                    </div>--}}
 
                                                     <div class="form-group mb-3">
                                                         <label for="mediaUrl">@lang('product.media_url'):</label>
@@ -621,6 +622,8 @@
                 <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
                 <td>${product.attributes.ean || '-'}</td>
                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
+                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                 {{--<td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>--}}
                 `;
 
@@ -792,8 +795,6 @@
                     alert("Product details not found.");
                 }
             });
-
-
         });
     </script>
 @endsection
