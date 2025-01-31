@@ -58,5 +58,17 @@ return [
     'product_description' => 'Product Description',
     'property_group' => 'Property Group',
     'step4' => 'Step 4 : Enter the Required Product Information',
+    'create_new_variant' => 'Create New Variant',
+    'property_select_group' => 'Select Property Group',
+    'property_select_group_option' => 'Select Property Option',
+    'select_required_info' => 'Please select the required information',
+    'create_new_property' => 'Create New Property Group',
+    'create_new_property_option' => 'Create New Property Group Option',
+    'add_option' => 'Add Above Option',
+    'selected_property_group' => 'Selected Property Group',
+    'new_property_option_name' => 'New Property Option Name',
+    'cancel' => 'Cancel',
+    'save' => 'Save',
+    'property_option_saved_successfully' => 'Property Option saved successfully.',
 
 ];

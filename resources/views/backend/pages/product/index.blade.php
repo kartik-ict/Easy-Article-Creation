@@ -37,7 +37,7 @@
             border-radius: 6px;
         }
 
-        .btn-back, .btn-next {
+        .btn-back, .btn-next, .btn-new-variant {
             margin-top: 10px;
         }
 
@@ -89,6 +89,7 @@
                     <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
                     <div id="route-container-property" data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
                     <div id="route-container-property-option" data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
+                    <div id="route-container-property-option-save" data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
 
                     <!-- Step 1: Search EAN -->
                     <div id="step1" class="step">
@@ -269,17 +270,75 @@
                         <!-- Back and Next Buttons -->
                         <button id="back3YesStep" class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
                         <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
-                        <button id="newVariantButton" class="btn btn-primary mt-3">
+                        <button id="newVariantButton" class="btn btn-primary btn-new-variant">
                             {{ __('product.create_new_variant') }}
                         </button>
 
 
-                        <div id="propertyGroupSection" style="display: none;">
-                            <label for="propertyGroupSelect">Select Property Group:</label>
-                            <select id="propertyGroupSelect" class="form-control col-6"></select>
+                        <div id="propertyGroupSection" style="display: none;" class="container mt-5">
+                            <h5 class="text-primary mb-4">@lang('product.select_required_info')</h5>
 
-                            <label for="propertyGroupOptionSelect col-6">Select Property Group Option:</label>
-                            <select id="propertyGroupOptionSelect" class="form-control col-6"></select>
+                            <div class="row">
+                                <!-- Property Group Select -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="card p-3">
+                                        <label for="propertyGroupSelect" class="font-weight-bold">@lang('product.property_select_group')</label>
+                                        <div class="d-flex align-items-center mt-2">
+                                            <select id="propertyGroupSelect" class="form-control me-3 w-75"></select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Property Group Option Select -->
+                                <div id="propertyGroupOptionWrapper" class="col-md-6 mb-4" style="display: none;">
+                                    <div class="card p-3">
+                                        <label for="propertyGroupOptionSelect" class="font-weight-bold">@lang('product.property_select_group_option')</label>
+                                        <div class="d-flex align-items-center mt-2">
+                                            <select id="propertyGroupOptionSelect" class="form-control me-3 w-75"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="addPropertyOptionWrapper" class="mt-4 d-flex align-items-center gap-2" style="visibility : hidden;">
+                                <div class="col-md-3">
+                                    <button id="addPropertyOptionBtn" class="btn btn-success w-100">@lang('product.add_option')</button>
+                                </div>
+                                <span><strong>OR</strong></span>
+                                <div class="col-md-3">
+                                    <button id="createPropertyGroupOptionBtn" class="btn btn-primary w-100">@lang('product.create_new_property')</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal for creating new Property Group Option -->
+                    <div class="modal fade" id="createPropertyGroupOptionModal" tabindex="-1" aria-labelledby="createPropertyGroupOptionModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="createPropertyGroupOptionModalLabel">@lang('product.create_new_property_option')</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Display selected Property Group Name -->
+                                    <div class="mb-3">
+                                        <label for="selectedPropertyGroupName" class="form-label">@lang('product.selected_property_group')</label>
+                                        <input type="text" id="selectedPropertyGroupName" class="form-control" disabled>
+                                        <input type="hidden" id="selectedPropertyGroupId" />
+                                    </div>
+
+                                    <!-- New Property Option Name -->
+                                    <div class="mb-3">
+                                        <label for="newPropertyOptionName" class="form-label">@lang('product.new_property_option_name')</label>
+                                        <input type="text" id="newPropertyOptionName" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('product.cancel')</button>
+                                    <button type="button" class="btn btn-primary" id="savePropertyGroupOptionBtn">@lang('product.save')</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -618,10 +677,6 @@
                     alert("Product details not found.");
                 }
             });
-
-
-
-
         });
     </script>
 @endsection

@@ -5,6 +5,8 @@ const categorySearchUrl = $('#route-container-category').data('category-search')
 const taxSearchUrl = $('#route-container-tax').data('tax-search');
 const propertySearchUrl = $('#route-container-property').data('property-search');
 const propertyOptionSearchUrl = $('#route-container-property-option').data('property-search-option');
+const propertyOptionSave = $('#route-container-property-option-save').data('property-option-save');
+const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
 let currentPage = 1; // Start from the first page
 let isLoading = false;
@@ -516,23 +518,20 @@ function fetchPropertyGroupOptions(groupId) {
             delay: 250,
             data: function (params) {
                 return JSON.stringify({
-                    filter: [
-                        {
-                            type: 'equals',
-                            field: 'groupId',
-                            value: groupId
-                        }
-                    ],
-                    page: currentPageOption,
+                    page: params.page || 1,
+                    groupId : groupId,
                     limit: 25
                 });
             },
-            processResults: function (data) {
+            processResults: function (data, params) {
+                params.page = params.page || 1;
                 isEndOfResultsOption = data.propertyGroups.length < 25;
+
                 const results = data.propertyGroups.map(option => ({
                     id: option.id,
                     text: option.attributes.translated.name
                 }));
+
                 return {
                     results: results,
                     pagination: {
@@ -549,27 +548,96 @@ function fetchPropertyGroupOptions(groupId) {
         }
     });
 
-    // Handle pagination when scrolling inside the dropdown
+    // Reset scrolling flags upon dropdown open and close
     $('#propertyGroupOptionSelect').on('select2:open', function () {
-        currentPageOption = 1;
-        isEndOfResultsOption = false;
-        const dropdown = $('.select2-results__options');
-        dropdown.off('scroll').on('scroll', function () {
-            const scrollTop = dropdown.scrollTop();
-            const containerHeight = dropdown.innerHeight();
-            const scrollHeight = dropdown[0].scrollHeight;
-
-            // Check if scrolling has reached the bottom
-            if (scrollTop + containerHeight >= scrollHeight - 10 && !isEndOfResultsOption) {
-                currentPageOption++;
-                $('#propertyGroupOptionSelect').select2('open');
-            }
-        });
-    });
-
-    $('#propertyGroupOptionSelect').on('select2:close', function () {
         currentPageOption = 1;
         isEndOfResultsOption = false;
     });
 }
+
+$('#propertyGroupSelect').change(function () {
+    const selectedGroup = $(this).val();
+    if (selectedGroup) {
+        $('#propertyGroupOptionWrapper').show();
+        $('#addPropertyOptionWrapper').css('visibility', 'visible');
+    } else {
+        $('#propertyGroupOptionWrapper').hide();
+        $('#addPropertyOptionWrapper').css('visibility', 'hidden');
+    }
+});
+
+// Handle click on 'Create New Property Group' button
+$('#createPropertyGroupBtn').click(function () {
+    alert("@lang('property.create_group_message')");
+});
+
+// Show the form for creating a new Property Option
+$('#createPropertyGroupOptionBtn').click(function () {
+    $('#newPropertyOptionForm').show();
+    $('#newPropertyOptionInput').focus();
+});
+
+// Cancel the creation of a new Property Option
+$('#cancelPropertyOptionBtn').click(function () {
+    $('#newPropertyOptionInput').val('');
+    $('#newPropertyOptionForm').hide();
+});
+
+$('#createPropertyGroupOptionBtn').on('click', function () {
+    const selectedGroup = $('#propertyGroupSelect').val(); // Get the selected property group ID
+    const selectedGroupName = $('#propertyGroupSelect option:selected').text(); // Get the selected property group name
+
+    if (selectedGroup) {
+        // Show the modal
+        $('#createPropertyGroupOptionModal').modal('show');
+
+        // Set the selected group name and ID in the modal
+        $('#selectedPropertyGroupName').val(selectedGroupName); // Display the group name
+        $('#selectedPropertyGroupId').val(selectedGroup); // Pass the group ID to the hidden input
+    } else {
+        alert("@lang('product.select_property_group_first')");
+    }
+});
+
+$('#savePropertyGroupOptionBtn').on('click', function () {
+    const groupId = $('#selectedPropertyGroupId').val();
+    const optionName = $('#newPropertyOptionName').val();
+
+    if (optionName && groupId) {
+        $.ajax({
+            url: propertyOptionSave, // URL to save the property option
+            method: 'POST',
+            data: {
+                groupId: groupId,
+                optionName: optionName,
+            },
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            },
+            success: function (response) {
+                // Handle the success (e.g., close the modal and display a success message)
+                $('#createPropertyGroupOptionModal').modal('hide');
+                alert(response.message); // Display a success message
+
+                // Clear input fields
+                $('#newPropertyOptionName').val(''); // Reset option name input
+                $('#selectedPropertyGroupName').val(''); // Clear displayed group name
+                $('#selectedPropertyGroupId').val(''); // Clear hidden group ID
+            },
+            error: function (error) {
+                // Handle the error (e.g., display an error message)
+                alert("@lang('product.error_occurred')");
+            }
+        });
+    } else {
+        alert("@lang('product.enter_property_option_name')");
+    }
+});
+
+// Add Property Option button functionality
+$('#addPropertyOptionBtn').on('click', function () {
+    const selectedGroup = $('#propertyGroupSelect').val();
+    if (selectedGroup) {
+    }
+});
 

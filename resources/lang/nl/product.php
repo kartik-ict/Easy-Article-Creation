@@ -59,5 +59,17 @@ return [
     'product_description' => 'Productbeschrijving',
     'property_group' => 'Eigenschappengroep',
     'step4' => 'Stap 4: Voer de vereiste productinformatie in',
+    'create_new_variant' => 'Nieuwe variant maken',
+    'property_select_group' => 'Selecteer Vastgoedgroep',
+    'property_select_group_option' => 'Selecteer eigenschap optie',
+    'select_required_info' => 'Selecteer de gewenste informatie',
+    'create_new_property' => 'Nieuwe eigenschapgroep aanmaken',
+    'create_new_property_option' => 'Nieuwe optie voor eigenschappengroep aanmaken',
+    'add_option' => 'Bovenstaande optie toevoegen',
+    'selected_property_group' => 'Geselecteerde Eigenschapsgroep',
+    'new_property_option_name' => 'Naam van de Nieuwe Eigenschap Optie',
+    'cancel' => 'Annuleren',
+    'save' => 'opslaan',
+    'property_option_saved_successfully' => 'Optie opgeslagen.',
 
 ];

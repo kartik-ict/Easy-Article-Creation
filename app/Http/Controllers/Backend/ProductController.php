@@ -300,8 +300,15 @@ class ProductController extends Controller
         // Prepare the data payload for the API request
         $data = [
             'page' => $request->get('page', 1),
-            'limit' => 25,             // You can adjust this limit if needed
-//            'term' => $request->get('term', ''),
+            'limit' => 25,
+            'filter' => [
+                [
+                    'type' => 'equals',
+                    'field' => 'groupId',
+                    'value' => $request->get('groupId', ''),
+                ]
+            ],
+            'term' => $request->get('term', ''),
             'total-count-mode' => 1    // Flag to include the total count in the response
         ];
 
@@ -314,4 +321,31 @@ class ProductController extends Controller
             'total' => $response['total'] ?? 0,          // Total manufacturers available
         ]);
     }
+
+    // Example Controller Method to save the Property Option
+    public function savePropertyOption(Request $request)
+    {
+        $validatedData = $request->validate([
+            'groupId' => 'required|regex:/^[0-9a-f]{32}$/', // Ensure it matches the required pattern
+            'optionName' => 'required|string|max:255', // Validate the option name
+        ]);
+
+        // Prepare the payload for the API request
+        $uuid = str_replace('-', '', (string) \Str::uuid());
+        $payload = [
+            'id' => $uuid,
+            'groupId' => $validatedData['groupId'],
+            'name' => $validatedData['optionName'],
+        ];
+
+        $response =  $this->shopwareApiService->makeApiRequest('POST', '/api/property-group-option', $payload);
+        if ($response['success']){
+            return response()->json([
+                'message' => __('product.property_option_saved_successfully')
+            ]);
+        }
+    }
+
+
+
 }
