@@ -55,10 +55,10 @@ class CategoryController extends Controller
 
         // Make API request using the common function
         $productCategory = $this->shopwareApiService->makeApiRequest('POST', '/api/search/category', $payload);
-        if ($productCategory && !isset($productCategory['data'])) {
+        if ($productCategory && count($productCategory['data']) > 0) {
             return response()->json(['productCategory' => $productCategory['data']], 200);
-        }else{
-//            return $this->saveData($request);
+        } else {
+
             return response()->json([
                 'productCategory' => [],
                 'message' => 'createNew'
@@ -71,50 +71,53 @@ class CategoryController extends Controller
         return view('backend.pages.product.create');
     }
 
-//    public function SaveData(Request $request)
-//    {
-//        $request->validate([
-//            'lastCategory' => 'required|string',
-//        ]);
-//
-//        // Generate a UUID for the new product
-//        $uuid = str_replace('-', '', (string)\Str::uuid());
-//        $productManufacturer = $request->input('lastCategory');
-//        // Prepare the data for the API request
-//        $data = [
-//            'id' => $uuid,
-//            'name' => $productManufacturer,
-//        ];
-//
-//        try {
-//            // Make the API request to create the product
-//            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/category', $data);
-//            // If the API call is successful
-//
-////            if ($response['success'] === true) {
-//
-//            $productCategory = $request->input('lastCategory');
-//            $payload = [
-//                'filter' => [
-//                    [
-//                        'type' => 'contains',
-//                        'field' => 'name',
-//                        'value' => $productCategory,
-//                    ]
-//                ],
-//                'inheritance' => true,
-//                'total-count-mode' => 1,
-//            ];
-//
-//            // Make API request using the common function
-//            $productCategory = $this->shopwareApiService->makeApiRequest('POST', '/api/search/category', $payload);
-//            if ($productCategory) {
-//                return response()->json(['productCategory' => $productCategory['data']], 200);
-//            }
-////            }
-//        } catch (\Exception $e) {
-//
-//        }
-//    }
+    public function createCategory(Request $request)
+    {
 
+        $request->validate([
+            'lastCategory' => 'required|string',
+            'parentCategoriesValue' => 'required|string',
+        ]);
+
+        // Generate a UUID for the new product
+        $uuid = str_replace('-', '', (string)\Str::uuid());
+        $categoryName = $request->input('lastCategory');
+        $parentCategoriesValue = $request->input('parentCategoriesValue');
+        // Prepare the data for the API request
+        $data = [
+            'id' => $uuid,
+            'name' => $categoryName,
+            'parentId' => $parentCategoriesValue
+        ];
+
+        try {
+            // Make the API request to create the product
+            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/category', $data);
+            // If the API call is successful
+
+//            if ($response['success'] === true) {
+
+
+                $payload = [
+                    'filter' => [
+                        [
+                            'type' => 'contains',
+                            'field' => 'name',
+                            'value' => $categoryName,
+                        ]
+                    ],
+                    'inheritance' => true,
+                    'total-count-mode' => 1,
+                ];
+
+                // Make API request using the common function
+                $productCategory = $this->shopwareApiService->makeApiRequest('POST', '/api/search/category', $payload);
+                if ($productCategory) {
+                    return response()->json(['productCategory' => $productCategory['data']], 200);
+                }
+//            }
+        } catch (\Exception $e) {
+
+        }
+    }
 }
