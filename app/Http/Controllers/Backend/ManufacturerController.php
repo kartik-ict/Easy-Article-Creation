@@ -168,7 +168,7 @@ class ManufacturerController extends Controller
         // Make API request using the common function
         $productManufacturer = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product-manufacturer', $payload);
 
-        if ($productManufacturer && !isset($productManufacturer['data'])) {
+        if ($productManufacturer && count($productManufacturer['data']) > 0) {
             return response()->json(['productManufacturer' => $productManufacturer['data']], 200);
         } else {
             return $this->saveData($request);

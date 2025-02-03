@@ -54,6 +54,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::delete('/api/manufacturers/{id}', [ManufacturerController::class, 'destroy'])->name('admin.manufacturers.delete');
     Route::post('/manufacturers/swSearch', [ManufacturerController::class, 'swSearch'])->name('sw.manufacturers.search');
     Route::post('/category/swSearch', [CategoryController::class, 'swSearch'])->name('sw.category.search');
+    Route::post('/category/createCategory', [CategoryController::class, 'createCategory'])->name('sw.create.category');
 
     // Product Module
 
@@ -63,6 +64,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::put('/product/update/{id}', [ProductController::class, 'update'])->name('product.update');
     Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
     Route::post('/product/savedata', [ProductController::class, 'SaveData'])->name('product.saveData');
+    Route::post('/product/SaveBolData', [ProductController::class, 'SaveBolData'])->name('product.SaveBolData');
     Route::post('/manufacturer/search', [ProductController::class, 'manufacturerSearch'])->name('product.manufacturerSearch');
     Route::post('/sales-channel/search', [ProductController::class, 'searchSalesChannel'])->name('product.salesChannelSearch');
     Route::post('/sales-channel/search', [ProductController::class, 'searchSalesChannel'])->name('product.salesChannelSearch');
