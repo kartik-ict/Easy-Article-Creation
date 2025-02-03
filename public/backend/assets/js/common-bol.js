@@ -2,6 +2,7 @@
 const manufacturerSearchUrlbol = $('#route-container').data('manufacturer-search');
 const swManufacturerSearchUrl = $('#route-container-sw-manufacturer-search').data('sw-manufacturer-search');
 const categorySearchUrlbol = $('#route-container-category').data('category-search');
+const swCategorySearchUrl = $('#route-container-sw-category-search').data('sw-category-search');
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
 let currentPageManufacturer = 1; // Start from the first page
 let isLoadingManufacturer = false;
@@ -153,27 +154,70 @@ $('#searchSwCategory').on('click', function () {
 
 // Get the last value
     const lastCategory = categoriesArray[categoriesArray.length - 1];
+    console.log(lastCategory);
+    // $.ajax({
+    //     url: swCategorySearchUrl,
+    //     method: "POST",
+    //     headers: { 'X-CSRF-TOKEN': csrfToken },
+    //     data: { lastCategory: lastCategory },
+    //     success: function (response) {
+    //         console.log('Success:', response.message);
+    //         // if(createNew)
+    //
+    //         if(response.productCategory){
+    //             const productCategoryData = response.productCategory;
+    //             const categoryName = productCategoryData[0].attributes.translated.name;
+    //             const categoryId = productCategoryData[0].id;
+    //             const newOption = new Option(categoryName, categoryId, true, true);
+    //
+    //             $('#sw-category-select').append(newOption).trigger('change');
+    //         }
+    //     },
+    //     error: function (xhr, status, error) {
+    //         console.error('AJAX Error:', error);
+    //     }
+    // });
 
     $.ajax({
-        url: swManufacturerSearchUrl,
+        url: swCategorySearchUrl,
         method: "POST",
         headers: { 'X-CSRF-TOKEN': csrfToken },
         data: { lastCategory: lastCategory },
-        success: function (response) {
-            // console.log('Success:', response);
-            if(response.productManufacturer){
-                const manufacturerData = response.productManufacturer;
-                const manufacturerName = manufacturerData[0].attributes.translated.name;
-                const manufacturerId = manufacturerData[0].id;
-                const newOption = new Option(manufacturerName, manufacturerId, true, true);
+        success: function (response, status, xhr) {
 
-                $('#manufacturer-sw-search').append(newOption).trigger('change');
+           if(response.message == "createNew"){
+               $("#bolCategorySelected").hide(); // Hide bolCategorySelected
+               $("#parentCategorySelect").show(); // Show parentCategorySelect
+           }
+            // Check if response is actually empty
+            if (!response) {
+                console.error('Empty response received from server');
+                return;
+            }
+
+            if (response.productCategory && Array.isArray(response.productCategory) && response.productCategory.length > 0) {
+                const categoryName = response.productCategory[0]?.attributes?.translated?.name;
+                const categoryId = response.productCategory[0]?.id;
+
+                if (categoryName && categoryId) {
+                    const newOption = new Option(categoryName, categoryId, true, true);
+                    $('#sw-category-select').append(newOption).trigger('change');
+                } else {
+                    console.error('Category Name or ID missing');
+                }
+            } else if (response.message === 'createNew') {
+                console.log('No existing category found, creating new.');
+                // Handle new category creation case
+            } else {
+                console.error('Unexpected response format:', response);
             }
         },
         error: function (xhr, status, error) {
             console.error('AJAX Error:', error);
+            console.error('Server Response:', xhr.responseText);
         }
     });
+
 
 });
 

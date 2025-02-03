@@ -94,6 +94,9 @@
                     <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"></div>
                     <div id="route-container-category"
                          data-category-search="{{ route('product.categorySearch') }}"></div>
+
+                    <div id="route-container-sw-category-search"
+                         data-sw-category-search="{{ route('sw.category.search') }}"></div>
                     <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
                     <div id="route-container-property" data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
                     <div id="route-container-property-option" data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
@@ -136,12 +139,19 @@
                                             <a class="btn btn-primary btn-next" id="searchSwCategory">Search categories in Shopware </a>
                                         </div>
                                     </div>
-                                    <div class="form-group mb-3 col-6">
+                                    <div class="form-group mb-3 col-6" id="bolCategorySelected">
                                         <label for="category">@lang('product.category'):</label>
-                                        <select id="category-select" class="js-example-basic-single form-control"
+                                        <select id="sw-category-select" class="js-example-basic-single form-control"
                                                 name="category[]" multiple required>
                                         </select>
                                     </div>
+
+{{--                                    <div class="form-group mb-3 col-6" style="display: none" id="parentCategorySelect">--}}
+{{--                                        <label for="category">@lang('product.category'):</label>--}}
+{{--                                        <select id="sw-category-select" class="js-example-basic-single form-control"--}}
+{{--                                                name="category[]" multiple required>--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
                                 </div>
 
                                 <div class="form-group row col-12">

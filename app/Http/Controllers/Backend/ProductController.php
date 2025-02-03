@@ -96,16 +96,16 @@ class ProductController extends Controller
                 $product = [
                     "results" => [
                         [
-                            "ean" => null,
+                            "ean" => '9789493170179',
                             "sku" => "9200000127656703",
                             "url" => "https://www.bol.com/nl/nl/p/rRIB/9200000127656703/",
                             "title" => "Groeten uit Den Haag",
-                            "brand" => null,
+                            "brand" => 'testdemobrand4',
                             "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/1200x1200.jpg",
                             "categories" => [
                                 "Boeken",
                                 "Kunst & Fotografie",
-                                "Fotografie"
+                                "helloa"
                             ],
                             "description" => "Groeten uit Den Haag: Honderd jaar veranderingen in de stad Je staat op dezelfde plek, maar in een andere tijd. Iedereen kent de vervreemdende sensatie van het kijken naar oude foto’s. Het verleden is verdwenen, maar nog merkbaar in de details. Robert Mulder zocht honderd oude foto’s van de stad en maakte honderd recente foto’s op exact dezelfde plek. In één oogopslag zie je de veranderingen in beeld. De beeldbepalende ministeries, het verschil tussen zand en veen en de nabijheid van de zee hebben het aangezicht van de stad bepaald. Groeten uit Den Haag laat zien wat er verdwenen en verschenen is in de stad. Door de oude en nieuwe foto’s in groot formaat naast elkaar te zetten, blijf je gefascineerd kijken naar de veranderingen. De ene keer valt de vergelijking uit in het voordeel van het verleden, de andere keer in het voordeel van het heden. De vooruitgang gaat soms gepaard met een dosis weemoed.",
                             "specs" => [

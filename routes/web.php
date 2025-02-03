@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Backend\CategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\ManufacturerController;
 use App\Http\Controllers\Backend\ProductController;
@@ -52,6 +53,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::get('/admin/manufacturers/{id}/edit', [ManufacturerController::class, 'edit'])->name('admin.manufacturers.edit');
     Route::delete('/api/manufacturers/{id}', [ManufacturerController::class, 'destroy'])->name('admin.manufacturers.delete');
     Route::post('/manufacturers/swSearch', [ManufacturerController::class, 'swSearch'])->name('sw.manufacturers.search');
+    Route::post('/category/swSearch', [CategoryController::class, 'swSearch'])->name('sw.category.search');
 
     // Product Module
 
