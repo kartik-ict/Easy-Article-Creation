@@ -75,6 +75,9 @@ return [
     'general_information' => 'Product Algemene informatie ',
     'additional_information' => 'Product Aanvullende Informatie',
     'enter_new_stock_alert' => 'Voer een nieuwe voorraad in',
+    'selectedGroup' => 'Geselecteerde groep',
+    'selectedPropertyGroup' => 'Geselecteerde eigenschap Optie',
+
     'categoryParent' => 'Select Parent Category',
     'createCategorySw' => 'Create categories in Shopware',
     'searchCategorySw' => 'Search categories in Shopware ',

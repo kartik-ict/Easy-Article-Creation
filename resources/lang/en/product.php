@@ -73,6 +73,9 @@ return [
     'select_property_group_first' => 'Select Property Group First',
     'general_information' => 'Product Additional Information',
     'enter_new_stock_alert' => 'Enter a new stock',
+    'selectedGroup' => 'Selected Group',
+    'selectedPropertyGroup' => 'Selected Property Option',
+
     'categoryParent' => 'Select Parent Category',
     'createCategorySw' => 'Create categories in Shopware',
     'searchCategorySw' => 'Search categories in Shopware ',

@@ -98,6 +98,11 @@
                     <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"></div>
                     <div id="route-container-category"
                          data-category-search="{{ route('product.categorySearch') }}"></div>
+                    <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
+                    <div id="route-container-property" data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
+                    <div id="route-container-property-option" data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
+                    <div id="route-container-property-option-save" data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
+                    <div id="route-container-variant-save" data-variant-save="{{ route('product.saveVariantProduct') }}"></div>
 
                     <div id="route-container-sw-category-search"
                          data-sw-category-search="{{ route('sw.category.search') }}"></div>
@@ -370,24 +375,23 @@
                             </table>
 
 
-                            <!-- Product Edit Modal -->
-                            <div class="modal fade" id="productEditModal" tabindex="-1" role="dialog"
-                                 aria-labelledby="editModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">{{ __('product.step4') }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form id="product-form" action="{{ route('product.saveData') }}"
-                                                  method="POST">
-                                                @csrf
-                                                <div class="row">
-                                                    <!-- Left Column -->
-                                                    <div class="col-md-6">
-                                                        <h5 class="mb-3">{{ __('product.general_information') }}</h5>
+                        <!-- Product Edit Modal -->
+                        <div class="modal fade" id="productEditModal" tabindex="-1" role="dialog"
+                             aria-labelledby="editModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{{ __('product.step4') }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="product-form"  method="POST">
+                                            @csrf
+                                            <div class="row">
+                                                <!-- Left Column -->
+                                                <div class="col-md-6">
+                                                    <h5 class="mb-3">{{ __('product.general_information') }}</h5>
 
                                                         <div class="form-group mb-3">
                                                             <label for="name">@lang('product.name'):</label>
@@ -411,20 +415,13 @@
                                                             </select>
                                                         </div>
 
-                                                        <div class="form-group mb-3">
-                                                            <label for="taxId">@lang('product.tax_id'):</label>
-                                                            <select id="tax-provider-select"
-                                                                    class="js-example-basic-single form-control"
-                                                                    name="taxId" required>
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="form-group mb-3">
-                                                            <label for="productNumber">@lang('product.product_number')
-                                                                :</label>
-                                                            <input type="text" class="form-control" id="productNumber"
-                                                                   name="productNumber" required>
-                                                        </div>
+                                                    <div class="form-group mb-3">
+                                                        <label for="taxId">@lang('product.tax_id'):</label>
+                                                        <select id="tax-provider-select"
+                                                                class="js-example-basic-single form-control"
+                                                                name="taxId" required>
+                                                        </select>
+                                                    </div>
 
                                                         <div class="form-group mb-3">
                                                             <label
@@ -434,13 +431,20 @@
                                                                    placeholder="{{ __('product.enter_price_gross') }}">
                                                         </div>
 
-                                                        <div class="form-check form-switch mb-3">
-                                                            <input type="checkbox" class="form-check-input"
-                                                                   name="active_for_all" id="active_for_all" value="1">
-                                                            <label class="form-check-label"
-                                                                   for="active_for_all">{{ __('product.active_for_all_label') }}</label>
-                                                        </div>
+                                                    <div class="form-group">
+                                                        <label for="price_net">{{ __('product.price_net') }}</label>
+                                                        <input type="number" name="priceNet" id="priceNet"
+                                                               class="form-control" step="any"
+                                                               placeholder="{{ __('product.calculated_price_net') }}">
                                                     </div>
+
+{{--                                                    <div class="form-check form-switch mb-3">--}}
+{{--                                                        <input type="checkbox" class="form-check-input"--}}
+{{--                                                               name="active_for_all" id="active_for_all" value="1">--}}
+{{--                                                        <label class="form-check-label"--}}
+{{--                                                               for="active_for_all">{{ __('product.active_for_all_label') }}</label>--}}
+{{--                                                    </div>--}}
+                                                </div>
 
                                                     <!-- Right Column -->
                                                     <div class="col-md-6">
@@ -462,21 +466,27 @@
                                                         {{--                                                        </select>--}}
                                                         {{--                                                    </div>--}}
 
-                                                        <div class="form-group mb-3">
-                                                            <label for="category">@lang('product.category'):</label>
-                                                            <select id="category-select-modal"
-                                                                    class="js-example-basic-single form-control"
-                                                                    name="category[]" multiple required>
-                                                            </select>
-                                                        </div>
+{{--                                                    <div class="form-group mb-3">--}}
+{{--                                                        <label for="category">@lang('product.category'):</label>--}}
+{{--                                                        <select id="category-select-modal"--}}
+{{--                                                                class="js-example-basic-single form-control"--}}
+{{--                                                                name="category[]" multiple required>--}}
+{{--                                                        </select>--}}
+{{--                                                    </div>--}}
 
-                                                        {{--                                                    <div class="form-group mb-3">--}}
-                                                        {{--                                                        <label for="ean">@lang('product.ean'):</label>--}}
-                                                        {{--                                                        <input type="text" id="eanForm" class="form-control"--}}
-                                                        {{--                                                               name="eanForm"--}}
-                                                        {{--                                                               placeholder="@lang('product.enter_ean')"--}}
-                                                        {{--                                                               required>--}}
-                                                        {{--                                                    </div>--}}
+{{--                                                    <div class="form-group mb-3">--}}
+{{--                                                        <label for="ean">@lang('product.ean'):</label>--}}
+{{--                                                        <input type="text" id="eanForm" class="form-control"--}}
+{{--                                                               name="eanForm"--}}
+{{--                                                               placeholder="@lang('product.enter_ean')"--}}
+{{--                                                               required>--}}
+{{--                                                    </div>--}}
+                                                    <div class="form-group mb-3">
+                                                        <label for="productNumber">@lang('product.product_number')
+                                                            :</label>
+                                                        <input type="text" class="form-control" id="productNumber"
+                                                               name="productNumber" required>
+                                                    </div>
 
                                                         <div class="form-group mb-3">
                                                             <label for="mediaUrl">@lang('product.media_url'):</label>
@@ -484,29 +494,26 @@
                                                                    name="mediaUrl">
                                                         </div>
 
-                                                        <div class="form-group">
-                                                            <label for="price_net">{{ __('product.price_net') }}</label>
-                                                            <input type="number" name="priceNet" id="priceNet"
-                                                                   class="form-control" step="any"
-                                                                   placeholder="{{ __('product.calculated_price_net') }}">
-                                                        </div>
+                                                    <div class="form-group mb-3">
+                                                        <strong>@lang('product.selectedGroup'):</strong> <span id="selectedPropertyGroupDisplay"></span><br>
+                                                        <strong>@lang('product.selectedPropertyGroup'):</strong> <span id="selectedPropertyOptionDisplay"></span>
                                                     </div>
                                                 </div>
-                                                <button type="submit"
-                                                        class="btn btn-success w-100">{{ __('product.submit') }}</button>
-                                            </form>
-                                        </div>
+                                            </div>
+                                            <button type="submit"
+                                                    class="btn btn-success w-100" id="saveVariant">{{ __('product.submit') }}</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Back and Next Buttons -->
-                            <button id="back3YesStep"
-                                    class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
-                            <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
-                            <button id="newVariantButton" class="btn btn-primary btn-new-variant">
-                                {{ __('product.create_new_variant') }}
-                            </button>
+                        <!-- Back and Next Buttons -->
+                        <button id="back3YesStep"
+                                class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
+                        <button id="newVariantButton" class="btn btn-primary btn-new-variant">
+                            {{ __('product.create_new_variant') }}
+                        </button>
 
 
                             <div id="propertyGroupSection" style="display: none;" class="container mt-5">
@@ -602,14 +609,15 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-
     <script>
+        let allProductData = [];
+        let apiResponse = [];
         let bolApiResponse = []
         $(document).ready(function () {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
-            let allProductData = [];
-            let apiResponse = [];
+            // let allProductData = [];
+            // let apiResponse = [];
             let selectedGrade = "";
             let productRow = "";
             let selectedPropertyGroup = "";
@@ -663,6 +671,7 @@
                         } else {
                             $('#gradeSection').show();
                             $('#bolSection').hide();
+                        }
 
                             if (response.product) {
                                 allProductData = response.product;
@@ -679,13 +688,12 @@
                 `;
                                 $('#productDetails').html(productTable);
 
-                                //$('#gradeSection').show();
-                                $('#backBtn').show();
-                                $('#nextBtn').show();
-                            } else {
-                                $('#productDetails').html('<p class="text-danger">{{ __('product.no_product_found') }}</p>');
-                                $('#nextBtn').hide();
-                            }
+                            //$('#gradeSection').show();
+                            $('#backBtn').show();
+                            $('#nextBtn').show();
+                        } else {
+                            $('#productDetails').html('<p class="text-danger">{{ __('product.no_product_found') }}</p>');
+                            $('#nextBtn').hide();
                         }
                     },
                     error: function () {
@@ -713,7 +721,6 @@
 
             // Handle Next button (Step 2 -> Step 3)
             $('#nextBtn').on('click', function () {
-
                 if (selectedGrade === "no") {
                     // Transition to Step 3
                     $('#step2').hide();
@@ -792,7 +799,7 @@
                 <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
                 <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                 {{--<td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>--}}
-                            `;
+                `;
 
                             $('#productTable-update tbody').append(productRow);
                         });
@@ -801,7 +808,6 @@
                     alert('{{ __('product.select_grade_alert') }}');
                 }
             });
-
 
             // Handle Back button (Step 2 -> Step 1)
             $('#backBtn').on('click', function () {
