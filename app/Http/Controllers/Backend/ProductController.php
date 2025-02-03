@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Services\ShopwareAuthService;
 use App\Services\CurrencyService;
 use App\Http\Controllers\Controller;
+use App\Services\TaxService;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Services\ShopwareProductService;
@@ -18,14 +19,16 @@ class ProductController extends Controller
     protected $shopwareProductService;
     private $shopwareApiService;
     private $currencyId;
+    private $taxId;
 
     private $client;
 
-    public function __construct(ShopwareProductService $shopwareProductService, ShopwareAuthService $shopwareApiService, CurrencyService $currencyId)
+    public function __construct(ShopwareProductService $shopwareProductService, ShopwareAuthService $shopwareApiService, CurrencyService $currencyId, TaxService  $taxId, Client $client)
     {
         $this->shopwareProductService = $shopwareProductService;
         $this->shopwareApiService = $shopwareApiService;
         $this->currencyId = $currencyId;
+        $this->taxId = $taxId;
         $this->client = new Client();
     }
 
@@ -75,14 +78,17 @@ class ProductController extends Controller
 
         if (!$product['data']) {
 
-//            $apiKey = '7a507de2-fc1d-4eaf-88ff-f1401d2c155b';
-//            $site = 'bol.com';
+            $apiKey = '7a507de2-fc1d-4eaf-88ff-f1401d2c155b';
+            $site = 'bol.com';
 
-//            $fallbackUrl = "https://api.shoppingscraper.com/info";
+            $fallbackUrl = "https://api.shoppingscraper.com/info";
+            $fallbackUrlPrice = "https://api.shoppingscraper.com/offers";
 
-//            $client = new Client();
+
+            $client = new Client();
 
             try {
+                /*                Dayanamic product data*/
 //                $response = $client->request('GET', $fallbackUrl, [
 //                    'query' => [
 //                        'site' => $site,
@@ -93,19 +99,30 @@ class ProductController extends Controller
 //
 //                $product = json_decode($response->getBody(), true);
 
+
+//                $responsePrice = $client->request('GET', $fallbackUrlPrice, [
+//                    'query' => [
+//                        'site' => $site,
+//                        'ean' => $product['results']['0']['ean'] ?? $ean,
+//                        'api_key' => $apiKey
+//                    ]
+//                ]);
+//
+//                $productPrice = json_decode($responsePrice->getBody(), true);
+                /*                Dayanamic product data*/
                 $product = [
                     "results" => [
                         [
-                            "ean" => null,
+                            "ean" => '9789493170179',
                             "sku" => "9200000127656703",
                             "url" => "https://www.bol.com/nl/nl/p/rRIB/9200000127656703/",
                             "title" => "Groeten uit Den Haag",
-                            "brand" => null,
+                            "brand" => 'testdemobrand123',
                             "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/1200x1200.jpg",
                             "categories" => [
                                 "Boeken",
                                 "Kunst & Fotografie",
-                                "Fotografie"
+                                "test"
                             ],
                             "description" => "Groeten uit Den Haag: Honderd jaar veranderingen in de stad Je staat op dezelfde plek, maar in een andere tijd. Iedereen kent de vervreemdende sensatie van het kijken naar oude foto’s. Het verleden is verdwenen, maar nog merkbaar in de details. Robert Mulder zocht honderd oude foto’s van de stad en maakte honderd recente foto’s op exact dezelfde plek. In één oogopslag zie je de veranderingen in beeld. De beeldbepalende ministeries, het verschil tussen zand en veen en de nabijheid van de zee hebben het aangezicht van de stad bepaald. Groeten uit Den Haag laat zien wat er verdwenen en verschenen is in de stad. Door de oude en nieuwe foto’s in groot formaat naast elkaar te zetten, blijf je gefascineerd kijken naar de veranderingen. De ene keer valt de vergelijking uit in het voordeel van het verleden, de andere keer in het voordeel van het heden. De vooruitgang gaat soms gepaard met een dosis weemoed.",
                             "specs" => [
@@ -136,6 +153,40 @@ class ProductController extends Controller
                     ]
                 ];
 
+                $productPrice = [
+                    "results" => [
+                        [
+                            "ean" => "9789493170179",
+                            "sku" => "9200000127656703",
+                            "url" => "https://www.bol.com/nl/nl/p/groeten-uit-den-haag/9200000127656703/",
+                            "title" => "Groeten uit Den Haag",
+                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/124x124.jpg",
+                            "availability" => "InStock",
+                            "currency" => "EUR",
+                            "offers" => [
+                                [
+                                    "sellerName" => "Bol",
+                                    "sellerReference" => "/nl/order/basket/addItems.html?productId=9200000127656703&offerUid=9185b50f-6970-47e0-88da-959cf4ba6418&quantity=1",
+                                    "price" => "29.95",
+                                    "shippingPrice" => "0.00",
+                                    "totalPrice" => "29.95",
+                                    "condition" => "Nieuw",
+                                    "shippingMethod" => "standard"
+                                ],
+                                [
+                                    "sellerName" => "Paagman.nl",
+                                    "sellerReference" => "/nl/nl/v/paagman-nl/1092159/?sellingOfferId=151422169b716fc6de9d017ff30a54c4",
+                                    "price" => "34.90",
+                                    "shippingPrice" => "0.00",
+                                    "totalPrice" => "34.90",
+                                    "condition" => "Nieuw",
+                                    "shippingMethod" => "standard"
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+
 
                 $productData = [
                     'name' => $product['results']['0']['title'],
@@ -143,6 +194,7 @@ class ProductController extends Controller
                     'stock' => 0,
                     'id' => '',
                     'productData' => $product['results'],
+                    'productPriceData' => $productPrice['results'],
                     'included' => '',
                     'bol' => true
                 ];
@@ -424,15 +476,15 @@ class ProductController extends Controller
         ]);
 
         // Prepare the payload for the API request
-        $uuid = str_replace('-', '', (string) \Str::uuid());
+        $uuid = str_replace('-', '', (string)\Str::uuid());
         $payload = [
             'id' => $uuid,
             'groupId' => $validatedData['groupId'],
             'name' => $validatedData['optionName'],
         ];
 
-        $response =  $this->shopwareApiService->makeApiRequest('POST', '/api/property-group-option', $payload);
-        if ($response['success']){
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/property-group-option', $payload);
+        if ($response['success']) {
             return response()->json([
                 'message' => __('product.property_option_saved_successfully')
             ]);
@@ -517,6 +569,77 @@ class ProductController extends Controller
 
     }
 
+    public function SaveBolData(Request $request)
+    {
+
+        $currencyId = $this->currencyId->getCurrencyId();
+
+        $validatedData = $request->validate([
+            'bolProductName' => 'string',
+            'bolProductEanNumber' => 'string',
+            'bolProductSku' => 'string',
+            'bolProductManufacturerId' => 'string',
+            'bolProductCategoriesId' => 'string',
+            'bolProductDescription' => 'string',
+            'bolPackagingWidth' => 'string',
+            'bolPackagingHeight' => 'string',
+            'bolPackagingLength' => 'string',
+            'bolPackagingWeight' => 'string',
+            'bolProductPrice' => 'string',
+            'bolTotalPrice' => 'string',
+        ]);
+
+        $uuid = str_replace('-', '', (string)\Str::uuid());
+
+        $weight = strstr($validatedData['bolPackagingWeight'], ' ', true); // Output: "1722"
+        $width = strstr($validatedData['bolPackagingWidth'], ' ', true);  // Output: "296"
+        $height = strstr($validatedData['bolPackagingHeight'], ' ', true);  // Output: "21"
+        $length = strstr($validatedData['bolPackagingLength'], ' ', true); // Output: "298"
+
+        $data = [
+            'id' => $uuid,
+            'name' => $validatedData['bolProductName'],
+            'manufacturerId' => $validatedData['bolProductManufacturerId'],
+            'productNumber' => $validatedData['bolProductSku'],
+            'description' => $validatedData['bolProductDescription'],
+            'ean' => $validatedData['bolProductEanNumber'],
+            'categories' => array_map(fn($categoryId) => ['id' => trim($categoryId)], explode(',', $validatedData['bolProductCategoriesId'])), // Fix here
+            'stock' => 0,
+            'taxId' => $this->taxId->getTaxId(),
+            'weight' => $weight,
+            'width' => $width,
+            'height' => $height,
+            'length' => $length,
+            'price' => [
+                [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['bolProductPrice']),
+                    'net' => floatval($validatedData['bolTotalPrice']),
+                    'linked' => true
+                ]
+            ]
+        ];
+
+        try {
+            // Make the API request to create the product
+            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
+
+            // If the API call is successful
+            if ($response['success'] === true) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product created successfully'
+                ], 200);
+            }
+
+        } catch (\Exception $e) {
+            // Log and return error
+            return response()->json([
+                'error' => 'Something went wrong!',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 }

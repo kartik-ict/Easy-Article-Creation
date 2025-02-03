@@ -76,4 +76,7 @@ return [
     'selectedGroup' => 'Selected Group',
     'selectedPropertyGroup' => 'Selected Property Option',
 
+    'categoryParent' => 'Select Parent Category',
+    'createCategorySw' => 'Create categories in Shopware',
+    'searchCategorySw' => 'Search categories in Shopware ',
 ];
