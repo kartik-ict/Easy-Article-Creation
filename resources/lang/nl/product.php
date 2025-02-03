@@ -75,5 +75,7 @@ return [
     'general_information' => 'Product Algemene informatie ',
     'additional_information' => 'Product Aanvullende Informatie',
     'enter_new_stock_alert' => 'Voer een nieuwe voorraad in',
+    'selectedGroup' => 'Geselecteerde groep',
+    'selectedPropertyGroup' => 'Geselecteerde eigenschap Optie',
 
 ];

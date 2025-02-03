@@ -98,6 +98,7 @@
                     <div id="route-container-property" data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
                     <div id="route-container-property-option" data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
                     <div id="route-container-property-option-save" data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
+                    <div id="route-container-variant-save" data-variant-save="{{ route('product.saveVariantProduct') }}"></div>
 
                     <!-- Step 1: Search EAN -->
                     <div id="step1" class="step">
@@ -235,8 +236,7 @@
                                                 aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <form id="product-form" action="{{ route('product.saveData') }}"
-                                              method="POST">
+                                        <form id="product-form"  method="POST">
                                             @csrf
                                             <div class="row">
                                                 <!-- Left Column -->
@@ -274,13 +274,6 @@
                                                     </div>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="productNumber">@lang('product.product_number')
-                                                            :</label>
-                                                        <input type="text" class="form-control" id="productNumber"
-                                                               name="productNumber" required>
-                                                    </div>
-
-                                                    <div class="form-group mb-3">
                                                         <label
                                                             for="price_gross">{{ __('product.price_gross') }}</label>
                                                         <input type="number" name="priceGross" id="priceGross"
@@ -288,12 +281,19 @@
                                                                placeholder="{{ __('product.enter_price_gross') }}">
                                                     </div>
 
-                                                    <div class="form-check form-switch mb-3">
-                                                        <input type="checkbox" class="form-check-input"
-                                                               name="active_for_all" id="active_for_all" value="1">
-                                                        <label class="form-check-label"
-                                                               for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                                                    <div class="form-group">
+                                                        <label for="price_net">{{ __('product.price_net') }}</label>
+                                                        <input type="number" name="priceNet" id="priceNet"
+                                                               class="form-control" step="any"
+                                                               placeholder="{{ __('product.calculated_price_net') }}">
                                                     </div>
+
+{{--                                                    <div class="form-check form-switch mb-3">--}}
+{{--                                                        <input type="checkbox" class="form-check-input"--}}
+{{--                                                               name="active_for_all" id="active_for_all" value="1">--}}
+{{--                                                        <label class="form-check-label"--}}
+{{--                                                               for="active_for_all">{{ __('product.active_for_all_label') }}</label>--}}
+{{--                                                    </div>--}}
                                                 </div>
 
                                                 <!-- Right Column -->
@@ -316,13 +316,13 @@
 {{--                                                        </select>--}}
 {{--                                                    </div>--}}
 
-                                                    <div class="form-group mb-3">
-                                                        <label for="category">@lang('product.category'):</label>
-                                                        <select id="category-select-modal"
-                                                                class="js-example-basic-single form-control"
-                                                                name="category[]" multiple required>
-                                                        </select>
-                                                    </div>
+{{--                                                    <div class="form-group mb-3">--}}
+{{--                                                        <label for="category">@lang('product.category'):</label>--}}
+{{--                                                        <select id="category-select-modal"--}}
+{{--                                                                class="js-example-basic-single form-control"--}}
+{{--                                                                name="category[]" multiple required>--}}
+{{--                                                        </select>--}}
+{{--                                                    </div>--}}
 
 {{--                                                    <div class="form-group mb-3">--}}
 {{--                                                        <label for="ean">@lang('product.ean'):</label>--}}
@@ -331,6 +331,12 @@
 {{--                                                               placeholder="@lang('product.enter_ean')"--}}
 {{--                                                               required>--}}
 {{--                                                    </div>--}}
+                                                    <div class="form-group mb-3">
+                                                        <label for="productNumber">@lang('product.product_number')
+                                                            :</label>
+                                                        <input type="text" class="form-control" id="productNumber"
+                                                               name="productNumber" required>
+                                                    </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="mediaUrl">@lang('product.media_url'):</label>
@@ -338,16 +344,14 @@
                                                                name="mediaUrl">
                                                     </div>
 
-                                                    <div class="form-group">
-                                                        <label for="price_net">{{ __('product.price_net') }}</label>
-                                                        <input type="number" name="priceNet" id="priceNet"
-                                                               class="form-control" step="any"
-                                                               placeholder="{{ __('product.calculated_price_net') }}">
+                                                    <div class="form-group mb-3">
+                                                        <strong>@lang('product.selectedGroup'):</strong> <span id="selectedPropertyGroupDisplay"></span><br>
+                                                        <strong>@lang('product.selectedPropertyGroup'):</strong> <span id="selectedPropertyOptionDisplay"></span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <button type="submit"
-                                                    class="btn btn-success w-100">{{ __('product.submit') }}</button>
+                                                    class="btn btn-success w-100" id="saveVariant">{{ __('product.submit') }}</button>
                                         </form>
                                     </div>
                                 </div>
@@ -357,7 +361,6 @@
                         <!-- Back and Next Buttons -->
                         <button id="back3YesStep"
                                 class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
-                        <button id="next3YesStep" class="btn btn-primary btn-next">{{ __('product.next') }}</button>
                         <button id="newVariantButton" class="btn btn-primary btn-new-variant">
                             {{ __('product.create_new_variant') }}
                         </button>
@@ -440,15 +443,15 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
-    <script src="{{ asset('backend/assets/js/common-bol.js') }}"></script>
 
     <script>
+        let allProductData = [];
+        let apiResponse = [];
         $(document).ready(function () {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
-            let allProductData = [];
-            let apiResponse = [];
+            // let allProductData = [];
+            // let apiResponse = [];
             let selectedGrade = "";
             let productRow = "";
             let selectedPropertyGroup = "";
@@ -797,4 +800,6 @@
             });
         });
     </script>
+    <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
+    <script src="{{ asset('backend/assets/js/common-bol.js') }}"></script>
 @endsection

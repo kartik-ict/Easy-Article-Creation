@@ -6,6 +6,7 @@ const taxSearchUrl = $('#route-container-tax').data('tax-search');
 const propertySearchUrl = $('#route-container-property').data('property-search');
 const propertyOptionSearchUrl = $('#route-container-property-option').data('property-search-option');
 const propertyOptionSave = $('#route-container-property-option-save').data('property-option-save');
+const variantSave = $('#route-container-variant-save').data('variant-save');
 const csrfToken_common = $('meta[name="csrf-token"]').attr('content');
 
 let currentPage = 1; // Start from the first page
@@ -650,6 +651,8 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
 $('#addPropertyOptionBtn').on('click', function () {
     const selectedGroupId = $('#propertyGroupSelect').val();
     const selectedGroupOption = $('#propertyGroupOptionSelect').val();
+    const selectedGroupName = $('#propertyGroupSelect option:selected').text();
+    const selectedPropertyOption = $('#propertyGroupOptionSelect option:selected').text();
 
     if (selectedGroupId && selectedGroupOption) {
         // Show the modal if valid values are selected
@@ -657,8 +660,71 @@ $('#addPropertyOptionBtn').on('click', function () {
 
         // Populate fields if needed (set defaults here)
         $('#selectedPropertyGroupId').val(selectedGroupId);
+        $('#selectedPropertyGroupDisplay').text(selectedGroupName);
+        $('#selectedPropertyOptionDisplay').text(selectedPropertyOption);
+
+        // Iterate through the products in apiResponse
+        apiResponse.product.productData.forEach((product) => {
+            const { childCount, parentId, propertyId } = product.attributes || {};
+
+            // Check the conditions for childCount and parentId
+            if (childCount !== null && parentId === null) {
+                // Create hidden fields and append them to the form
+                createHiddenFields(product.id,selectedGroupOption);
+            }
+        });
     } else {
         alert("Selecteer Vastgoedgroep");
     }
+});
+
+function createHiddenFields(parentId, selectedGroupOption) {
+    // Create hidden input for parentId
+    var parentHiddenField = $('<input>', {
+        type: 'hidden',
+        name: 'parentId', // The name attribute to identify it on the server
+        value: parentId // The value to be saved
+    });
+
+    // Create hidden input for propertyId
+    var propertyHiddenField = $('<input>', {
+        type: 'hidden',
+        name: 'propertyOptionId',
+        value: selectedGroupOption
+    });
+
+    // Append the hidden fields to the form (assuming form with id 'product-form')
+    $('#product-form').append(parentHiddenField, propertyHiddenField);
+}
+
+$('#saveVariant').on('click', function (e) {
+    e.preventDefault(); // Prevent the default form submission (if any)
+
+    const formData = $('#product-form').serialize(); // Serialize the entire form data
+    const button = $(this);
+    const originalButtonText = button.text(); // Save original button text
+
+    // Show loader on the button
+    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verwerking...');
+
+    $.ajax({
+        url: variantSave,
+        method: 'POST',
+        data: formData,
+        headers: {
+            'X-CSRF-TOKEN': csrfToken_common
+        },
+        dataType: 'json',
+        success: function (response) {
+            alert(response.message);
+            $('#productEditModal').modal('hide');
+            location.reload();
+        },
+        error: function (error) {
+            console.error('Save Error:', error);
+            // Handle error (e.g., show an error message)
+            alert('An error occurred while saving the product variant.');
+        }
+    });
 });
 

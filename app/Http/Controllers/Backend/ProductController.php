@@ -330,9 +330,8 @@ class ProductController extends Controller
         try {
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
-
             // If the API call is successful
-            if (isset($response['data'])) {
+            if (isset($response['success'])) {
                 return redirect()->route('product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
@@ -438,6 +437,84 @@ class ProductController extends Controller
                 'message' => __('product.property_option_saved_successfully')
             ]);
         }
+    }
+
+    public function saveVariantProduct(Request $request)
+    {
+
+        $currencyId = $this->currencyId->getCurrencyId();
+
+        // Validate the incoming data
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'stock' => 'required|integer',
+            'manufacturer' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'taxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'productNumber' => 'required|string|max:255',
+            'parentId' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'propertyOptionId' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'description' => 'nullable|string',
+            'mediaUrl' => 'nullable|url',
+            'priceGross' => 'required|numeric',
+            'priceNet' => 'required|numeric',
+        ]);
+
+        // Generate a UUID for the new product
+        $uuid = str_replace('-', '', (string)\Str::uuid());
+
+        try {
+            // Step 1: Update Parent Product
+            $parentUpdatePayload = [
+                'configuratorSettings' => [
+                    [
+                        'optionId' => $request->get('propertyOptionId'),
+                    ]
+                ]
+            ];
+            $parentEndpoint = "/api/product/{$validatedData['parentId']}";
+
+            $responseParent = $this->shopwareApiService->makeApiRequest('PATCH', $parentEndpoint, $parentUpdatePayload);
+            if (isset($responseParent['success']) && $responseParent['success']) {
+                // Step 2: Create Child (Variant) Product
+                $data = [
+                    'id' => $uuid,
+                    'name' => $validatedData['name'],
+                    'stock' => intval($validatedData['stock']),
+                    'manufacturerId' => $validatedData['manufacturer'],
+                    'taxId' => $validatedData['taxId'],
+                    'parentId' => $validatedData['parentId'],
+                    'productNumber' => $validatedData['productNumber'],
+                    'description' => $validatedData['description'],
+                    'mediaUrl' => $validatedData['mediaUrl'],
+                    'price' => [
+                        [
+                            'currencyId' => $currencyId,
+                            'gross' => floatval($validatedData['priceGross']),
+                            'net' => floatval($validatedData['priceNet']),
+                            'linked' => true
+                        ]
+                    ],
+                    'options' => [
+                        ['id' => $request->get('propertyOptionId')],
+                    ],
+                    "variantListingConfig" => [
+                        "displayParent" => true
+                    ]
+                ];
+
+                $childEndpoint = "/api/product";
+                $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
+                if (isset($response['success'])) {
+                    return response()->json([
+                        'message' => __('product.product_created_successfully')
+                    ]);
+                }
+            }
+        }catch (\Exception $e) {
+            dd($e->getMessage());
+
+        }
+
     }
 
 
