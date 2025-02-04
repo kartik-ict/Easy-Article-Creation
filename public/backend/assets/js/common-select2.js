@@ -533,20 +533,27 @@ function fetchPropertyGroupOptions(groupId) {
                 return JSON.stringify({
                     page: params.page || 1,
                     groupId : groupId,
-                    limit: 25
+                    limit: 25,
+                    searchTerm: params.term
                 });
             },
             processResults: function (data, params) {
                 params.page = params.page || 1;
                 isEndOfResultsOption = data.propertyGroups.length < 25;
 
-                const results = data.propertyGroups.map(option => ({
-                    id: option.id,
-                    text: option.attributes.translated.name
-                }));
+                const excludedIds = apiResponse.product.included
+                    .filter(item => item.type === 'property_group_option')
+                    .map(option => option.id);
+
+                const filteredResults = data.propertyGroups
+                    .filter(option => !excludedIds.includes(option.id))
+                    .map(option => ({
+                        id: option.id,
+                        text: option.attributes.translated.name
+                    }));
 
                 return {
-                    results: results,
+                    results: filteredResults,
                     pagination: {
                         more: !isEndOfResultsOption
                     }

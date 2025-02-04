@@ -446,6 +446,7 @@ class ProductController extends Controller
         $data = [
             'page' => $request->get('page', 1),
             'limit' => 25,
+            'term' => $request->get('term', ''),
             'filter' => [
                 [
                     'type' => 'equals',
@@ -453,10 +454,8 @@ class ProductController extends Controller
                     'value' => $request->get('groupId', ''),
                 ]
             ],
-            'term' => $request->get('term', ''),
             'total-count-mode' => 1    // Flag to include the total count in the response
         ];
-
         // Make the API request using the common function
         $response =  $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group-option', $data);
 
