@@ -71,6 +71,11 @@ class ProductController extends Controller
                         'group' => []
                     ]
                 ],
+                'configuratorSettings' => [
+                    'associations' => [
+                        'option' => []
+                    ]
+                ],
             ],
             'inheritance' => true,
             'total-count-mode' => 1,
@@ -78,9 +83,7 @@ class ProductController extends Controller
 
         // Make API request using the common function
         $product = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product?inheritance=true', $payload);
-
         if (!$product['data']) {
-
             $apiKey = '7a507de2-fc1d-4eaf-88ff-f1401d2c155b';
             $site = 'bol.com';
 
@@ -92,103 +95,102 @@ class ProductController extends Controller
 
             try {
                 /*                Dayanamic product data*/
-//                $response = $client->request('GET', $fallbackUrl, [
-//                    'query' => [
-//                        'site' => $site,
-//                        'ean' => $ean,
-//                        'api_key' => $apiKey
-//                    ]
-//                ]);
-//
-//                $product = json_decode($response->getBody(), true);
+                $response = $client->request('GET', $fallbackUrl, [
+                    'query' => [
+                        'site' => $site,
+                        'ean' => $ean,
+                        'api_key' => $apiKey
+                    ]
+                ]);
 
+                $product = json_decode($response->getBody(), true);
 
-//                $responsePrice = $client->request('GET', $fallbackUrlPrice, [
-//                    'query' => [
-//                        'site' => $site,
-//                        'ean' => $product['results']['0']['ean'] ?? $ean,
-//                        'api_key' => $apiKey
-//                    ]
-//                ]);
-//
-//                $productPrice = json_decode($responsePrice->getBody(), true);
+                $responsePrice = $client->request('GET', $fallbackUrlPrice, [
+                    'query' => [
+                        'site' => $site,
+                        'ean' => $product['results']['0']['ean'] ?? $ean,
+                        'api_key' => $apiKey
+                    ]
+                ]);
+
+                $productPrice = json_decode($responsePrice->getBody(), true);
                 /*                Dayanamic product data*/
-                $product = [
-                    "results" => [
-                        [
-                            "ean" => '9789493170179',
-                            "sku" => "9200000127656703",
-                            "url" => "https://www.bol.com/nl/nl/p/rRIB/9200000127656703/",
-                            "title" => "Groeten uit Den Haag",
-                            "brand" => 'testdemobrand123',
-                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/1200x1200.jpg",
-                            "categories" => [
-                                "Boeken",
-                                "Kunst & Fotografie",
-                                "test"
-                            ],
-                            "description" => "Groeten uit Den Haag: Honderd jaar veranderingen in de stad Je staat op dezelfde plek, maar in een andere tijd. Iedereen kent de vervreemdende sensatie van het kijken naar oude foto’s. Het verleden is verdwenen, maar nog merkbaar in de details. Robert Mulder zocht honderd oude foto’s van de stad en maakte honderd recente foto’s op exact dezelfde plek. In één oogopslag zie je de veranderingen in beeld. De beeldbepalende ministeries, het verschil tussen zand en veen en de nabijheid van de zee hebben het aangezicht van de stad bepaald. Groeten uit Den Haag laat zien wat er verdwenen en verschenen is in de stad. Door de oude en nieuwe foto’s in groot formaat naast elkaar te zetten, blijf je gefascineerd kijken naar de veranderingen. De ene keer valt de vergelijking uit in het voordeel van het verleden, de andere keer in het voordeel van het heden. De vooruitgang gaat soms gepaard met een dosis weemoed.",
-                            "specs" => [
-                                "Taal" => "Nederlands",
-                                "Bindwijze" => "Hardcover",
-                                "Oorspronkelijke releasedatum" => "15 mei 2020",
-                                "Aantal pagina's" => "216",
-                                "Illustraties" => "Met illustraties",
-                                "Hoofdauteur" => "Robert Mulder",
-                                "Hoofduitgeverij" => "Uitgeverij Kleine Uil",
-                                "Editie" => "1",
-                                "Product breedte" => "295 mm",
-                                "Product hoogte" => "21 mm",
-                                "Product lengte" => "297 mm",
-                                "Studieboek" => "Nee",
-                                "Verpakking breedte" => "296 mm",
-                                "Verpakking hoogte" => "21 mm",
-                                "Verpakking lengte" => "298 mm",
-                                "Verpakkingsgewicht" => "1722 g",
-                                "EAN" => "9789493170179",
-                                "Verantwoordelijk marktdeelnemer in de EU" => "Bekijk gegevens",
-                                "Categorieën" => "Kunst & FotografieFotografieBoeken",
-                                "Boek, ebook of luisterboek?" => "Boek",
-                                "Select-bezorgopties" => "Vandaag Bezorgd, Avondbezorging, Zondagbezorging, Gratis verzending",
-                                "Studieboek of algemeen" => "Algemene boeken"
-                            ]
-                        ]
-                    ]
-                ];
-
-                $productPrice = [
-                    "results" => [
-                        [
-                            "ean" => "9789493170179",
-                            "sku" => "9200000127656703",
-                            "url" => "https://www.bol.com/nl/nl/p/groeten-uit-den-haag/9200000127656703/",
-                            "title" => "Groeten uit Den Haag",
-                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/124x124.jpg",
-                            "availability" => "InStock",
-                            "currency" => "EUR",
-                            "offers" => [
-                                [
-                                    "sellerName" => "Bol",
-                                    "sellerReference" => "/nl/order/basket/addItems.html?productId=9200000127656703&offerUid=9185b50f-6970-47e0-88da-959cf4ba6418&quantity=1",
-                                    "price" => "29.95",
-                                    "shippingPrice" => "0.00",
-                                    "totalPrice" => "29.95",
-                                    "condition" => "Nieuw",
-                                    "shippingMethod" => "standard"
-                                ],
-                                [
-                                    "sellerName" => "Paagman.nl",
-                                    "sellerReference" => "/nl/nl/v/paagman-nl/1092159/?sellingOfferId=151422169b716fc6de9d017ff30a54c4",
-                                    "price" => "34.90",
-                                    "shippingPrice" => "0.00",
-                                    "totalPrice" => "34.90",
-                                    "condition" => "Nieuw",
-                                    "shippingMethod" => "standard"
-                                ]
-                            ]
-                        ]
-                    ]
-                ];
+//                $product = [
+//                    "results" => [
+//                        [
+//                            "ean" => '9789493170179',
+//                            "sku" => "9200000127656703",
+//                            "url" => "https://www.bol.com/nl/nl/p/rRIB/9200000127656703/",
+//                            "title" => "Groeten uit Den Haag",
+//                            "brand" => 'testdemobrand123',
+//                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/1200x1200.jpg",
+//                            "categories" => [
+//                                "Boeken",
+//                                "Kunst & Fotografie",
+//                                "test123"
+//                            ],
+//                            "description" => "Groeten uit Den Haag: Honderd jaar veranderingen in de stad Je staat op dezelfde plek, maar in een andere tijd. Iedereen kent de vervreemdende sensatie van het kijken naar oude foto’s. Het verleden is verdwenen, maar nog merkbaar in de details. Robert Mulder zocht honderd oude foto’s van de stad en maakte honderd recente foto’s op exact dezelfde plek. In één oogopslag zie je de veranderingen in beeld. De beeldbepalende ministeries, het verschil tussen zand en veen en de nabijheid van de zee hebben het aangezicht van de stad bepaald. Groeten uit Den Haag laat zien wat er verdwenen en verschenen is in de stad. Door de oude en nieuwe foto’s in groot formaat naast elkaar te zetten, blijf je gefascineerd kijken naar de veranderingen. De ene keer valt de vergelijking uit in het voordeel van het verleden, de andere keer in het voordeel van het heden. De vooruitgang gaat soms gepaard met een dosis weemoed.",
+//                            "specs" => [
+//                                "Taal" => "Nederlands",
+//                                "Bindwijze" => "Hardcover",
+//                                "Oorspronkelijke releasedatum" => "15 mei 2020",
+//                                "Aantal pagina's" => "216",
+//                                "Illustraties" => "Met illustraties",
+//                                "Hoofdauteur" => "Robert Mulder",
+//                                "Hoofduitgeverij" => "Uitgeverij Kleine Uil",
+//                                "Editie" => "1",
+//                                "Product breedte" => "295 mm",
+//                                "Product hoogte" => "21 mm",
+//                                "Product lengte" => "297 mm",
+//                                "Studieboek" => "Nee",
+//                                "Verpakking breedte" => "296 mm",
+//                                "Verpakking hoogte" => "21 mm",
+//                                "Verpakking lengte" => "298 mm",
+//                                "Verpakkingsgewicht" => "1722 g",
+//                                "EAN" => "9789493170179",
+//                                "Verantwoordelijk marktdeelnemer in de EU" => "Bekijk gegevens",
+//                                "Categorieën" => "Kunst & FotografieFotografieBoeken",
+//                                "Boek, ebook of luisterboek?" => "Boek",
+//                                "Select-bezorgopties" => "Vandaag Bezorgd, Avondbezorging, Zondagbezorging, Gratis verzending",
+//                                "Studieboek of algemeen" => "Algemene boeken"
+//                            ]
+//                        ]
+//                    ]
+//                ];
+//
+//                $productPrice = [
+//                    "results" => [
+//                        [
+//                            "ean" => "9789493170179",
+//                            "sku" => "9200000127656703",
+//                            "url" => "https://www.bol.com/nl/nl/p/groeten-uit-den-haag/9200000127656703/",
+//                            "title" => "Groeten uit Den Haag",
+//                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/124x124.jpg",
+//                            "availability" => "InStock",
+//                            "currency" => "EUR",
+//                            "offers" => [
+//                                [
+//                                    "sellerName" => "Bol",
+//                                    "sellerReference" => "/nl/order/basket/addItems.html?productId=9200000127656703&offerUid=9185b50f-6970-47e0-88da-959cf4ba6418&quantity=1",
+//                                    "price" => "29.95",
+//                                    "shippingPrice" => "0.00",
+//                                    "totalPrice" => "29.95",
+//                                    "condition" => "Nieuw",
+//                                    "shippingMethod" => "standard"
+//                                ],
+//                                [
+//                                    "sellerName" => "Paagman.nl",
+//                                    "sellerReference" => "/nl/nl/v/paagman-nl/1092159/?sellingOfferId=151422169b716fc6de9d017ff30a54c4",
+//                                    "price" => "34.90",
+//                                    "shippingPrice" => "0.00",
+//                                    "totalPrice" => "34.90",
+//                                    "condition" => "Nieuw",
+//                                    "shippingMethod" => "standard"
+//                                ]
+//                            ]
+//                        ]
+//                    ]
+//                ];
 
 
                 $productData = [
@@ -218,6 +220,14 @@ class ProductController extends Controller
 //                'error' => __('messages.product_not_found'),
 //            ], 404);
         } else {
+
+            $optionsIds = null;
+            if ($product['data'][0]['attributes']['parentId'] == null) {
+                $productId = $product['data'][0]['id'];
+                $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
+                $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+            }
+
             $productData = [
                 'name' => $product['data']['0']['attributes']['translated']['name'],
                 'ean' => $product['data']['0']['attributes']['ean'] ?? $ean,
@@ -225,7 +235,8 @@ class ProductController extends Controller
                 'id' => $product['data']['0']['id'],
                 'productData' => $product['data'],
                 'included' => $product['included'],
-                'bol' => false
+                'bol' => false,
+                'optionsIds' => $optionsIds
             ];
 
             return response()->json(['product' => $productData], 200);
@@ -509,8 +520,8 @@ class ProductController extends Controller
             'productNumber' => 'required|string|max:255',
             'parentId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'propertyOptionId' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'propertyOptionIdAll' => 'required|string',
             'description' => 'nullable|string',
-            'mediaUrl' => 'nullable|url',
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
         ]);
@@ -520,18 +531,45 @@ class ProductController extends Controller
 
         try {
             // Step 1: Update Parent Product
-            $parentUpdatePayload = [
-                'configuratorSettings' => [
-                    [
-                        'optionId' => $request->get('propertyOptionId'),
-                    ]
-                ]
-            ];
-            $parentEndpoint = "/api/product/{$validatedData['parentId']}";
+            $optionIds = explode(',', $request->get('propertyOptionIdAll'));
+            $productConfiguratorSettingsIds = explode(',', $request->get('productConfiguratorSettingsIds'));
 
-            $responseParent = $this->shopwareApiService->makeApiRequest('PATCH', $parentEndpoint, $parentUpdatePayload);
+            // Remove matching IDs from $optionIds
+            $filteredOptionIds = array_diff($optionIds, $productConfiguratorSettingsIds);
+
+            if (!empty($filteredOptionIds)) {
+                $parentUpdatePayload = [
+                    'configuratorSettings' => array_map(fn($id) => ['optionId' => $id], $filteredOptionIds)
+                ];
+
+                $parentEndpoint = "/api/product/{$validatedData['parentId']}";
+
+                try {
+                    $responseParent = $this->shopwareApiService->makeApiRequest('PATCH', $parentEndpoint, $parentUpdatePayload);
+                } catch (\Exception $e) {
+                    return back()->withErrors(__('product.failed_to_update_product'));
+                }
+            } else {
+                $responseParent['success'] = true;
+            }
+
             if (isset($responseParent['success']) && $responseParent['success']) {
+                $width = $request->get('productPackagingWidth');
+                $height = $request->get('productPackagingHeight');
+                $length = $request->get('productPackagingLength');
+                $weight = $request->get('productPackagingWeight');
+
                 // Step 2: Create Child (Variant) Product
+                $options = [
+                    ['id' => $request->get('propertyOptionId')],
+                    ['id' => $request->get('propertyOptionIdSecond')],
+                    ['id' => $request->get('propertyOptionIdThird')],
+                    ['id' => $request->get('propertyOptionIdFour')],
+                    ['id' => $request->get('propertyOptionIdFive')],
+                ];
+
+                // Remove any null values from the array
+                $options = array_filter($options, fn($option) => !is_null($option['id']));
                 $data = [
                     'id' => $uuid,
                     'name' => $validatedData['name'],
@@ -541,7 +579,10 @@ class ProductController extends Controller
                     'parentId' => $validatedData['parentId'],
                     'productNumber' => $validatedData['productNumber'],
                     'description' => $validatedData['description'],
-                    'mediaUrl' => $validatedData['mediaUrl'],
+                    'weight' => $weight,
+                    'width' => $width,
+                    'height' => $height,
+                    'length' => $length,
                     'price' => [
                         [
                             'currencyId' => $currencyId,
@@ -550,9 +591,7 @@ class ProductController extends Controller
                             'linked' => true
                         ]
                     ],
-                    'options' => [
-                        ['id' => $request->get('propertyOptionId')],
-                    ],
+                    'options' => $options,
                     "variantListingConfig" => [
                         "displayParent" => true
                     ]
@@ -560,6 +599,7 @@ class ProductController extends Controller
 
                 $childEndpoint = "/api/product";
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
+
                 if (isset($response['success'])) {
                     return response()->json([
                         'message' => __('product.product_created_successfully')
@@ -568,9 +608,7 @@ class ProductController extends Controller
             }
         } catch (\Exception $e) {
             dd($e->getMessage());
-
         }
-
     }
 
     public function SaveBolData(Request $request)

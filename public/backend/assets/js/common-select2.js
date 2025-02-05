@@ -14,68 +14,68 @@ let isLoading = false;
 let isEndOfResults = false;
 
 $('#manufacturer-select').select2({
-        placeholder: 'Fabrikant',
-        ajax: {
-            url: manufacturerSearchUrl,
-            type: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            dataType: 'json',
-            delay: 250,
-            data: function(params) {
-                // Prepare data for the API request
-                if (params.term) {
-                    currentPage = 1; // Reset page to 1 when a term is typed
-                }
-
-                return {
-                    page: currentPage, // Send the current page
-                    limit: 25, // Limit the results per page
-                    term: params.term || '', // Search term entered by the user
-                    'total-count-mode': 1 // Fetch total count if needed
-                };
-            },
-            processResults: function(data) {
-                // Check if we've reached the end of the results
-                isEndOfResults = (data.manufacturers.length < 25);
-
-                // Map results to Select2 format
-                const results = data.manufacturers.map(function(manufacturer) {
-                    return {
-                        id: manufacturer.id,
-                        text: manufacturer.attributes.translated.name
-                    };
-                });
-                return {
-                    results: results,
-                    pagination: {
-                        more: !isEndOfResults // Show 'more' if there are more results
-                    }
-                };
-            },
-            cache: true,
+    placeholder: 'Fabrikant',
+    ajax: {
+        url: manufacturerSearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
-        minimumInputLength: 0,
-        allowClear: true,
-        language: {
-            searching: function() {
-                return "Zoeken, even geduld..."; // Dutch translation for "searching"
-            },
-            loadingMore: function() {
-                return "Meer resultaten laden..."; // Dutch translation for "loading more results"
-            },
-            noResults: function() {
-                return "Geen resultaten gevonden."; // Dutch translation for "no results found"
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            // Prepare data for the API request
+            if (params.term) {
+                currentPage = 1; // Reset page to 1 when a term is typed
             }
+
+            return {
+                page: currentPage, // Send the current page
+                limit: 25, // Limit the results per page
+                term: params.term || '', // Search term entered by the user
+                'total-count-mode': 1 // Fetch total count if needed
+            };
         },
-        // Add this to ensure Select2 works inside the modal
-        dropdownParent: $('#productEditModal'),
-    });
+        processResults: function (data) {
+            // Check if we've reached the end of the results
+            isEndOfResults = (data.manufacturers.length < 25);
+
+            // Map results to Select2 format
+            const results = data.manufacturers.map(function (manufacturer) {
+                return {
+                    id: manufacturer.id,
+                    text: manufacturer.attributes.translated.name
+                };
+            });
+            return {
+                results: results,
+                pagination: {
+                    more: !isEndOfResults // Show 'more' if there are more results
+                }
+            };
+        },
+        cache: true,
+    },
+    minimumInputLength: 0,
+    allowClear: true,
+    language: {
+        searching: function () {
+            return "Zoeken, even geduld..."; // Dutch translation for "searching"
+        },
+        loadingMore: function () {
+            return "Meer resultaten laden..."; // Dutch translation for "loading more results"
+        },
+        noResults: function () {
+            return "Geen resultaten gevonden."; // Dutch translation for "no results found"
+        }
+    },
+    // Add this to ensure Select2 works inside the modal
+    dropdownParent: $('#productEditModal'),
+});
 
 
 // When dropdown is opened, reset the page number and flags
-$('#manufacturer-select').on('select2:open', function() {
+$('#manufacturer-select').on('select2:open', function () {
     currentPage = 1; // Start from page 1
     isLoading = false;
     isEndOfResults = false;
@@ -83,7 +83,7 @@ $('#manufacturer-select').on('select2:open', function() {
     const dropdown = $('.select2-results__options');
 
     // Scroll event handler to trigger the next API request when scrolling to the bottom
-    dropdown.on('scroll', function() {
+    dropdown.on('scroll', function () {
         const scrollTop = dropdown.scrollTop();
         const containerHeight = dropdown.innerHeight();
         const scrollHeight = dropdown[0].scrollHeight;
@@ -101,13 +101,12 @@ $('#manufacturer-select').on('select2:open', function() {
 });
 
 // Optionally, handle closing the dropdown manually if required
-$('#manufacturer-select').on('select2:close', function() {
+$('#manufacturer-select').on('select2:close', function () {
     // Reset page when dropdown is closed, if needed
     currentPage = 1;
     isLoading = false; // Reset loading flag when dropdown closes
     isEndOfResults = false; // Reset end of results flag
 });
-
 
 
 let salesChannelPage = 1; // Current page for sales channel pagination
@@ -125,7 +124,7 @@ $('#sales-channel-select').select2({
         },
         dataType: 'json',
         delay: 250,
-        data: function(params) {
+        data: function (params) {
             if (params.term) {
                 salesChannelPage = 1; // Reset page when search term changes
                 isSalesChannelEnd = false;
@@ -137,10 +136,10 @@ $('#sales-channel-select').select2({
                 'total-count-mode': 1
             };
         },
-        processResults: function(data) {
+        processResults: function (data) {
             isSalesChannelEnd = data.salesChannels.length < 25; // Check if it's the end
 
-            const results = data.salesChannels.map(function(salesChannel) {
+            const results = data.salesChannels.map(function (salesChannel) {
                 return {
                     id: salesChannel.id,
                     text: salesChannel.attributes.translated.name
@@ -160,20 +159,20 @@ $('#sales-channel-select').select2({
     allowClear: true,
     multiple: true, // Enable multiple selection
     language: {
-        loadingMore: function() {
+        loadingMore: function () {
             return "@lang('product.loading_more')"; // Message when loading more results
         },
-        searching: function() {
+        searching: function () {
             return "@lang('product.searching')"; // Message during search
         },
-        noResults: function() {
+        noResults: function () {
             return "@lang('product.no_results_found')"; // Message when no results found
         }
     }
 });
 
 // Custom handling of the loader when dropdown opens
-$('#sales-channel-select').on('select2:open', function() {
+$('#sales-channel-select').on('select2:open', function () {
     salesChannelPage = 1; // Reset pagination
     isSalesChannelEnd = false; // Reset end flag
     isSalesChannelLoading = false; // Reset loading flag
@@ -184,10 +183,10 @@ $('#sales-channel-select').on('select2:open', function() {
 });
 
 // Handle scroll for infinite loading
-$('#sales-channel-select').on('select2:open', function() {
+$('#sales-channel-select').on('select2:open', function () {
     const dropdown = $('.select2-results__options');
 
-    dropdown.off('scroll').on('scroll', function() {
+    dropdown.off('scroll').on('scroll', function () {
         const scrollTop = dropdown.scrollTop();
         const containerHeight = dropdown.innerHeight();
         const scrollHeight = dropdown[0].scrollHeight;
@@ -210,8 +209,8 @@ $('#sales-channel-select').on('select2:open', function() {
                     term: $('.select2-search__field').val() || '',
                     'total-count-mode': 1
                 },
-                success: function(data) {
-                    const results = data.salesChannels.map(function(salesChannel) {
+                success: function (data) {
+                    const results = data.salesChannels.map(function (salesChannel) {
                         return {
                             id: salesChannel.id,
                             text: salesChannel.attributes.translated.name
@@ -219,14 +218,14 @@ $('#sales-channel-select').on('select2:open', function() {
                     });
 
                     // Append the results to the dropdown
-                    results.forEach(function(result) {
+                    results.forEach(function (result) {
                         const option = new Option(result.text, result.id, false, false);
                         $('#sales-channel-select').append(option);
                     });
 
                     isSalesChannelEnd = (data.salesChannels.length < 25); // Check if there are more results
                 },
-                complete: function() {
+                complete: function () {
                     isSalesChannelLoading = false; // Reset loading flag
                 }
             });
@@ -235,7 +234,7 @@ $('#sales-channel-select').on('select2:open', function() {
 });
 
 // Reset everything when dropdown closes
-$('#sales-channel-select').on('select2:close', function() {
+$('#sales-channel-select').on('select2:close', function () {
     salesChannelPage = 1; // Reset page
     isSalesChannelLoading = false; // Reset loading flag
     isSalesChannelEnd = false; // Reset end flag
@@ -257,7 +256,7 @@ $('#category-select-modal').select2({
         },
         dataType: 'json',
         delay: 250,
-        data: function(params) {
+        data: function (params) {
             // Prepare data for the API request
             if (params.term) {
                 currentPageCategory = 1; // Reset page to 1 when a term is typed
@@ -270,12 +269,12 @@ $('#category-select-modal').select2({
                 'total-count-mode': 1 // Fetch total count if needed
             };
         },
-        processResults: function(data) {
+        processResults: function (data) {
             // Check if we've reached the end of the results
             isEndOfResultsCategory = (data.categories.length < 25);
 
             // Map results to Select2 format
-            const results = data.categories.map(function(category) {
+            const results = data.categories.map(function (category) {
                 return {
                     id: category.id,
                     text: category.attributes.translated.name
@@ -295,13 +294,13 @@ $('#category-select-modal').select2({
     allowClear: true,
     multiple: true, // Enable multiple selection
     language: {
-        searching: function() {
+        searching: function () {
             return "Zoeken, even geduld..."; // Dutch translation for "searching"
         },
-        loadingMore: function() {
+        loadingMore: function () {
             return "Meer resultaten laden..."; // Dutch translation for "loading more results"
         },
-        noResults: function() {
+        noResults: function () {
             return "Geen resultaten gevonden."; // Dutch translation for "no results found"
         }
     },
@@ -309,7 +308,7 @@ $('#category-select-modal').select2({
 });
 
 // When dropdown is opened, reset the page number and flags
-$('#category-select-modal').on('select2:open', function() {
+$('#category-select-modal').on('select2:open', function () {
     currentPageCategory = 1; // Start from page 1
     isLoadingCategory = false;
     isEndOfResultsCategory = false;
@@ -317,7 +316,7 @@ $('#category-select-modal').on('select2:open', function() {
     const dropdown = $('.select2-results__options');
 
     // Scroll event handler to trigger the next API request when scrolling to the bottom
-    dropdown.on('scroll', function() {
+    dropdown.on('scroll', function () {
         const scrollTop = dropdown.scrollTop();
         const containerHeight = dropdown.innerHeight();
         const scrollHeight = dropdown[0].scrollHeight;
@@ -342,22 +341,22 @@ $('#category-select-modal').on('select2:open', function() {
                     term: $('.select2-search__field').val() || '',
                     'total-count-mode': 1
                 },
-                success: function(data) {
-                    const results = data.categories.map(function(category) {
+                success: function (data) {
+                    const results = data.categories.map(function (category) {
                         return {
                             id: category.id,
                             text: category.attributes.translated.name
                         };
                     });
 
-                    results.forEach(function(result) {
+                    results.forEach(function (result) {
                         const option = new Option(result.text, result.id, false, false);
                         $('#category-select-modal').append(option).trigger('change');
                     });
 
                     isEndOfResultsCategory = (data.categories.length < 25);
                 },
-                complete: function() {
+                complete: function () {
                     isLoadingCategory = false; // Reset loading flag
                 }
             });
@@ -366,7 +365,7 @@ $('#category-select-modal').on('select2:open', function() {
 });
 
 // Optionally, handle closing the dropdown manually if required
-$('#category-select-modal').on('select2:close', function() {
+$('#category-select-modal').on('select2:close', function () {
     // Reset page when dropdown is closed, if needed
     currentPageCategory = 1;
     isLoadingCategory = false; // Reset loading flag when dropdown closes
@@ -384,15 +383,15 @@ $('#tax-provider-select').select2({
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         dataType: 'json',
-        data: function(params) {
+        data: function (params) {
             return {
                 term: params.term, // Search term
                 page: params.page || 1
             };
         },
-        processResults: function(data) {
+        processResults: function (data) {
             return {
-                results: data.taxProviders.map(function(provider) {
+                results: data.taxProviders.map(function (provider) {
                     return {
                         id: provider.id,
                         text: provider.attributes.name,
@@ -405,26 +404,26 @@ $('#tax-provider-select').select2({
     placeholder: 'Selecteer een belastingtarief',
     minimumResultsForSearch: Infinity,
     language: {
-        searching: function() {
+        searching: function () {
             return "Zoeken, even geduld...";
         },
-        loadingMore: function() {
+        loadingMore: function () {
             return "Meer resultaten laden...";
         },
-        noResults: function() {
+        noResults: function () {
             return "Geen resultaten gevonden.";
         }
     },
     dropdownParent: $('#productEditModal'),
 
-}).on('select2:select', function(e) {
+}).on('select2:select', function (e) {
     const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
 
     // Update the tax rate for calculation
     $('#priceGross').data('taxRate', selectedTaxRate);
 });
 
-$('#priceGross').on('input', function() {
+$('#priceGross').on('input', function () {
     const priceGross = parseFloat($(this).val()) || 0;
     const taxRate = parseFloat($(this).data('taxRate')) || 0;
 
@@ -447,6 +446,7 @@ function destroySelect2IfExists(selector) {
         $(selector).select2('destroy');
     }
 }
+
 // Initialize Property Group Select
 $('#propertyGroupSelect').select2({
     width: '50%',
@@ -532,7 +532,7 @@ function fetchPropertyGroupOptions(groupId) {
             data: function (params) {
                 return JSON.stringify({
                     page: params.page || 1,
-                    groupId : groupId,
+                    groupId: groupId,
                     limit: 25
                 });
             },
@@ -578,6 +578,551 @@ $('#propertyGroupSelect').change(function () {
         $('#addPropertyOptionWrapper').css('visibility', 'hidden');
     }
 });
+
+
+/*second*/
+
+// Initialize Property Group Select
+$('#propertyGroupSelectSecond').select2({
+    width: '50%',
+    placeholder: 'Select Property Group',
+    ajax: {
+        url: propertySearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            if (params.term) {
+                currentPage = 1;
+            }
+            return {
+                page: currentPage,
+                limit: 25,
+                term: params.term || '',
+                'total-count-mode': 1
+            };
+        },
+        processResults: function (data) {
+            isEndOfResults = data.propertyGroups.length < 25;
+            const results = data.propertyGroups.map(group => ({
+                id: group.id,
+                text: group.attributes.translated.name
+            }));
+            return {
+                results: results,
+                pagination: {
+                    more: !isEndOfResults
+                }
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 0,
+    allowClear: true,
+    language: {
+        searching: () => 'Searching...',
+        loadingMore: () => 'Loading more results...',
+        noResults: () => 'No results found.'
+    }
+});
+
+// Handle Property Group selection and reset Property Group Option
+$('#propertyGroupSelectSecond').change(function () {
+    const groupId = $(this).val();
+
+    // Clear previous options and disable the dropdown until options are loaded
+    destroySelect2IfExists('#propertyGroupOptionSelectSecond');
+    $('#propertyGroupOptionSelectSecond').empty().select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        allowClear: true
+    });
+
+    // Fetch new Property Group Options if a group is selected
+    if (groupId) {
+        fetchPropertyGroupOptionsSecond(groupId);
+    }
+});
+
+// Fetch property group options and enable scroll API for pagination
+function fetchPropertyGroupOptionsSecond(groupId) {
+    currentPageOption = 1;
+    isEndOfResultsOption = false;
+
+    $('#propertyGroupOptionSelectSecond').select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function (params) {
+                return JSON.stringify({
+                    page: params.page || 1,
+                    groupId: groupId,
+                    limit: 25
+                });
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                isEndOfResultsOption = data.propertyGroups.length < 25;
+
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+
+                return {
+                    results: results,
+                    pagination: {
+                        more: !isEndOfResultsOption
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        language: {
+            noResults: () => 'No options found.'
+        }
+    });
+
+    // Reset scrolling flags upon dropdown open and close
+    $('#propertyGroupOptionSelectSecond').on('select2:open', function () {
+        currentPageOption = 1;
+        isEndOfResultsOption = false;
+    });
+}
+
+$('#propertyGroupSelectSecond').change(function () {
+    const selectedGroup = $(this).val();
+    if (selectedGroup) {
+        $('#propertyGroupOptionWrapperSecond').show();
+        $('#addPropertyOptionWrapper').css('visibility', 'visible');
+    } else {
+        $('#propertyGroupOptionWrapperSecond').hide();
+        $('#addPropertyOptionWrapper').css('visibility', 'hidden');
+    }
+});
+/*second*/
+
+
+/*Third*/
+
+// Initialize Property Group Select
+$('#propertyGroupSelectThird').select2({
+    width: '50%',
+    placeholder: 'Select Property Group',
+    ajax: {
+        url: propertySearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            if (params.term) {
+                currentPage = 1;
+            }
+            return {
+                page: currentPage,
+                limit: 25,
+                term: params.term || '',
+                'total-count-mode': 1
+            };
+        },
+        processResults: function (data) {
+            isEndOfResults = data.propertyGroups.length < 25;
+            const results = data.propertyGroups.map(group => ({
+                id: group.id,
+                text: group.attributes.translated.name
+            }));
+            return {
+                results: results,
+                pagination: {
+                    more: !isEndOfResults
+                }
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 0,
+    allowClear: true,
+    language: {
+        searching: () => 'Searching...',
+        loadingMore: () => 'Loading more results...',
+        noResults: () => 'No results found.'
+    }
+});
+
+// Handle Property Group selection and reset Property Group Option
+$('#propertyGroupSelectThird').change(function () {
+    const groupId = $(this).val();
+
+    // Clear previous options and disable the dropdown until options are loaded
+    destroySelect2IfExists('#propertyGroupOptionSelectThird');
+    $('#propertyGroupOptionSelectThird').empty().select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        allowClear: true
+    });
+
+    // Fetch new Property Group Options if a group is selected
+    if (groupId) {
+        fetchPropertyGroupOptionsThird(groupId);
+    }
+});
+
+// Fetch property group options and enable scroll API for pagination
+function fetchPropertyGroupOptionsThird(groupId) {
+    currentPageOption = 1;
+    isEndOfResultsOption = false;
+
+    $('#propertyGroupOptionSelectThird').select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function (params) {
+                return JSON.stringify({
+                    page: params.page || 1,
+                    groupId: groupId,
+                    limit: 25
+                });
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                isEndOfResultsOption = data.propertyGroups.length < 25;
+
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+
+                return {
+                    results: results,
+                    pagination: {
+                        more: !isEndOfResultsOption
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        language: {
+            noResults: () => 'No options found.'
+        }
+    });
+
+    // Reset scrolling flags upon dropdown open and close
+    $('#propertyGroupOptionSelectThird').on('select2:open', function () {
+        currentPageOption = 1;
+        isEndOfResultsOption = false;
+    });
+}
+
+$('#propertyGroupSelectThird').change(function () {
+    const selectedGroup = $(this).val();
+    if (selectedGroup) {
+        $('#propertyGroupOptionWrapperThird').show();
+        $('#addPropertyOptionWrapper').css('visibility', 'visible');
+    } else {
+        $('#propertyGroupOptionWrapperThird').hide();
+        $('#addPropertyOptionWrapper').css('visibility', 'hidden');
+    }
+});
+/*Third*/
+
+
+/*Four*/
+
+// Initialize Property Group Select
+$('#propertyGroupSelectFour').select2({
+    width: '50%',
+    placeholder: 'Select Property Group',
+    ajax: {
+        url: propertySearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            if (params.term) {
+                currentPage = 1;
+            }
+            return {
+                page: currentPage,
+                limit: 25,
+                term: params.term || '',
+                'total-count-mode': 1
+            };
+        },
+        processResults: function (data) {
+            isEndOfResults = data.propertyGroups.length < 25;
+            const results = data.propertyGroups.map(group => ({
+                id: group.id,
+                text: group.attributes.translated.name
+            }));
+            return {
+                results: results,
+                pagination: {
+                    more: !isEndOfResults
+                }
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 0,
+    allowClear: true,
+    language: {
+        searching: () => 'Searching...',
+        loadingMore: () => 'Loading more results...',
+        noResults: () => 'No results found.'
+    }
+});
+
+// Handle Property Group selection and reset Property Group Option
+$('#propertyGroupSelectFour').change(function () {
+    const groupId = $(this).val();
+
+    // Clear previous options and disable the dropdown until options are loaded
+    destroySelect2IfExists('#propertyGroupOptionSelectFour');
+    $('#propertyGroupOptionSelectFour').empty().select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        allowClear: true
+    });
+
+    // Fetch new Property Group Options if a group is selected
+    if (groupId) {
+        fetchPropertyGroupOptionsFour(groupId);
+    }
+});
+
+// Fetch property group options and enable scroll API for pagination
+function fetchPropertyGroupOptionsFour(groupId) {
+    currentPageOption = 1;
+    isEndOfResultsOption = false;
+
+    $('#propertyGroupOptionSelectFour').select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function (params) {
+                return JSON.stringify({
+                    page: params.page || 1,
+                    groupId: groupId,
+                    limit: 25
+                });
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                isEndOfResultsOption = data.propertyGroups.length < 25;
+
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+
+                return {
+                    results: results,
+                    pagination: {
+                        more: !isEndOfResultsOption
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        language: {
+            noResults: () => 'No options found.'
+        }
+    });
+
+    // Reset scrolling flags upon dropdown open and close
+    $('#propertyGroupOptionSelectFour').on('select2:open', function () {
+        currentPageOption = 1;
+        isEndOfResultsOption = false;
+    });
+}
+
+$('#propertyGroupSelectFour').change(function () {
+    const selectedGroup = $(this).val();
+    if (selectedGroup) {
+        $('#propertyGroupOptionWrapperFour').show();
+        $('#addPropertyOptionWrapper').css('visibility', 'visible');
+    } else {
+        $('#propertyGroupOptionWrapperFour').hide();
+        $('#addPropertyOptionWrapper').css('visibility', 'hidden');
+    }
+});
+/*Four*/
+
+
+/*Five*/
+
+// Initialize Property Group Select
+$('#propertyGroupSelectFive').select2({
+    width: '50%',
+    placeholder: 'Select Property Group',
+    ajax: {
+        url: propertySearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            if (params.term) {
+                currentPage = 1;
+            }
+            return {
+                page: currentPage,
+                limit: 25,
+                term: params.term || '',
+                'total-count-mode': 1
+            };
+        },
+        processResults: function (data) {
+            isEndOfResults = data.propertyGroups.length < 25;
+            const results = data.propertyGroups.map(group => ({
+                id: group.id,
+                text: group.attributes.translated.name
+            }));
+            return {
+                results: results,
+                pagination: {
+                    more: !isEndOfResults
+                }
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 0,
+    allowClear: true,
+    language: {
+        searching: () => 'Searching...',
+        loadingMore: () => 'Loading more results...',
+        noResults: () => 'No results found.'
+    }
+});
+
+// Handle Property Group selection and reset Property Group Option
+$('#propertyGroupSelectFive').change(function () {
+    const groupId = $(this).val();
+
+    // Clear previous options and disable the dropdown until options are loaded
+    destroySelect2IfExists('#propertyGroupOptionSelectFive');
+    $('#propertyGroupOptionSelectFive').empty().select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        allowClear: true
+    });
+
+    // Fetch new Property Group Options if a group is selected
+    if (groupId) {
+        fetchPropertyGroupOptionsFive(groupId);
+    }
+});
+
+// Fetch property group options and enable scroll API for pagination
+function fetchPropertyGroupOptionsFive(groupId) {
+    currentPageOption = 1;
+    isEndOfResultsOption = false;
+
+    $('#propertyGroupOptionSelectFive').select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function (params) {
+                return JSON.stringify({
+                    page: params.page || 1,
+                    groupId: groupId,
+                    limit: 25
+                });
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                isEndOfResultsOption = data.propertyGroups.length < 25;
+
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+
+                return {
+                    results: results,
+                    pagination: {
+                        more: !isEndOfResultsOption
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        language: {
+            noResults: () => 'No options found.'
+        }
+    });
+
+    // Reset scrolling flags upon dropdown open and close
+    $('#propertyGroupOptionSelectFive').on('select2:open', function () {
+        currentPageOption = 1;
+        isEndOfResultsOption = false;
+    });
+}
+
+$('#propertyGroupSelectFive').change(function () {
+    const selectedGroup = $(this).val();
+    if (selectedGroup) {
+        $('#propertyGroupOptionWrapperFive').show();
+        $('#addPropertyOptionWrapper').css('visibility', 'visible');
+    } else {
+        $('#propertyGroupOptionWrapperFive').hide();
+        $('#addPropertyOptionWrapper').css('visibility', 'hidden');
+    }
+});
+/*Five*/
+
 
 // Handle click on 'Create New Property Group' button
 $('#createPropertyGroupBtn').click(function () {
@@ -649,28 +1194,94 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
 
 // Add Property Option button functionality
 $('#addPropertyOptionBtn').on('click', function () {
+
     const selectedGroupId = $('#propertyGroupSelect').val();
     const selectedGroupOption = $('#propertyGroupOptionSelect').val();
     const selectedGroupName = $('#propertyGroupSelect option:selected').text();
     const selectedPropertyOption = $('#propertyGroupOptionSelect option:selected').text();
 
+    const selectedGroupIdSecond = $('#propertyGroupSelectSecond').val();
+    const selectedGroupOptionSecond = $('#propertyGroupOptionSelectSecond').val();
+    const selectedGroupNameSecond = $('#propertyGroupSelectSecond option:selected').text();
+    const selectedPropertyOptionSecond = $('#propertyGroupOptionSelectSecond option:selected').text();
+
+    const selectedGroupIdThird = $('#propertyGroupSelectThird').val();
+    const selectedGroupOptionThird = $('#propertyGroupOptionSelectThird').val();
+    const selectedGroupNameThird = $('#propertyGroupSelectThird option:selected').text();
+    const selectedPropertyOptionThird = $('#propertyGroupOptionSelectThird option:selected').text();
+
+    const selectedGroupIdFour = $('#propertyGroupSelectFour').val();
+    const selectedGroupOptionFour = $('#propertyGroupOptionSelectFour').val();
+    const selectedGroupNameFour = $('#propertyGroupSelectFour option:selected').text();
+    const selectedPropertyOptionFour = $('#propertyGroupOptionSelectFour option:selected').text();
+
+    const selectedGroupIdFive = $('#propertyGroupSelectFive').val();
+    const selectedGroupOptionFive = $('#propertyGroupOptionSelectFive').val();
+    const selectedGroupNameFive = $('#propertyGroupSelectFive option:selected').text();
+    const selectedPropertyOptionFive = $('#propertyGroupOptionSelectFive option:selected').text();
+
+    // Validate: If a group is selected, its corresponding option must be selected
+    const validationFailed = [
+        {group: selectedGroupId, option: selectedGroupId},
+        {group: selectedGroupIdSecond, option: selectedGroupOptionSecond},
+        {group: selectedGroupIdThird, option: selectedGroupOptionThird},
+        {group: selectedGroupIdFour, option: selectedGroupOptionFour},
+        {group: selectedGroupIdFive, option: selectedGroupOptionFive}
+    ].some(item => item.group && !item.option);
+
+    if (validationFailed) {
+        alert("Als een extra vastgoedgroep is geselecteerd, moet ook een bijbehorende optie worden geselecteerd.");
+        return;
+    }
+
+
     if (selectedGroupId && selectedGroupOption) {
         // Show the modal if valid values are selected
         $('#productEditModal').modal('show');
 
+        allProductData.productData.forEach(product => {
+            $('#name').val(product.attributes.translated.name);
+            $('#description').val(product.attributes.translated.description);
+            $('#stock').val(product.attributes.stock);
+            $('#productPackagingHeight').val(product.attributes.height);
+            $('#productPackagingLength').val(product.attributes.length);
+            $('#productPackagingWeight').val(product.attributes.weight);
+            $('#productPackagingWidth').val(product.attributes.width);
+
+        });
+        $('#productConfiguratorSettingsIds').val(allProductData.optionsIds);
+
         // Populate fields if needed (set defaults here)
-        $('#selectedPropertyGroupId').val(selectedGroupId);
-        $('#selectedPropertyGroupDisplay').text(selectedGroupName);
-        $('#selectedPropertyOptionDisplay').text(selectedPropertyOption);
+        // $('#selectedPropertyGroupId').val(selectedGroupId);
+        $('#selectedPropertyGroupId').val(
+            [selectedGroupId, selectedGroupIdSecond, selectedGroupIdThird, selectedGroupIdFour, selectedGroupIdFive]
+                .filter(Boolean) // Removes empty, null, or undefined values
+                .join(',')
+        );
+
+        $('#selectedPropertyGroupDisplay').text(
+            [selectedGroupName, selectedGroupNameSecond, selectedGroupNameThird, selectedGroupNameFour, selectedGroupNameFive]
+                .filter(Boolean) // Removes any empty or undefined values
+                .join(', ')
+        );
+
+        $('#selectedPropertyOptionDisplay').text(
+            [selectedPropertyOption, selectedPropertyOptionSecond, selectedPropertyOptionThird, selectedPropertyOptionFour, selectedPropertyOptionFive]
+                .filter(Boolean) // Removes any empty or undefined values
+                .join(', ')
+        );
+
+        // $('#selectedPropertyGroupDisplay').text(selectedGroupName);
+        // $('#selectedPropertyOptionDisplay').text(selectedPropertyOption);
 
         // Iterate through the products in apiResponse
         apiResponse.product.productData.forEach((product) => {
-            const { childCount, parentId, propertyId } = product.attributes || {};
+            const {childCount, parentId, propertyId} = product.attributes || {};
 
             // Check the conditions for childCount and parentId
             if (childCount !== null && parentId === null) {
                 // Create hidden fields and append them to the form
-                createHiddenFields(product.id,selectedGroupOption);
+                createHiddenFields(product.id, selectedGroupOption, selectedGroupOptionSecond, selectedGroupOptionThird, selectedGroupOptionFour, selectedGroupOptionFive);
             }
         });
     } else {
@@ -678,24 +1289,32 @@ $('#addPropertyOptionBtn').on('click', function () {
     }
 });
 
-function createHiddenFields(parentId, selectedGroupOption) {
-    // Create hidden input for parentId
-    var parentHiddenField = $('<input>', {
-        type: 'hidden',
-        name: 'parentId', // The name attribute to identify it on the server
-        value: parentId // The value to be saved
-    });
+function createHiddenFields(parentId, selectedGroupOption, selectedGroupOptionSecond, selectedGroupOptionThird, selectedGroupOptionFour, selectedGroupOptionFive) {
+    var form = $('#product-form');
 
-    // Create hidden input for propertyId
-    var propertyHiddenField = $('<input>', {
-        type: 'hidden',
-        name: 'propertyOptionId',
-        value: selectedGroupOption
-    });
+    function ensureHiddenField(name, value) {
+        var existingField = form.find('input[name="' + name + '"]');
+        if (existingField.length) {
+            existingField.val(value); // Update value if already exists
+        } else {
+            var hiddenField = $('<input>', {
+                type: 'hidden',
+                name: name,
+                value: value
+            });
+            form.append(hiddenField);
+        }
+    }
 
-    // Append the hidden fields to the form (assuming form with id 'product-form')
-    $('#product-form').append(parentHiddenField, propertyHiddenField);
+    ensureHiddenField('parentId', parentId);
+    ensureHiddenField('propertyOptionIdAll', [selectedGroupOption, selectedGroupOptionSecond, selectedGroupOptionThird, selectedGroupOptionFour, selectedGroupOptionFive].filter(Boolean).join(','));
+    ensureHiddenField('propertyOptionId', selectedGroupOption);
+    ensureHiddenField('propertyOptionIdSecond', selectedGroupOptionSecond);
+    ensureHiddenField('propertyOptionIdThird', selectedGroupOptionThird);
+    ensureHiddenField('propertyOptionIdFour', selectedGroupOptionFour);
+    ensureHiddenField('propertyOptionIdFive', selectedGroupOptionFive);
 }
+
 
 $('#saveVariant').on('click', function (e) {
     e.preventDefault(); // Prevent the default form submission (if any)
