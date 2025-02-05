@@ -31,17 +31,21 @@
                         @include('backend.layouts.partials.messages')
                         <form action="{{ route('admin.manufacturers.store') }}" method="POST">
                             @csrf
-                            <div class="form-group">
-                                <label for="name">Naam <span class="text-danger">*</span></label>
-                                <input type="text" name="name" id="name" class="form-control" placeholder="Naam fabrikant invoeren" required>
+                            <div class="form-row d-flex flex-wrap mb-4">
+                                <div class="form-group col-md-6 col-sm-12 px-2">
+                                    <label for="name">Naam <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" id="name" class="form-control" placeholder="Naam fabrikant invoeren" required>
+                                </div>
+                                <div class="form-group col-md-6 col-sm-12 px-2">
+                                    <label for="link">Link</label>
+                                    <input type="url" name="link" id="link" class="form-control" placeholder="Link naar fabrikant invoeren">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="link">Link</label>
-                                <input type="url" name="link" id="link" class="form-control" placeholder="Link naar fabrikant invoeren">
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Beschrijving</label>
-                                <textarea name="description" id="description" class="form-control" rows="4" placeholder="Beschrijving invoeren"></textarea>
+                            <div class="form-row d-flex flex-wrap mb-4">
+                                <div class="form-group col-md-12 col-sm-12 px-2">
+                                    <label for="description">Beschrijving</label>
+                                    <textarea name="description" id="description" class="form-control" rows="4" placeholder="Beschrijving invoeren"></textarea>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary mt-3">Fabrikant maken</button>
                         </form>
