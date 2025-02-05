@@ -443,13 +443,15 @@ $('#nextBolBtn').on('click', function () {
     const selectedManufacturer = document.getElementById('manufacturer-sw-search').value;
     const selectedCategory = document.getElementById('sw-category-select').value;
 
+    if (!selectedManufacturer || !selectedCategory) {
+        return;
+    }
     // Transition to Step 3
     $('#step2').hide();
     $('#stepBol3').show();
 
     if (Array.isArray(bolApiResponse.product.productData)) {
         bolApiResponse.product.productData.forEach(product => {
-
             $('#bolProductName').val(product.title);
             $('#bolProductEanNumber').val(product.ean);
             $('#bolProductSku').val(product.sku);
@@ -462,18 +464,26 @@ $('#nextBolBtn').on('click', function () {
             $('#bolPackagingHeight').val(product.specs["Verpakking hoogte"]);
             $('#bolPackagingLength').val(product.specs["Verpakking lengte"]);
             $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"]);
+            $('#bolProductThumbnail').attr('src', product.thumbnail);
+
 
         });
 
+        const taxRate = bolApiResponse.product.taxData.attributes.taxRate;
         const bolOffers = bolApiResponse.product.productPriceData
             .map(product => product.offers)
             .flat()
             .filter(offer => offer.sellerName === "Bol");
 
+
         bolOffers.forEach(productPrice => {
+            const priceNet = productPrice.price / (1 + taxRate / 100);
             $('#bolProductPrice').val(productPrice.price);
-            $('#bolTotalPrice').val(productPrice.totalPrice);
-            ;
+            $('#bolTotalPrice').val(priceNet);
+            if (productPrice.availability === 'InStock') {
+                $('#bolAvailable').prop('checked', true);
+                $('#bolAvailable').val('1');
+            }
         });
     }
 
@@ -496,7 +506,10 @@ $('#nextBolBtn').on('click', function () {
 $('#saveBolProductData').on('click', function (e) {
 
     e.preventDefault(); // Prevent default form submission
-    const formData = $('#bol-product-form').serialize(); // Serialize the entire form data
+
+    const thumbnailUrl = $('#bolProductThumbnail').attr('src'); // Assuming this is the correct image URL
+    const formData = $('#bol-product-form').serialize() + '&bolProductThumbnail=' + encodeURIComponent(thumbnailUrl);
+    // const formData = $('#bol-product-form').serialize(); // Serialize the entire form data
 
     $.ajax({
         url: saveBolData,
@@ -507,7 +520,7 @@ $('#saveBolProductData').on('click', function (e) {
         },
         dataType: 'json',
         success: function (response) {
-            
+
             if (response.success == true) {
                 location.reload();
                 alert('Product saved successfully!');

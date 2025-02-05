@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Services\ShopwareAuthService;
 use App\Services\CurrencyService;
 use App\Http\Controllers\Controller;
+use App\Services\TaxDetailService;
 use App\Services\TaxService;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -23,12 +25,13 @@ class ProductController extends Controller
 
     private $client;
 
-    public function __construct(ShopwareProductService $shopwareProductService, ShopwareAuthService $shopwareApiService, CurrencyService $currencyId, TaxService  $taxId, Client $client)
+    public function __construct(ShopwareProductService $shopwareProductService, ShopwareAuthService $shopwareApiService, CurrencyService $currencyId, TaxService $taxId, TaxDetailService $taxDetail, Client $client)
     {
         $this->shopwareProductService = $shopwareProductService;
         $this->shopwareApiService = $shopwareApiService;
         $this->currencyId = $currencyId;
         $this->taxId = $taxId;
+        $this->taxDetail = $taxDetail;
         $this->client = new Client();
     }
 
@@ -195,6 +198,7 @@ class ProductController extends Controller
                     'id' => '',
                     'productData' => $product['results'],
                     'productPriceData' => $productPrice['results'],
+                    'taxData' => $this->taxDetail->getTaxDetail(),
                     'included' => '',
                     'bol' => true
                 ];
@@ -457,7 +461,7 @@ class ProductController extends Controller
             'total-count-mode' => 1    // Flag to include the total count in the response
         ];
         // Make the API request using the common function
-        $response =  $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group-option', $data);
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group-option', $data);
 
         // Return the data in the required format for select2
         return response()->json([
@@ -561,7 +565,7 @@ class ProductController extends Controller
                     ]);
                 }
             }
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             dd($e->getMessage());
 
         }
@@ -586,14 +590,51 @@ class ProductController extends Controller
             'bolPackagingWeight' => 'string',
             'bolProductPrice' => 'string',
             'bolTotalPrice' => 'string',
+            'bolProductThumbnail' => 'string',
         ]);
-
         $uuid = str_replace('-', '', (string)\Str::uuid());
+        $mediaId = str_replace('-', '', (string)\Str::uuid());
 
         $weight = strstr($validatedData['bolPackagingWeight'], ' ', true); // Output: "1722"
         $width = strstr($validatedData['bolPackagingWidth'], ' ', true);  // Output: "296"
         $height = strstr($validatedData['bolPackagingHeight'], ' ', true);  // Output: "21"
         $length = strstr($validatedData['bolPackagingLength'], ' ', true); // Output: "298"
+
+        $imageUrl = $validatedData['bolProductThumbnail'];
+        $fileName = 'test';
+
+        try {
+            $data = [
+                'id' => $mediaId,
+                'name' => pathinfo($imageUrl, PATHINFO_FILENAME),
+            ];
+
+            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
+
+            // Step 2: Download the image
+            $imageContent = Http::get($imageUrl)->body();
+            $tempFilePath = storage_path("app/temp_{$fileName}");
+            file_put_contents($tempFilePath, $imageContent);
+
+            // Step 3: Upload the image to Shopware
+            $uploadUrl = "/api/_action/media/{$mediaId}/upload";
+
+            // Preparing data for the file upload
+            $fileData = [
+                'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
+                'extension' => pathinfo($fileName, PATHINFO_EXTENSION),
+                'fileName' => pathinfo($fileName, PATHINFO_FILENAME),
+                'url' => $imageUrl,
+            ];
+
+            // Sending the file upload request using the makeApiRequest method
+            $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
+            unlink($tempFilePath); // Clean up the temp file
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
 
         $data = [
             'id' => $uuid,
@@ -602,6 +643,7 @@ class ProductController extends Controller
             'productNumber' => $validatedData['bolProductSku'],
             'description' => $validatedData['bolProductDescription'],
             'ean' => $validatedData['bolProductEanNumber'],
+            'coverId' => $mediaId,
             'categories' => array_map(fn($categoryId) => ['id' => trim($categoryId)], explode(',', $validatedData['bolProductCategoriesId'])), // Fix here
             'stock' => 0,
             'taxId' => $this->taxId->getTaxId(),
@@ -639,6 +681,5 @@ class ProductController extends Controller
             ], 500);
         }
     }
-
-
 }
+
