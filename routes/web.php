@@ -75,9 +75,4 @@ Route::group(['prefix' => 'admin'], function () {
     Route::post('/product/propertyGroupOptionSearch', [ProductController::class, 'propertyGroupOption'])->name('product.propertyGroupOptionSearch');
     Route::post('/product/propertySave', [ProductController::class, 'savePropertyOption'])->name('product.savePropertyOption');
     Route::post('/product/variantProduct', [ProductController::class, 'saveVariantProduct'])->name('product.saveVariantProduct');
-
-
-
-
-
 });

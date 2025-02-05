@@ -687,7 +687,7 @@ ul.breadcrumbs {
     display: block;
     font-size: 14px;
     font-weight: 400;
-    color: #7801ff;
+    color: #1d71b8;
     letter-spacing: 0;
     margin-right: 16px;
     position: relative;
@@ -2318,7 +2318,7 @@ table.dataTable thead td {
 
 .login-form-head {
     text-align: center;
-    background: #8655FC;
+    background: #1d71b8;
     padding: 50px;
 }
 
@@ -2356,7 +2356,7 @@ table.dataTable thead td {
 
 .form-gp.focused label {
     top: -15px;
-    color: #7e74ff;
+    color: #1d71b8;
 }
 
 .form-gp input {
@@ -2385,7 +2385,7 @@ table.dataTable thead td {
 .form-gp i {
     position: absolute;
     right: 5px;
-    color: #7e74ff;
+    color: #1d71b8;
     font-size: 16px;
 }
 
@@ -2451,7 +2451,7 @@ table.dataTable thead td {
 }
 
 .login-other a.fb-login {
-    background: #8655FC;
+    background: #1d71b8;
     color: #fff;
 }
 

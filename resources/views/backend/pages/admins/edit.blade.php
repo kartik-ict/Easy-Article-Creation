@@ -49,30 +49,30 @@
                     <form action="{{ route('admin.admins.update', $admin->id) }}" method="POST">
                         @method('PUT')
                         @csrf
-                        <div class="form-row">
-                            <div class="form-group col-md-6 col-sm-12">
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
                                 <label for="name">{{ __('admins.form.name') }}</label>
                                 <input type="text" class="form-control" id="name" name="name" placeholder="{{ __('admins.form.placeholder.name') }}" value="{{ $admin->name }}">
                             </div>
-                            <div class="form-group col-md-6 col-sm-12">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
                                 <label for="email">{{ __('admins.form.email') }}</label>
                                 <input type="text" class="form-control" id="email" name="email" placeholder="{{ __('admins.form.placeholder.email') }}" value="{{ $admin->email }}">
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group col-md-6 col-sm-12">
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
                                 <label for="password">{{ __('admins.form.password') }}</label>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="{{ __('admins.form.placeholder.password') }}">
                             </div>
-                            <div class="form-group col-md-6 col-sm-12">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
                             <label for="password_confirmation">{{ __('admins.form.confirm_password') }}</label>
                             <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="{{ __('admins.form.placeholder.password') }}">
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group col-md-6 col-sm-6">
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-6 px-2">
                                 <label for="password">{{ __('admins.form.assign_roles') }}</label>
                                 <select name="roles[]" id="roles" class="form-control select2">
                                     @foreach ($roles as $role)
@@ -80,7 +80,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="form-group col-md-6 col-sm-6">
+                            <div class="form-group col-md-6 col-sm-6 px-2">
                                 <label for="username">{{ __('admins.form.username') }}</label>
                                 <input type="text" class="form-control" id="username" name="username" placeholder="{{ __('admins.form.placeholder.username') }}" required value="{{ $admin->username }}">
                             </div>

@@ -1,3 +1,4 @@
+
 /*
 Table Of Contents
 =========================
@@ -12,7 +13,9 @@ Table Of Contents
 - Default Typography
 --------------------------
 */
-
+:root {
+ --primary-color: #1d71b8 !important;
+}
 body {
     font-size: 14px;
     font-family: 'Lato', sans-serif;

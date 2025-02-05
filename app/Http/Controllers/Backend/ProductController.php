@@ -80,143 +80,52 @@ class ProductController extends Controller
         $product = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product?inheritance=true', $payload);
 
         if (!$product['data']) {
-
             $apiKey = '7a507de2-fc1d-4eaf-88ff-f1401d2c155b';
             $site = 'bol.com';
-
             $fallbackUrl = "https://api.shoppingscraper.com/info";
             $fallbackUrlPrice = "https://api.shoppingscraper.com/offers";
-
-
             $client = new Client();
 
             try {
                 /*                Dayanamic product data*/
-//                $response = $client->request('GET', $fallbackUrl, [
-//                    'query' => [
-//                        'site' => $site,
-//                        'ean' => $ean,
-//                        'api_key' => $apiKey
-//                    ]
-//                ]);
-//
-//                $product = json_decode($response->getBody(), true);
-
-
-//                $responsePrice = $client->request('GET', $fallbackUrlPrice, [
-//                    'query' => [
-//                        'site' => $site,
-//                        'ean' => $product['results']['0']['ean'] ?? $ean,
-//                        'api_key' => $apiKey
-//                    ]
-//                ]);
-//
-//                $productPrice = json_decode($responsePrice->getBody(), true);
-                /*                Dayanamic product data*/
-                $product = [
-                    "results" => [
-                        [
-                            "ean" => '9789493170179',
-                            "sku" => "9200000127656703",
-                            "url" => "https://www.bol.com/nl/nl/p/rRIB/9200000127656703/",
-                            "title" => "Groeten uit Den Haag",
-                            "brand" => 'testdemobrand123',
-                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/1200x1200.jpg",
-                            "categories" => [
-                                "Boeken",
-                                "Kunst & Fotografie",
-                                "test"
-                            ],
-                            "description" => "Groeten uit Den Haag: Honderd jaar veranderingen in de stad Je staat op dezelfde plek, maar in een andere tijd. Iedereen kent de vervreemdende sensatie van het kijken naar oude foto’s. Het verleden is verdwenen, maar nog merkbaar in de details. Robert Mulder zocht honderd oude foto’s van de stad en maakte honderd recente foto’s op exact dezelfde plek. In één oogopslag zie je de veranderingen in beeld. De beeldbepalende ministeries, het verschil tussen zand en veen en de nabijheid van de zee hebben het aangezicht van de stad bepaald. Groeten uit Den Haag laat zien wat er verdwenen en verschenen is in de stad. Door de oude en nieuwe foto’s in groot formaat naast elkaar te zetten, blijf je gefascineerd kijken naar de veranderingen. De ene keer valt de vergelijking uit in het voordeel van het verleden, de andere keer in het voordeel van het heden. De vooruitgang gaat soms gepaard met een dosis weemoed.",
-                            "specs" => [
-                                "Taal" => "Nederlands",
-                                "Bindwijze" => "Hardcover",
-                                "Oorspronkelijke releasedatum" => "15 mei 2020",
-                                "Aantal pagina's" => "216",
-                                "Illustraties" => "Met illustraties",
-                                "Hoofdauteur" => "Robert Mulder",
-                                "Hoofduitgeverij" => "Uitgeverij Kleine Uil",
-                                "Editie" => "1",
-                                "Product breedte" => "295 mm",
-                                "Product hoogte" => "21 mm",
-                                "Product lengte" => "297 mm",
-                                "Studieboek" => "Nee",
-                                "Verpakking breedte" => "296 mm",
-                                "Verpakking hoogte" => "21 mm",
-                                "Verpakking lengte" => "298 mm",
-                                "Verpakkingsgewicht" => "1722 g",
-                                "EAN" => "9789493170179",
-                                "Verantwoordelijk marktdeelnemer in de EU" => "Bekijk gegevens",
-                                "Categorieën" => "Kunst & FotografieFotografieBoeken",
-                                "Boek, ebook of luisterboek?" => "Boek",
-                                "Select-bezorgopties" => "Vandaag Bezorgd, Avondbezorging, Zondagbezorging, Gratis verzending",
-                                "Studieboek of algemeen" => "Algemene boeken"
-                            ]
-                        ]
+                $response = $client->request('GET', $fallbackUrl, [
+                    'query' => [
+                        'site' => $site,
+                        'ean' => $ean,
+                        'api_key' => $apiKey
                     ]
-                ];
-
-                $productPrice = [
-                    "results" => [
-                        [
-                            "ean" => "9789493170179",
-                            "sku" => "9200000127656703",
-                            "url" => "https://www.bol.com/nl/nl/p/groeten-uit-den-haag/9200000127656703/",
-                            "title" => "Groeten uit Den Haag",
-                            "thumbnail" => "https://media.s-bol.com/qrBOVwrOm9Vy/ADX7xyj/124x124.jpg",
-                            "availability" => "InStock",
-                            "currency" => "EUR",
-                            "offers" => [
-                                [
-                                    "sellerName" => "Bol",
-                                    "sellerReference" => "/nl/order/basket/addItems.html?productId=9200000127656703&offerUid=9185b50f-6970-47e0-88da-959cf4ba6418&quantity=1",
-                                    "price" => "29.95",
-                                    "shippingPrice" => "0.00",
-                                    "totalPrice" => "29.95",
-                                    "condition" => "Nieuw",
-                                    "shippingMethod" => "standard"
-                                ],
-                                [
-                                    "sellerName" => "Paagman.nl",
-                                    "sellerReference" => "/nl/nl/v/paagman-nl/1092159/?sellingOfferId=151422169b716fc6de9d017ff30a54c4",
-                                    "price" => "34.90",
-                                    "shippingPrice" => "0.00",
-                                    "totalPrice" => "34.90",
-                                    "condition" => "Nieuw",
-                                    "shippingMethod" => "standard"
-                                ]
-                            ]
+                ]);
+                $product = json_decode($response->getBody(), true);
+                if($product['results']) {
+                    $responsePrice = $client->request('GET', $fallbackUrlPrice, [
+                        'query' => [
+                            'site' => $site,
+                            'ean' => $product['results']['0']['ean'] ?? $ean,
+                            'api_key' => $apiKey
                         ]
-                    ]
-                ];
+                    ]);
 
+                    $productPrice = json_decode($responsePrice->getBody(), true);
+                    /*                Dayanamic product data*/
 
-                $productData = [
-                    'name' => $product['results']['0']['title'],
-                    'ean' => $product['results']['0']['ean'] ?? $ean,
-                    'stock' => 0,
-                    'id' => '',
-                    'productData' => $product['results'],
-                    'productPriceData' => $productPrice['results'],
-                    'taxData' => $this->taxDetail->getTaxDetail(),
-                    'included' => '',
-                    'bol' => true
-                ];
-
-                return response()->json(['product' => $productData], 200);
-
+                    $productData = [
+                        'name' => $product['results']['0']['title'],
+                        'ean' => $product['results']['0']['ean'] ?? $ean,
+                        'stock' => 0,
+                        'id' => '',
+                        'productData' => $product['results'],
+                        'productPriceData' => $productPrice['results'],
+                        'taxData' => $this->taxDetail->getTaxDetail(),
+                        'included' => '',
+                        'bol' => true
+                    ];
+                    return response()->json(['product' => $productData], 200);
+                }else{
+                    return response()->json(['error' => 'Product not found'], 404);
+                }
             } catch (RequestException $e) {
-//                Log::error('Failed to fetch product data from fallback API', [
-//                    'url' => $fallbackUrl,
-//                    'error' => $e->getMessage()
-//                ]);
-
                 return response()->json(['error' => 'Product not found'], 404);
             }
-
-//            return response()->json([
-//                'error' => __('messages.product_not_found'),
-//            ], 404);
         } else {
             $productData = [
                 'name' => $product['data']['0']['attributes']['translated']['name'],
@@ -227,7 +136,6 @@ class ProductController extends Controller
                 'included' => $product['included'],
                 'bol' => false
             ];
-
             return response()->json(['product' => $productData], 200);
         }
     }
@@ -371,7 +279,6 @@ class ProductController extends Controller
             'ean' => $validatedData['ean'],
             'categories' => $categories,
             'visibilities' => $visibilities,
-            'mediaUrl' => $validatedData['mediaUrl'],
             'active' => boolval($validatedData['active_for_all']),
             'price' => [
                 [
@@ -388,7 +295,7 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
             // If the API call is successful
             if (isset($response['success'])) {
-                return redirect()->route('product.index')->with('success', __('product.product_created_successfully'));
+                return redirect()->route('product.create')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
             }
