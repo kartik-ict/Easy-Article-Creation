@@ -387,11 +387,11 @@
                                                          alt="">
                                                 </div>
 
-{{--                                                <div class="form-group mb-3">--}}
-{{--                                                    <label for="taxId">@lang('product.tax_id'):</label>--}}
-{{--                                                    <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>--}}
-{{--                                                    </select>--}}
-{{--                                                </div>--}}
+                                                {{--                                                <div class="form-group mb-3">--}}
+                                                {{--                                                    <label for="taxId">@lang('product.tax_id'):</label>--}}
+                                                {{--                                                    <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>--}}
+                                                {{--                                                    </select>--}}
+                                                {{--                                                </div>--}}
 
                                                 {{-- MPN (Manufacturer Part Number) --}}
                                             </div>
@@ -507,30 +507,6 @@
                                                                           name="description" rows="5"></textarea>
                                                             </div>
 
-                                                            {{--                                                    <div class="form-group mb-3">--}}
-                                                            {{--                                                        <label for="salesChannel">@lang('product.sales_channel')--}}
-                                                            {{--                                                            :</label>--}}
-                                                            {{--                                                        <select id="sales-channel-select"--}}
-                                                            {{--                                                                class="js-example-basic-single form-control"--}}
-                                                            {{--                                                                name="salesChannel[]" multiple required>--}}
-                                                            {{--                                                        </select>--}}
-                                                            {{--                                                    </div>--}}
-
-                                                            {{--                                                    <div class="form-group mb-3">--}}
-                                                            {{--                                                        <label for="category">@lang('product.category'):</label>--}}
-                                                            {{--                                                        <select id="category-select-modal"--}}
-                                                            {{--                                                                class="js-example-basic-single form-control"--}}
-                                                            {{--                                                                name="category[]" multiple required>--}}
-                                                            {{--                                                        </select>--}}
-                                                            {{--                                                    </div>--}}
-
-                                                            {{--                                                    <div class="form-group mb-3">--}}
-                                                            {{--                                                        <label for="ean">@lang('product.ean'):</label>--}}
-                                                            {{--                                                        <input type="text" id="eanForm" class="form-control"--}}
-                                                            {{--                                                               name="eanForm"--}}
-                                                            {{--                                                               placeholder="@lang('product.enter_ean')"--}}
-                                                            {{--                                                               required>--}}
-                                                            {{--                                                    </div>--}}
                                                             <div class="form-group mb-3">
                                                                 <label
                                                                     for="productNumber">@lang('product.product_number')
@@ -539,14 +515,34 @@
                                                                        id="productNumber"
                                                                        name="productNumber" required>
                                                             </div>
-
                                                             <div class="form-group mb-3">
-                                                                <label for="mediaUrl">@lang('product.media_url')
-                                                                    :</label>
-                                                                <input type="url" class="form-control" id="mediaUrl"
-                                                                       name="mediaUrl">
+                                                                <label
+                                                                    for="productPackagingWidth">{{ __('product.productPackagingWidth') }}</label>
+                                                                <input type="text" name="productPackagingWidth" id="productPackagingWidth"
+                                                                       class="form-control" required>
                                                             </div>
 
+                                                            <div class="form-group mb-3">
+                                                                <label
+                                                                    for="productPackagingHeight">{{ __('product.productPackagingHeight') }}</label>
+                                                                <input type="text" name="productPackagingHeight" id="productPackagingHeight"
+                                                                       class="form-control" required>
+                                                            </div>
+
+                                                            <div class="form-group mb-3">
+                                                                <label
+                                                                    for="productPackagingLength">{{ __('product.productPackagingLength') }}</label>
+                                                                <input type="text" name="productPackagingLength" id="productPackagingLength"
+                                                                       class="form-control" required>
+                                                            </div>
+
+                                                            <div class="form-group mb-3">
+                                                                <label
+                                                                    for="productPackagingWeight">{{ __('product.productPackagingWeight') }}</label>
+                                                                <input type="text" name="productPackagingWeight" id="productPackagingWeight"
+                                                                       class="form-control" required>
+                                                            </div>
+                                                            <input type="hidden" id="productConfiguratorSettingsIds" name="productConfiguratorSettingsIds" />
                                                             <div class="form-group mb-3">
                                                                 <strong>@lang('product.selectedGroup'):</strong> <span
                                                                     id="selectedPropertyGroupDisplay"></span><br>
@@ -601,19 +597,124 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <!-- Property Group Select -->
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupSelectSecond"
+                                                       class="font-weight-bold">@lang('product.property_select_group')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupSelectSecond"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
 
+                                        <!-- Property Group Option Select -->
+                                        <div id="propertyGroupOptionWrapperSecond" class="col-md-6 mb-4"
+                                             style="display: none;">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupOptionSelectSecond"
+                                                       class="font-weight-bold">@lang('product.property_select_group_option')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupOptionSelectSecond"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <!-- Property Group Select -->
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupSelectThird"
+                                                       class="font-weight-bold">@lang('product.property_select_group')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupSelectThird"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Property Group Option Select -->
+                                        <div id="propertyGroupOptionWrapperThird" class="col-md-6 mb-4"
+                                             style="display: none;">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupOptionSelectThird"
+                                                       class="font-weight-bold">@lang('product.property_select_group_option')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupOptionSelectThird"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <!-- Property Group Select -->
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupSelectFour"
+                                                       class="font-weight-bold">@lang('product.property_select_group')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupSelectFour"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Property Group Option Select -->
+                                        <div id="propertyGroupOptionWrapperFour" class="col-md-6 mb-4"
+                                             style="display: none;">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupOptionSelectFour"
+                                                       class="font-weight-bold">@lang('product.property_select_group_option')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupOptionSelectFour"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <!-- Property Group Select -->
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupSelectFive"
+                                                       class="font-weight-bold">@lang('product.property_select_group')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupSelectFive"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Property Group Option Select -->
+                                        <div id="propertyGroupOptionWrapperFive" class="col-md-6 mb-4"
+                                             style="display: none;">
+                                            <div class="card p-3">
+                                                <label for="propertyGroupOptionSelectFive"
+                                                       class="font-weight-bold">@lang('product.property_select_group_option')</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <select id="propertyGroupOptionSelectFive"
+                                                            class="form-control me-3 w-75"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--...................-->
                                     <div id="addPropertyOptionWrapper" class="mt-4 d-flex align-items-center gap-2"
                                          style="visibility : hidden;">
                                         <div class="col-md-3">
                                             <button id="addPropertyOptionBtn"
                                                     class="btn btn-success w-100">@lang('product.add_option')</button>
                                         </div>
-                                        <span><strong>OR</strong></span>
                                         <div class="col-md-3">
                                             <button id="createPropertyGroupOptionBtn"
                                                     class="btn btn-primary w-100">@lang('product.create_new_property')</button>
                                         </div>
                                     </div>
+                                    <!--...................-->
+
                                 </div>
                             </div>
 
@@ -636,6 +737,7 @@
                                                 <input type="text" id="selectedPropertyGroupName" class="form-control"
                                                        disabled>
                                                 <input type="hidden" id="selectedPropertyGroupId"/>
+
                                             </div>
 
                                             <!-- New Property Option Name -->

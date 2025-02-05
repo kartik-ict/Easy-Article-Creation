@@ -71,6 +71,11 @@ class ProductController extends Controller
                         'group' => []
                     ]
                 ],
+                'configuratorSettings' => [
+                    'associations' => [
+                        'option' => []
+                    ]
+                ],
             ],
             'inheritance' => true,
             'total-count-mode' => 1,
@@ -78,7 +83,6 @@ class ProductController extends Controller
 
         // Make API request using the common function
         $product = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product?inheritance=true', $payload);
-
         if (!$product['data']) {
             $apiKey = '7a507de2-fc1d-4eaf-88ff-f1401d2c155b';
             $site = 'bol.com';
@@ -95,18 +99,20 @@ class ProductController extends Controller
                         'api_key' => $apiKey
                     ]
                 ]);
+
                 $product = json_decode($response->getBody(), true);
                 if($product['results']) {
-                    $responsePrice = $client->request('GET', $fallbackUrlPrice, [
-                        'query' => [
-                            'site' => $site,
-                            'ean' => $product['results']['0']['ean'] ?? $ean,
-                            'api_key' => $apiKey
-                        ]
-                    ]);
+                $responsePrice = $client->request('GET', $fallbackUrlPrice, [
+                    'query' => [
+                        'site' => $site,
+                        'ean' => $product['results']['0']['ean'] ?? $ean,
+                        'api_key' => $apiKey
+                    ]
+                ]);
 
-                    $productPrice = json_decode($responsePrice->getBody(), true);
-                    /*                Dayanamic product data*/
+                $productPrice = json_decode($responsePrice->getBody(), true);
+                /*                Dayanamic product data*/
+
 
                     $productData = [
                         'name' => $product['results']['0']['title'],
@@ -127,6 +133,14 @@ class ProductController extends Controller
                 return response()->json(['error' => 'Product not found'], 404);
             }
         } else {
+
+            $optionsIds = null;
+            if ($product['data'][0]['attributes']['parentId'] == null) {
+                $productId = $product['data'][0]['id'];
+                $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
+                $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+            }
+
             $productData = [
                 'name' => $product['data']['0']['attributes']['translated']['name'],
                 'ean' => $product['data']['0']['attributes']['ean'] ?? $ean,
@@ -134,7 +148,8 @@ class ProductController extends Controller
                 'id' => $product['data']['0']['id'],
                 'productData' => $product['data'],
                 'included' => $product['included'],
-                'bol' => false
+                'bol' => false,
+                'optionsIds' => $optionsIds
             ];
             return response()->json(['product' => $productData], 200);
         }
@@ -415,8 +430,8 @@ class ProductController extends Controller
             'productNumber' => 'required|string|max:255',
             'parentId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'propertyOptionId' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'propertyOptionIdAll' => 'required|string',
             'description' => 'nullable|string',
-            'mediaUrl' => 'nullable|url',
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
         ]);
@@ -426,18 +441,45 @@ class ProductController extends Controller
 
         try {
             // Step 1: Update Parent Product
-            $parentUpdatePayload = [
-                'configuratorSettings' => [
-                    [
-                        'optionId' => $request->get('propertyOptionId'),
-                    ]
-                ]
-            ];
-            $parentEndpoint = "/api/product/{$validatedData['parentId']}";
+            $optionIds = explode(',', $request->get('propertyOptionIdAll'));
+            $productConfiguratorSettingsIds = explode(',', $request->get('productConfiguratorSettingsIds'));
 
-            $responseParent = $this->shopwareApiService->makeApiRequest('PATCH', $parentEndpoint, $parentUpdatePayload);
+            // Remove matching IDs from $optionIds
+            $filteredOptionIds = array_diff($optionIds, $productConfiguratorSettingsIds);
+
+            if (!empty($filteredOptionIds)) {
+                $parentUpdatePayload = [
+                    'configuratorSettings' => array_map(fn($id) => ['optionId' => $id], $filteredOptionIds)
+                ];
+
+                $parentEndpoint = "/api/product/{$validatedData['parentId']}";
+
+                try {
+                    $responseParent = $this->shopwareApiService->makeApiRequest('PATCH', $parentEndpoint, $parentUpdatePayload);
+                } catch (\Exception $e) {
+                    return back()->withErrors(__('product.failed_to_update_product'));
+                }
+            } else {
+                $responseParent['success'] = true;
+            }
+
             if (isset($responseParent['success']) && $responseParent['success']) {
+                $width = $request->get('productPackagingWidth');
+                $height = $request->get('productPackagingHeight');
+                $length = $request->get('productPackagingLength');
+                $weight = $request->get('productPackagingWeight');
+
                 // Step 2: Create Child (Variant) Product
+                $options = [
+                    ['id' => $request->get('propertyOptionId')],
+                    ['id' => $request->get('propertyOptionIdSecond')],
+                    ['id' => $request->get('propertyOptionIdThird')],
+                    ['id' => $request->get('propertyOptionIdFour')],
+                    ['id' => $request->get('propertyOptionIdFive')],
+                ];
+
+                // Remove any null values from the array
+                $options = array_filter($options, fn($option) => !is_null($option['id']));
                 $data = [
                     'id' => $uuid,
                     'name' => $validatedData['name'],
@@ -447,7 +489,10 @@ class ProductController extends Controller
                     'parentId' => $validatedData['parentId'],
                     'productNumber' => $validatedData['productNumber'],
                     'description' => $validatedData['description'],
-                    'mediaUrl' => $validatedData['mediaUrl'],
+                    'weight' => $weight,
+                    'width' => $width,
+                    'height' => $height,
+                    'length' => $length,
                     'price' => [
                         [
                             'currencyId' => $currencyId,
@@ -456,9 +501,7 @@ class ProductController extends Controller
                             'linked' => true
                         ]
                     ],
-                    'options' => [
-                        ['id' => $request->get('propertyOptionId')],
-                    ],
+                    'options' => $options,
                     "variantListingConfig" => [
                         "displayParent" => true
                     ]
@@ -466,6 +509,7 @@ class ProductController extends Controller
 
                 $childEndpoint = "/api/product";
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
+
                 if (isset($response['success'])) {
                     return response()->json([
                         'message' => __('product.product_created_successfully')
@@ -474,9 +518,7 @@ class ProductController extends Controller
             }
         } catch (\Exception $e) {
             dd($e->getMessage());
-
         }
-
     }
 
     public function SaveBolData(Request $request)
