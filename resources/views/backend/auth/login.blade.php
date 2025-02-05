@@ -17,9 +17,8 @@
                     <div class="login-form-body">
                         @include('backend.layouts.partials.messages')
                         <div class="form-gp">
-                            <label for="exampleInputEmail1">{{ trans('custom.form.email_username') }}</label>
-                            <input type="text" id="exampleInputEmail1" name="email">
-                            <i class="ti-email"></i>
+                            <label class="position-static" for="exampleInputEmail1">{{ trans('custom.form.email_username') }}</label>
+                            <input class="px-2" type="text" id="exampleInputEmail1" name="email">
                             <div class="text-danger"></div>
                             @error('email')
                                 <span class="invalid-feedback" role="alert">
@@ -28,9 +27,8 @@
                             @enderror
                         </div>
                         <div class="form-gp">
-                            <label for="exampleInputPassword1">{{ trans('custom.form.password') }}</label>
-                            <input type="password" id="exampleInputPassword1" name="password">
-                            <i class="ti-lock"></i>
+                            <label class="position-static" for="exampleInputPassword1">{{ trans('custom.form.password') }}</label>
+                            <input class="px-2" type="password" id="exampleInputPassword1" name="password">
                             <div class="text-danger"></div>
                             @error('password')
                                 <span class="invalid-feedback" role="alert">
@@ -50,7 +48,7 @@
                             </div> --}}
                         </div>
                         <div class="submit-btn-area">
-                            <button id="form_submit" type="submit">{{ trans('custom.login.label') }} <i class="ti-arrow-right"></i></button>
+                            <button class="btn btn-primary" id="form_submit" type="submit">{{ trans('custom.login.label') }} <i class="ti-arrow-right"></i></button>
                         </div>
                     </div>
                 </form>

@@ -6,7 +6,8 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>@yield('auth_title', 'Authentication - Admin Panel')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/png" href="assets/images/icon/favicon.ico">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('backend/assets/images/favicon.png') }}">
+
     @include('backend.layouts.partials.styles')
     @yield('styles')
 </head>

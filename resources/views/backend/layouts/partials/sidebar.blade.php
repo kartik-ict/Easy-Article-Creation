@@ -1,13 +1,10 @@
 <!-- sidebar menu area start -->
-@php
-    $usr = Auth::guard('admin')->user();
-@endphp
+@php $usr = Auth::guard('admin')->user(); @endphp
 <div class="sidebar-menu">
     <div class="sidebar-header">
         <div class="logo">
             <a href="{{ route('admin.dashboard') }}">
                 <h2 class="text-white">{{ trans('custom.side_bar_title') }}</h2>
-                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </a>
         </div>
     </div>
@@ -64,27 +61,27 @@
                         </li>
                     @endif
 
-                        <!-- @if ($usr->can('catalogue.view')) -->
+                    @if ($usr->can('catalogue.view'))
+                        <li>
+                            <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-product-hunt"></i><span>{{ trans('custom.catalog') }}</span></a>
+                                <ul class="collapse {{ Route::is('admin.product.index') || Route::is('product.create') }}">
+                                    <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
+                                        <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
+                                    </li>
+                                </ul>
+                        </li>
+                        @endif
+
+                        @if ($usr->can('manufacture.view'))
                             <li>
-                                <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-list"></i><span>
-                            {{ trans('custom.catalog') }}
-                        </span></a>
-                                <ul class="collapse {{ Route::is('admin.product.index') || Route::is('product.create') || Route::is('admin.manufacturers.create') || Route::is('admin.manufacturers.index') || Route::is('admin.manufacturers.edit') || Route::is('admin.manufacturers.show') ? 'in' : '' }}">
-
-<!-- {{--                                    @if ($usr->can('product.view'))--}} -->
-                                        <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
-                                            <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
-                                        </li>
-<!-- {{--                                    @endif--}} -->
-
-                                    @if ($usr->can('manufacture.view'))
+                                <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-compass"></i><span>{{ trans('custom.manufacturers') }}</span></a>
+                                    <ul class="collapse {{ Route::is('admin.manufacturers.create') || Route::is('admin.manufacturers.index') || Route::is('admin.manufacturers.edit') || Route::is('admin.manufacturers.show') ? 'in' : '' }}">
                                         <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
                                             <a href="{{ route('admin.manufacturers.index') }}">{{ trans('custom.manufacturers') }}</a>
                                         </li>
-                                    @endif
-                                </ul>
+                                    </ul>
                             </li>
-                        <!-- @endif -->
+                        @endif
                 </ul>
             </nav>
         </div>

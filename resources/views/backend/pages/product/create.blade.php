@@ -5,7 +5,6 @@
 @endsection
 
 @section('admin-content')
-
 <!-- page title area start -->
 <div class="page-title-area">
     <div class="row align-items-center">
@@ -30,7 +29,7 @@
         <div class="col-12 mt-5">
             <div class="card">
                 <div class="card-body">
-                    <h1>@lang('product.create_product')</h1>
+                    <h4>@lang('product.create_product')</h4>
                     @if($errors->any())
                     <div class="alert alert-danger">
                         @foreach ($errors->all() as $error)
@@ -40,102 +39,126 @@
                     @endif
                     <form action="{{ route('product.saveData') }}" method="POST">
                         @csrf
-                        <div class="row">
-                            <!-- Left Column -->
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="name">@lang('product.name'):</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="stock">@lang('product.stock'):</label>
-                                    <input type="number" class="form-control" id="stock" name="stock" required>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="manufacturer">@lang('product.manufacturer'):</label>
-                                    <select id="manufacturer-select" class="js-example-basic-single form-control" name="manufacturer" required>
-                                    </select>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="taxId">@lang('product.tax_id'):</label>
-                                    <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>
-                                    </select>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="productNumber">@lang('product.product_number'):</label>
-                                    <input type="text" class="form-control" id="productNumber" name="productNumber"
-                                        required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="price_gross">{{ __('product.price_gross') }}</label>
-                                    <input
-                                        type="number"
-                                        name="priceGross"
-                                        id="priceGross"
-                                        class="form-control"
-                                        step="any"
-                                        required
-                                        placeholder="{{ __('product.enter_price_gross') }}">
-                                </div>
-                                <div class="form-group">
-                                    <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
-                                    <div class="form-check form-switch">
-                                        <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1" {{ old('active_for_all') ? 'checked' : '' }}>
-                                    </div>
-                                </div>
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="name">@lang('product.name'):</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
                             </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="stock">@lang('product.stock'):</label>
+                                <input type="number" class="form-control" id="stock" name="stock" required>
+                            </div>
+                        </div>
 
-                            <!-- Right Column -->
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="description">@lang('product.description'):</label>
-                                    <textarea class="form-control" id="description" name="description"
-                                        rows="5"></textarea>
-                                </div>
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="category">@lang('product.category'):</label>
+                                <select id="category-select" class="js-example-basic-single form-control" name="category[]" multiple required>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="manufacturer">@lang('product.manufacturer'):</label>
+                                <select id="manufacturer-select" class="js-example-basic-single form-control" name="manufacturer" required>
+                                </select>
+                            </div>
+                        </div>
 
-                                <div class="form-group mb-3">
-                                    <label for="salesChannel">@lang('product.sales_channel'):</label>
-                                    <select id="sales-channel-select" class="js-example-basic-single form-control" name="salesChannel[]" multiple required>
-                                    </select>
-                                </div>
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="taxId">@lang('product.tax_id'):</label>
+                                <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="productNumber">@lang('product.product_number'):</label>
+                                <input type="text" class="form-control" id="productNumber" name="productNumber"
+                                    required>
+                            </div>
+                        </div>
 
-                                <div class="form-group mb-3">
-                                    <label for="category">@lang('product.category'):</label>
-                                    <select id="category-select" class="js-example-basic-single form-control" name="category[]" multiple required>
-                                    </select>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="ean">@lang('product.ean'):</label>
-                                    <input
-                                        type="text"
-                                        id="ean"
-                                        class="form-control"
-                                        name="ean"
-                                        placeholder="@lang('product.enter_ean')"
-                                        required>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="mediaUrl">@lang('product.media_url'):</label>
-                                    <input type="url" class="form-control" id="mediaUrl" name="mediaUrl">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="price_net">{{ __('product.price_net') }}</label>
-                                    <input
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="price_gross">{{ __('product.price_gross') }}</label>
+                                <input
+                                    type="number"
+                                    name="priceGross"
+                                    id="priceGross"
+                                    class="form-control"
+                                    step="any"
+                                    required
+                                    placeholder="{{ __('product.enter_price_gross') }}">
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="price_net">{{ __('product.price_net') }}</label>
+                                <input
                                         type="number"
                                         name="priceNet"
                                         id="priceNet"
                                         class="form-control"
                                         step="any"
                                         placeholder="{{ __('product.calculated_price_net') }}">
+                            </div>
+                        </div>
+
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                                <input type="hidden" name="active_for_all" value="0">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1" {{ old('active_for_all') ? 'checked' : '' }}>
                                 </div>
                             </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="salesChannel">@lang('product.sales_channel'):</label>
+                                <select id="sales-channel-select" class="js-example-basic-single form-control" name="salesChannel[]" multiple required>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="ean">@lang('product.ean'):</label>
+                                <input
+                                    type="text"
+                                    id="ean"
+                                    class="form-control"
+                                    name="ean"
+                                    placeholder="@lang('product.enter_ean')"
+                                    required>
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="mediaUrl">@lang('product.media_url'):</label>
+                                <input type="file" class="form-control" id="media" name="media">
+                            </div>
+                        </div>
+
+
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="width">@lang('product.width'):</label>
+                                <input type="text" class="form-control" id="width" name="productWidth">
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="Height">@lang('product.height'):</label>
+                                <input type="text" class="form-control" id="height" name="productHeight">
+                            </div>
+                        </div>
+
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="Length">@lang('product.length'):</label>
+                                <input type="text" class="form-control" id="length" name="productLength">
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="Weight">@lang('product.weight'):</label>
+                                <input type="text" class="form-control" id="weight" name="productWeight">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-12 col-sm-12 px-2">
+                            <label for="description">@lang('product.description'):</label>
+                            <textarea class="form-control" id="description" name="description"
+                                      rows="5"></textarea>
                         </div>
 
                         <!-- Submit Button -->

@@ -532,8 +532,9 @@ function fetchPropertyGroupOptions(groupId) {
             data: function (params) {
                 return JSON.stringify({
                     page: params.page || 1,
-                    groupId: groupId,
-                    limit: 25
+                    groupId : groupId,
+                    limit: 25,
+                    searchTerm: params.term
                 });
             },
             processResults: function (data, params) {

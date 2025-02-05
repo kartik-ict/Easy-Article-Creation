@@ -1,6 +1,5 @@
-
-    <!-- offset area start -->
-    <div class="offset-area">
+<!-- offset area start -->
+<div class="offset-area">
         <div class="offset-close"><i class="ti-close"></i></div>
         <ul class="nav offset-menu-tab">
             <li><a class="active" data-toggle="tab" href="#activity">Activity</a></li>

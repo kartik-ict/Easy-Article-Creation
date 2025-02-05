@@ -3,6 +3,12 @@
 
 // Variables
 @import 'variables';
-
+@import 'all';
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+
+.form-gp {
+  input {
+    height: 45px;
+  }
+}

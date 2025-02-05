@@ -86,7 +86,7 @@
 
     <div class="main-content-inner">
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-lg-12 mt-5">
                 <div class="card p-4">
                     <h2 class="mb-4">{{ __('product.search_product_ean') }}</h2>
                     <div id="route-container"
@@ -152,19 +152,20 @@
                                         <option value="yes">{{ __('product.yes') }}</option>
                                     </select>
                                 </div>
+
                                 <div class="form-group mt-4 col-12" style="display:none;" id="bolSection">
                                     <div class="form-group row">
                                         <div class="form-group row col-12">
-                                            <div class="col-6">
-                                                <div id="productCategories">
-                                                    <p>{{ __('product.categories') }}</p>
+                                            <div class="col-12">
+                                                <div id="productCategories" class="w-100">
+                                                    <h5>{{ __('product.categories') }}</h5>
                                                 </div>
-                                                <div>
-                                                    <a class="btn btn-primary btn-next"
+                                                <div class="col-12 mb-4">
+                                                    <a class="btn btn-xs btn-success"
                                                        id="searchSwCategory">{{ __('product.searchCategorySw') }}</a>
                                                 </div>
                                             </div>
-                                            <div class="form-group mb-3 col-6" id="bolCategorySelected">
+                                            <div class="form-group mb-3 col-12" id="bolCategorySelected">
                                                 <label for="category">@lang('product.category'):</label>
                                                 <select id="sw-category-select"
                                                         class="js-example-basic-single form-control"
@@ -172,7 +173,7 @@
                                                 </select>
                                             </div>
 
-                                            <div class="form-group mb-3 col-6" style="display: none"
+                                            <div class="form-group mb-3 col-12" style="display: none"
                                                  id="parentCategorySelect">
                                                 <label for="category">@lang('product.categoryParent')</label>
                                                 <select id="sw-parent-category-select"
@@ -187,20 +188,20 @@
                                             </div>
                                         </div>
 
-                                        <div class="form-group row col-12">
+                                        <div class="form-group row col-12 mt-4">
 
-                                            <div class="col-6">
+                                            <div class="col-12">
                                                 <div id="productManufacturer">
                                                     <p id="productManufacturerName">
                                                         <strong>{{ __('product.manufacturer') }}</strong>: <span
                                                             id="manufacturerValue">{{ $manufacturer ?? '' }}</span></p>
                                                 </div>
-                                                <div>
-                                                    <a class="btn btn-primary btn-next" id="searchSwManufacturer">Search
+                                                <div class="col-12 mb-4">
+                                                    <a class="btn btn-success btn-xs" id="searchSwManufacturer">Search
                                                         Manufacturer in Shopware </a>
                                                 </div>
                                             </div>
-                                            <div class="form-group mb-3 col-6">
+                                            <div class="form-group mb-3 col-12">
                                                 <label for="manufacturer">@lang('product.manufacturer'):</label>
                                                 <select id="manufacturer-sw-search"
                                                         class="js-example-basic-single form-control"
@@ -213,14 +214,14 @@
 
 
                                 <!-- Back and Next Buttons -->
-                                <button id="backBtn" class="btn btn-secondary btn-back"
+                                <button id="backBtn" class="btn btn-danger btn-back"
                                         style="display:none;">{{ __('product.previous') }}</button>
                                 <button id="nextBtn" class="btn btn-primary btn-next"
                                         style="display:none;">{{ __('product.next') }}</button>
 
 
                                 <!-- Back and Next Buttons -->
-                                <button id="backBolBtn" class="btn btn-secondary btn-back"
+                                <button id="backBolBtn" class="btn btn-danger btn-back"
                                         style="display:none;">{{ __('product.previous') }}</button>
                                 <button id="nextBolBtn" class="btn btn-primary btn-next"
                                         style="display:none;">{{ __('product.next') }}</button>
@@ -249,7 +250,7 @@
 
                                     <!-- Back and Update Data Buttons -->
                                     <button id="backStep2Btn"
-                                            class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
+                                            class="btn btn-danger btn-back">{{ __('product.previous') }}</button>
                                     {{--                            <button id="updateDataBtn" class="btn btn-primary btn-next">{{ __('product.update_stock') }}</button>--}}
                                 </div>
                             </div>
@@ -263,15 +264,15 @@
                                         @csrf
                                         <div class="row">
                                             <!-- Left Column -->
-                                            <div class="col-md-6">
-                                                <h5 class="mb-3">{{ __('product.general_information') }}</h5>
+                                            <div class="col-md-12 p-0 d-flex flex-wrap">
+                                                <h5 class="mb-3 px-3 w-100">{{ __('product.general_information') }}</h5>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3 w-100">
                                                     <label for="bolProductName">@lang('product.name'):</label>
                                                     <input type="text" class="form-control" id="bolProductName"
                                                            name="bolProductName" required>
                                                 </div>
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolProductEanNumber">@lang('product.bolProductEanNumber')
                                                         :</label>
@@ -279,13 +280,13 @@
                                                            name="bolProductEanNumber" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label for="bolProductSku">@lang('product.bolProductSku'):</label>
                                                     <input type="text" class="form-control" id="bolProductSku"
                                                            name="bolProductSku" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolProductManufacturer">@lang('product.bolProductManufacturer')
                                                         :</label>
@@ -295,15 +296,9 @@
                                                            name="bolProductManufacturerId">
                                                 </div>
 
-                                                <div class="form-group mb-3">
-                                                    <label
-                                                        for="bolProductThumbnail">@lang('product.bolProductThumbnail')
-                                                        :</label>
-                                                    <img src="" name="bolProductThumbnail" id="bolProductThumbnail"
-                                                         alt="">
-                                                </div>
 
-                                                <div class="form-group mb-3">
+
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label for="bolProductCategories">@lang('product.categories')
                                                         :</label>
                                                     <input type="text" class="form-control" disabled
@@ -313,7 +308,7 @@
                                                            name="bolProductCategoriesId">
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolProductDescription">{{ __('product.bolProductDescription') }}</label>
                                                     <input type="text" name="bolProductDescription"
@@ -321,70 +316,76 @@
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolPackagingWidth">{{ __('product.PackagingWidth') }}</label>
                                                     <input type="text" name="bolPackagingWidth" id="bolPackagingWidth"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolPackagingHeight">{{ __('product.PackagingHeight') }}</label>
                                                     <input type="text" name="bolPackagingHeight" id="bolPackagingHeight"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolPackagingLength">{{ __('product.PackagingLength') }}</label>
                                                     <input type="text" name="bolPackagingLength" id="bolPackagingLength"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolPackagingWeight">{{ __('product.PackagingWeight') }}</label>
                                                     <input type="text" name="bolPackagingWeight" id="bolPackagingWeight"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolProductPrice">{{ __('product.productPrice') }}</label>
                                                     <input type="text" name="bolProductPrice" id="bolProductPrice"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolTotalPrice">{{ __('product.bolNetPrice') }}</label>
                                                     <input type="text" name="bolTotalPrice" id="bolTotalPrice"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolStock">{{ __('product.bolStock') }}</label>
                                                     <input type="text" name="bolStock" id="bolStock"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label
                                                         for="bolAvailableStock">{{ __('product.bolAvailableStock') }}</label>
                                                     <input type="text" name="bolAvailableStock" id="bolAvailableStock"
                                                            class="form-control" required>
                                                 </div>
 
-                                                <div class="form-group mb-3">
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                                                     <label for="bolAvailable">{{ __('product.bolAvailable') }}</label>
                                                     <div class="form-check form-switch">
                                                         <input type="checkbox" name="bolAvailable" id="bolAvailable"
                                                                class="form-check-input">
                                                     </div>
                                                 </div>
-
+                                                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
+                                                    <label
+                                                            for="bolProductThumbnail">@lang('product.bolProductThumbnail')
+                                                        :</label>
+                                                    <img src="" name="bolProductThumbnail" id="bolProductThumbnail"
+                                                         alt="">
+                                                </div>
 
                                                 {{--                                                <div class="form-group mb-3">--}}
                                                 {{--                                                    <label for="taxId">@lang('product.tax_id'):</label>--}}
@@ -397,7 +398,7 @@
                                         </div>
 
                                         <button type="submit"
-                                                class="btn btn-success w-100"
+                                                class="btn btn-primary"
                                                 id="saveBolProductData">{{ __('product.submit') }}</button>
                                     </form>
                                 </div>
@@ -561,14 +562,14 @@
 
                                 <!-- Back and Next Buttons -->
                                 <button id="back3YesStep"
-                                        class="btn btn-secondary btn-back">{{ __('product.previous') }}</button>
-                                <button id="newVariantButton" class="btn btn-primary btn-new-variant">
+                                        class="btn btn-danger btn-back">{{ __('product.previous') }}</button>
+                                <button id="newVariantButton" class="btn btn-success btn-new-variant">
                                     {{ __('product.create_new_variant') }}
                                 </button>
 
 
                                 <div id="propertyGroupSection" style="display: none;" class="container mt-5">
-                                    <h5 class="text-primary mb-4">@lang('product.select_required_info')</h5>
+                                    <h5 class="mb-4">@lang('product.select_required_info')</h5>
 
                                     <div class="row">
                                         <!-- Property Group Select -->
@@ -747,7 +748,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
+                                            <button type="button" class="btn btn-danger"
                                                     data-bs-dismiss="modal">@lang('product.cancel')</button>
                                             <button type="button" class="btn btn-primary"
                                                     id="savePropertyGroupOptionBtn">@lang('product.save')</button>
@@ -762,6 +763,7 @@
                 </div>
             </div>
         </div>
+    </div>
         @endsection
 
         @section('scripts')
@@ -811,15 +813,17 @@
                                     const manufacturer = response.product.productData[0].brand || response.product.productData[0].manufacturer || '-';
 
                                     let productCategories = `
-                                <p><strong>{{ __('Categories') }}:</strong></p>
-                                <ul id="bolCat">
-                                    ${categories.map(category => `<li>${category}</li>`).join(',')}
-                                </ul>
-                            `;
+                                    <h5 class="mb-2">{{ __('Categories') }}:
+                                    <span class="p-1 fw-normal fs-6" id="bolCat">
+                                        ${categories.map(category => `${category}`).join(',')}
+                                    </span>
+                                    </h5>`;
+
                                     $('#productCategories').html(productCategories);
 
                                     let productManufacturer = `
-                            <p><strong>{{ __('product.manufacturer') }}:</strong><span id="manufacturerValue">${manufacturer}</span></p>
+                            <h5 class="mb-2">{{ __('product.manufacturer') }}:
+                                <span class="p-1 fw-normal fs-6" id="manufacturerValue">${manufacturer}</span></h5>
                             `;
                                     $('#productManufacturer').html(productManufacturer);
 
@@ -848,14 +852,13 @@
                                         $('#backBtn').show();
                                         $('#nextBtn').show();
                                     } else {
-                                        $('#productDetails').html('<p class="text-danger">{{ __('product.no_product_found') }}</p>');
+                                        $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
                                         $('#nextBtn').hide();
                                     }
                                 }
                             },
                             error: function () {
-                                alert('{{ __('product.error_occurred') }}');
-                                $('#productDetails').html('<p class="text-danger">{{ __('product.error_occurred') }}</p>');
+                                $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
                                 $('#nextBtn').hide();
                             }
                         });
