@@ -1363,7 +1363,7 @@ $('#addPropertyOptionBtn').on('click', function () {
     }
 
 
-    if (selectedGroupId && selectedGroupOption) {
+    if (selectedGroupId && selectedGroupOption || selectedGroupIdSecond && selectedGroupOptionSecond || selectedGroupIdThird && selectedGroupOptionThird || selectedGroupIdFour && selectedGroupOptionFour || selectedGroupIdFive && selectedGroupOptionFive) {
         // Show the modal if valid values are selected
         $('#productEditModal').modal('show');
 
@@ -1381,7 +1381,7 @@ $('#addPropertyOptionBtn').on('click', function () {
         $('#productConfiguratorSettingsIds').val(allProductData.optionsIds);
 
         // Populate fields if needed (set defaults here)
-        // $('#selectedPropertyGroupId').val(selectedGroupId);
+
         $('#selectedPropertyGroupId').val(
             [selectedGroupId, selectedGroupIdSecond, selectedGroupIdThird, selectedGroupIdFour, selectedGroupIdFive]
                 .filter(Boolean) // Removes empty, null, or undefined values

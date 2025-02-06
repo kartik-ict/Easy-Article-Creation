@@ -127,8 +127,8 @@
                                     required>
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-{{--                                <label for="mediaUrl">@lang('product.media_url'):</label>--}}
-{{--                                <input type="file" class="form-control" id="media" name="media">--}}
+                                <label for="mediaUrl">@lang('product.media_url'):</label>
+                                <input type="file" class="form-control" id="media" name="media">
                             </div>
                         </div>
 
