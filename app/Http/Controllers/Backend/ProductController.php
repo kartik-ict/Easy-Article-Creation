@@ -113,7 +113,6 @@ class ProductController extends Controller
                 $productPrice = json_decode($responsePrice->getBody(), true);
                 /*                Dayanamic product data*/
 
-
                     $productData = [
                         'name' => $product['results']['0']['title'],
                         'ean' => $product['results']['0']['ean'] ?? $ean,
@@ -138,7 +137,9 @@ class ProductController extends Controller
             if ($product['data'][0]['attributes']['parentId'] == null) {
                 $productId = $product['data'][0]['id'];
                 $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
-                $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+                if (isset($parentProduct['data']['0']['attributes']['optionIds'])){
+                    $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+                }
             }
 
             $productData = [
@@ -264,6 +265,11 @@ class ProductController extends Controller
         // Generate a UUID for the new product
         $uuid = str_replace('-', '', (string)\Str::uuid());
 
+        $width = $request->get('productWidth');
+        $height = $request->get('productHeight');
+        $length = $request->get('productLength');
+        $weight = $request->get('productWeight');
+
         // Prepare visibilities
         $visibilities = [];
         foreach ($validatedData['salesChannel'] as $salesChannelId) {
@@ -295,6 +301,10 @@ class ProductController extends Controller
             'categories' => $categories,
             'visibilities' => $visibilities,
             'active' => boolval($validatedData['active_for_all']),
+            'weight' => $weight,
+            'width' => $width,
+            'height' => $height,
+            'length' => $length,
             'price' => [
                 [
                     'currencyId' => $currencyId,
@@ -310,7 +320,7 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
             // If the API call is successful
             if (isset($response['success'])) {
-                return redirect()->route('product.create')->with('success', __('product.product_created_successfully'));
+                return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
             }
@@ -434,6 +444,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
+            'productEanNumber' => 'string',
         ]);
 
         // Generate a UUID for the new product
@@ -492,6 +503,7 @@ class ProductController extends Controller
                     'weight' => $weight,
                     'width' => $width,
                     'height' => $height,
+                    'ean' => $validatedData['productEanNumber'],
                     'length' => $length,
                     'price' => [
                         [
@@ -534,20 +546,24 @@ class ProductController extends Controller
             'bolProductCategoriesId' => 'string',
             'bolProductDescription' => 'string',
             'bolPackagingWidth' => 'string',
+            'bolStock' => 'string',
             'bolPackagingHeight' => 'string',
             'bolPackagingLength' => 'string',
             'bolPackagingWeight' => 'string',
             'bolProductPrice' => 'string',
             'bolTotalPrice' => 'string',
             'bolProductThumbnail' => 'string',
+            'salesChannelBol.*' => 'required|string',
+            'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'active_for_allBol' => 'nullable|boolean'
         ]);
         $uuid = str_replace('-', '', (string)\Str::uuid());
         $mediaId = str_replace('-', '', (string)\Str::uuid());
 
-        $weight = strstr($validatedData['bolPackagingWeight'], ' ', true); // Output: "1722"
-        $width = strstr($validatedData['bolPackagingWidth'], ' ', true);  // Output: "296"
-        $height = strstr($validatedData['bolPackagingHeight'], ' ', true);  // Output: "21"
-        $length = strstr($validatedData['bolPackagingLength'], ' ', true); // Output: "298"
+        $weight = $validatedData['bolPackagingWeight'];
+        $width = $validatedData['bolPackagingWidth'];
+        $height = $validatedData['bolPackagingHeight'];
+        $length = $validatedData['bolPackagingLength'];
 
         $imageUrl = $validatedData['bolProductThumbnail'];
         $fileName = 'test';
@@ -585,6 +601,18 @@ class ProductController extends Controller
         }
 
 
+        // Prepare visibilities
+        $visibilities = [];
+        foreach ($validatedData['salesChannelBol'] as $salesChannelId) {
+            $visibilityId = str_replace('-', '', (string)\Str::uuid()); // Generate a random ID
+            $visibilities[] = [
+                'id' => $visibilityId,
+                'productId' => $uuid,
+                'salesChannelId' => $salesChannelId,
+                'visibility' => 30 // Default visibility
+            ];
+        }
+
         $data = [
             'id' => $uuid,
             'name' => $validatedData['bolProductName'],
@@ -592,14 +620,16 @@ class ProductController extends Controller
             'productNumber' => $validatedData['bolProductSku'],
             'description' => $validatedData['bolProductDescription'],
             'ean' => $validatedData['bolProductEanNumber'],
-            'coverId' => $mediaId,
             'categories' => array_map(fn($categoryId) => ['id' => trim($categoryId)], explode(',', $validatedData['bolProductCategoriesId'])), // Fix here
-            'stock' => 0,
-            'taxId' => $this->taxId->getTaxId(),
+            'stock' => (int) $validatedData['bolStock'],
             'weight' => $weight,
             'width' => $width,
             'height' => $height,
             'length' => $length,
+            'visibilities' => $visibilities,
+            'taxId' => $validatedData['bolTaxId'],
+            'active' => boolval($validatedData['active_for_allBol']),
+            'coverId' => $mediaId,
             'price' => [
                 [
                     'currencyId' => $currencyId,
@@ -614,8 +644,7 @@ class ProductController extends Controller
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
-            // If the API call is successful
-            if ($response['success'] === true) {
+            if (isset($response['success'])) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Product created successfully'
