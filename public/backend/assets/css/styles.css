@@ -8,10 +8,10 @@
     Version: 1.0
 
 ----------------------------------------------
-    
+
     CSS INDEX
     ===================
-  
+
     1. Core Css
     2. Dashboard One
         2.1 Sidebar Menu
@@ -2909,5 +2909,7 @@ table#productTable-update th{
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
+body:has(.modal.fade.show) > .modal-backdrop.fade.show + span.select2-container.select2-container--default {
+    z-index: 9999;
+}
 /* Login Form CSS End*/

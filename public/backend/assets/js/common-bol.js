@@ -109,7 +109,7 @@ $('#manufacturer-sw-search').on('select2:close', function () {
 $('#searchSwManufacturer').on('click', function () {
 
     const productManufacturer = $('#manufacturerValue').text();
-
+    console.log(productManufacturer);
     // Show loader while fetching product data
     // $('#productDetails').html('<div class="loader"></div>');
 
@@ -121,7 +121,7 @@ $('#searchSwManufacturer').on('click', function () {
         headers: {'X-CSRF-TOKEN': csrfToken},
         data: {productManufacturer: productManufacturer},
         success: function (response) {
-            // console.log('Success:', response);
+            console.log('Success:', response);
             if (response.productManufacturer) {
                 const manufacturerData = response.productManufacturer;
                 const manufacturerName = manufacturerData[0].attributes.translated.name;
@@ -343,6 +343,7 @@ $('#sw-parent-category-select').on('select2:close', function () {
 
 /* Category button click */
 $('#searchSwCategory').on('click', function () {
+    $('#full-page-preloader').show();
     const productCategoriesElement = document.getElementById('bolCat');
     const productCategoriesText = productCategoriesElement.innerText;
 // Split the string by commas and trim whitespace
@@ -376,16 +377,11 @@ $('#searchSwCategory').on('click', function () {
                 const newOption = new Option(categoryName, categoryId, true, true);
                 $('#sw-category-select').append(newOption).trigger('change');
             }
-            // } else if (response.message === 'createNew') {
-            //     console.log('No existing category found, creating new.');
-            // Handle new category creation case
-            // } else {
-            //     console.error('Unexpected response format:', response);
-            // }
+            $('#full-page-preloader').hide();
         },
         error: function (xhr, status, error) {
-            console.error('AJAX Error:', error);
-            console.error('Server Response:', xhr.responseText);
+            $('#full-page-preloader').hide();
+            alert('Category not found');
         }
     });
 
@@ -394,7 +390,7 @@ $('#searchSwCategory').on('click', function () {
 /* Category  button click */
 
 $('#createSwCategory').on('click', function () {
-
+    $('#full-page-preloader').show();
     const productCategoriesElement = document.getElementById('sw-parent-category-select');
     const parentCategoriesValue = productCategoriesElement.value; // Get the selected category ID
     const productCategoriesElements = document.getElementById('bolCat');
@@ -424,14 +420,17 @@ $('#createSwCategory').on('click', function () {
             if (categoryName && categoryId) {
                 const newOption = new Option(categoryName, categoryId, true, true);
                 $('#sw-category-select').append(newOption).trigger('change');
+                $('#full-page-preloader').hide();
             } else {
-                console.error('Category Name or ID missing');
+                $('#full-page-preloader').hide();
+                alert('Category Name or ID missing');
             }
             // }
         },
         error: function (xhr, status, error) {
-            console.error('AJAX Error:', error);
-            console.error('Server Response:', xhr.responseText);
+            $('#full-page-preloader').hide();
+            alert('Category Name or ID missing');
+
         }
     });
 });
@@ -439,9 +438,13 @@ $('#createSwCategory').on('click', function () {
 
 // Handle Next button (Step 2 -> Step 3)
 $('#nextBolBtn').on('click', function () {
-
+    $('#full-page-preloader').show();
     const selectedManufacturer = document.getElementById('manufacturer-sw-search').value;
+    const selectedManufacturerName = $('#manufacturer-sw-search option:selected').text();
+
     const selectedCategory = document.getElementById('sw-category-select').value;
+    const ean = document.getElementById('ean').value;
+    const selectedCategoryName = $('#sw-category-select option:selected').text();
 
     if (!selectedManufacturer || !selectedCategory) {
         return;
@@ -450,23 +453,22 @@ $('#nextBolBtn').on('click', function () {
     $('#step2').hide();
     $('#stepBol3').show();
 
+
     if (Array.isArray(bolApiResponse.product.productData)) {
         bolApiResponse.product.productData.forEach(product => {
             $('#bolProductName').val(product.title);
-            $('#bolProductEanNumber').val(product.ean);
+            $('#bolProductEanNumber').val(ean);
             $('#bolProductSku').val(product.sku);
-            $('#bolProductManufacturer').val(product.brand);
+            $('#bolProductManufacturer').val(selectedManufacturerName);
             $('#bolProductManufacturerId').val(selectedManufacturer);
-            $('#bolProductCategories').val(product.categories);
+            $('#bolProductCategories').val(selectedCategoryName);
             $('#bolProductCategoriesId').val(selectedCategory);
             $('#bolProductDescription').val(product.description);
-            $('#bolPackagingWidth').val(product.specs["Verpakking breedte"]);
-            $('#bolPackagingHeight').val(product.specs["Verpakking hoogte"]);
-            $('#bolPackagingLength').val(product.specs["Verpakking lengte"]);
-            $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"]);
+            $('#bolPackagingWidth').val(product.specs["Verpakking breedte"].match(/\d+/) ? parseInt(product.specs["Verpakking breedte"].match(/\d+/)[0], 10) : 0);
+            $('#bolPackagingHeight').val(product.specs["Verpakking hoogte"].match(/\d+/) ? parseInt(product.specs["Verpakking hoogte"].match(/\d+/)[0], 10) : 0);
+            $('#bolPackagingLength').val(product.specs["Verpakking lengte"].match(/\d+/) ? parseInt(product.specs["Verpakking lengte"].match(/\d+/)[0], 10) : 0);
+            $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"].match(/\d+/) ? parseInt(product.specs["Verpakkingsgewicht"].match(/\d+/)[0], 10) : 0);
             $('#bolProductThumbnail').attr('src', product.thumbnail);
-
-
         });
 
         const taxRate = bolApiResponse.product.taxData.attributes.taxRate;
@@ -485,26 +487,12 @@ $('#nextBolBtn').on('click', function () {
                 $('#bolAvailable').val('1');
             }
         });
+        $('#full-page-preloader').hide();
     }
-
-    // taxId
-
-    // bolProductName
-    // bolProductEanNumber
-    // bolProductSku
-    // bolProductManufacturer
-    // bolProductManufacturerId
-    // bolProductCategories
-    // bolProductCategoriesId
-    // bolProductDescription
-    // PackagingWidth
-    // PackagingHeight
-    // PackagingLength
-    // PackagingWeight
 });
 
 $('#saveBolProductData').on('click', function (e) {
-
+    $('#full-page-preloader').show();
     e.preventDefault(); // Prevent default form submission
 
     const thumbnailUrl = $('#bolProductThumbnail').attr('src'); // Assuming this is the correct image URL
@@ -523,18 +511,74 @@ $('#saveBolProductData').on('click', function (e) {
 
             if (response.success == true) {
                 location.reload();
-                alert('Product saved successfully!');
+                $('#full-page-preloader').hide();
+                alert(window.selectGradeAlert);
             }
         },
         error: function (error) {
-            console.error('Save Error:', error);
+            $('#full-page-preloader').hide();
+            alert(window.selectGradeAlertError);
             // Handle error (e.g., show an error message)
-            alert('An error occurred while saving the product variant.');
+            // alert('An error occurred while saving the product variant.');
         }
     });
-
 });
 
+// Tax Provider API
+$('#tax-provider-select-bol').select2({
+    ajax: {
+        url: taxSearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        data: function (params) {
+            return {
+                term: params.term, // Search term
+                page: params.page || 1
+            };
+        },
+        processResults: function (data) {
+            return {
+                results: data.taxProviders.map(function (provider) {
+                    return {
+                        id: provider.id,
+                        text: provider.attributes.name,
+                        taxRate: provider.attributes.taxRate // Include tax rate
+                    };
+                })
+            };
+        }
+    },
+    placeholder: 'Selecteer een belastingtarief',
+    minimumResultsForSearch: Infinity,
+    language: {
+        searching: function () {
+            return "Zoeken, even geduld...";
+        },
+        loadingMore: function () {
+            return "Meer resultaten laden...";
+        },
+        noResults: function () {
+            return "Geen resultaten gevonden.";
+        }
+    },
+}).on('select2:select', function (e) {
+    const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
+
+    // Update the tax rate for calculation
+    $('#bolProductPrice').data('taxRate', selectedTaxRate);
+});
+
+$('#bolProductPrice').on('input', function () {
+    const priceGross = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || 0;
+
+    // Calculate net price
+    const priceNet = priceGross / (1 + taxRate / 100);
+    $('#bolTotalPrice').val(priceNet.toFixed(5));
+});
 
 
 

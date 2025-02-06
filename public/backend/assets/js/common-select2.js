@@ -1125,6 +1125,127 @@ $('#propertyGroupSelectFive').change(function () {
 /*Five*/
 
 
+
+/*Six*/
+
+// Initialize Property Group Select
+$('#propertyGroupSelectSix').select2({
+    width: '50%',
+    placeholder: 'Select Property Group',
+    ajax: {
+        url: propertySearchUrl,
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+            if (params.term) {
+                currentPage = 1;
+            }
+            return {
+                page: currentPage,
+                limit: 25,
+                term: params.term || '',
+                'total-count-mode': 1
+            };
+        },
+        processResults: function (data) {
+            isEndOfResults = data.propertyGroups.length < 25;
+            const results = data.propertyGroups.map(group => ({
+                id: group.id,
+                text: group.attributes.translated.name
+            }));
+            return {
+                results: results,
+                pagination: {
+                    more: !isEndOfResults
+                }
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 0,
+    allowClear: true,
+    language: {
+        searching: () => 'Searching...',
+        loadingMore: () => 'Loading more results...',
+        noResults: () => 'No results found.'
+    }
+});
+
+
+// Fetch property group options and enable scroll API for pagination
+function fetchPropertyGroupOptionsSix(groupId) {
+    currentPageOption = 1;
+    isEndOfResultsOption = false;
+
+    $('#propertyGroupOptionSelectSix').select2({
+        width: '50%',
+        placeholder: 'Select Property Group Option',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function (params) {
+                return JSON.stringify({
+                    page: params.page || 1,
+                    groupId: groupId,
+                    limit: 25
+                });
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                isEndOfResultsOption = data.propertyGroups.length < 25;
+
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+
+                return {
+                    results: results,
+                    pagination: {
+                        more: !isEndOfResultsOption
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        language: {
+            noResults: () => 'No options found.'
+        }
+    });
+
+    // Reset scrolling flags upon dropdown open and close
+    $('#propertyGroupOptionSelectSix').on('select2:open', function () {
+        currentPageOption = 1;
+        isEndOfResultsOption = false;
+    });
+}
+
+$('#propertyGroupSelectSix').change(function () {
+    const selectedGroup = $(this).val();
+    if (selectedGroup) {
+        $('#propertyGroupOptionWrapperSix').show();
+        $('#addPropertyOptionWrapper').css('visibility', 'visible');
+    } else {
+        $('#propertyGroupOptionWrapperSix').hide();
+        $('#addPropertyOptionWrapper').css('visibility', 'hidden');
+    }
+});
+
+/*six*/
+
+
 // Handle click on 'Create New Property Group' button
 $('#createPropertyGroupBtn').click(function () {
     alert("@lang('property.create_group_message')");
@@ -1159,7 +1280,8 @@ $('#createPropertyGroupOptionBtn').on('click', function () {
 });
 
 $('#savePropertyGroupOptionBtn').on('click', function () {
-    const groupId = $('#selectedPropertyGroupId').val();
+    $('#full-page-preloader').show();
+    const groupId = $('#propertyGroupSelectSix').val();
     const optionName = $('#newPropertyOptionName').val();
 
     if (optionName && groupId) {
@@ -1176,26 +1298,30 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
             success: function (response) {
                 // Handle the success (e.g., close the modal and display a success message)
                 $('#createPropertyGroupOptionModal').modal('hide');
+                $('#full-page-preloader').hide();
                 alert(response.message); // Display a success message
 
                 // Clear input fields
                 $('#newPropertyOptionName').val(''); // Reset option name input
                 $('#selectedPropertyGroupName').val(''); // Clear displayed group name
                 $('#selectedPropertyGroupId').val(''); // Clear hidden group ID
+
             },
             error: function (error) {
+                $('#full-page-preloader').hide();
                 // Handle the error (e.g., display an error message)
                 alert("@lang('product.error_occurred')");
             }
         });
     } else {
+        $('#full-page-preloader').hide();
         alert("@lang('product.enter_property_option_name')");
     }
 });
 
 // Add Property Option button functionality
 $('#addPropertyOptionBtn').on('click', function () {
-
+    $('#full-page-preloader').show();
     const selectedGroupId = $('#propertyGroupSelect').val();
     const selectedGroupOption = $('#propertyGroupOptionSelect').val();
     const selectedGroupName = $('#propertyGroupSelect option:selected').text();
@@ -1231,6 +1357,7 @@ $('#addPropertyOptionBtn').on('click', function () {
     ].some(item => item.group && !item.option);
 
     if (validationFailed) {
+        $('#full-page-preloader').hide();
         alert("Als een extra vastgoedgroep is geselecteerd, moet ook een bijbehorende optie worden geselecteerd.");
         return;
     }
@@ -1244,6 +1371,7 @@ $('#addPropertyOptionBtn').on('click', function () {
             $('#name').val(product.attributes.translated.name);
             $('#description').val(product.attributes.translated.description);
             $('#stock').val(product.attributes.stock);
+            $('#productEanNumber').val(product.attributes.ean);
             $('#productPackagingHeight').val(product.attributes.height);
             $('#productPackagingLength').val(product.attributes.length);
             $('#productPackagingWeight').val(product.attributes.weight);
@@ -1285,7 +1413,9 @@ $('#addPropertyOptionBtn').on('click', function () {
                 createHiddenFields(product.id, selectedGroupOption, selectedGroupOptionSecond, selectedGroupOptionThird, selectedGroupOptionFour, selectedGroupOptionFive);
             }
         });
+        $('#full-page-preloader').hide();
     } else {
+        $('#full-page-preloader').hide();
         alert("Selecteer Vastgoedgroep");
     }
 });
@@ -1318,6 +1448,7 @@ function createHiddenFields(parentId, selectedGroupOption, selectedGroupOptionSe
 
 
 $('#saveVariant').on('click', function (e) {
+    $('#full-page-preloader').show();
     e.preventDefault(); // Prevent the default form submission (if any)
 
     const formData = $('#product-form').serialize(); // Serialize the entire form data
@@ -1325,7 +1456,7 @@ $('#saveVariant').on('click', function (e) {
     const originalButtonText = button.text(); // Save original button text
 
     // Show loader on the button
-    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verwerking...');
+    // button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verwerking...');
 
     $.ajax({
         url: variantSave,
@@ -1337,10 +1468,12 @@ $('#saveVariant').on('click', function (e) {
         dataType: 'json',
         success: function (response) {
             alert(response.message);
+            $('#full-page-preloader').hide();
             $('#productEditModal').modal('hide');
             location.reload();
         },
         error: function (error) {
+            $('#full-page-preloader').hide();
             console.error('Save Error:', error);
             // Handle error (e.g., show an error message)
             alert('An error occurred while saving the product variant.');
