@@ -61,7 +61,7 @@
                         </li>
                     @endif
 
-                    @if ($usr->can('catalogue.view'))
+                    @if ($usr->can('catalogue'))
                         <li>
                             <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-product-hunt"></i><span>{{ trans('custom.catalog') }}</span></a>
                                 <ul class="collapse {{ Route::is('admin.product.index') || Route::is('product.create') }}">
