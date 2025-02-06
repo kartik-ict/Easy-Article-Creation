@@ -71,7 +71,7 @@ return [
     'create_new_variant' => 'Nieuwe variant maken',
     'property_select_group' => 'Selecteer Vastgoedgroep',
     'property_select_group_option' => 'Selecteer eigenschap optie',
-    'select_required_info' => 'Selecteer de gewenste informatie',
+    'select_required_info' => 'Selecteer de gewenste informatie (Selecteer eigenschappen zorgvuldig)',
     'create_new_property' => 'Nieuwe eigenschapgroep aanmaken',
     'create_new_property_option' => 'Nieuwe optie voor eigenschappengroep aanmaken',
     'add_option' => 'Bovenstaande optie toevoegen',

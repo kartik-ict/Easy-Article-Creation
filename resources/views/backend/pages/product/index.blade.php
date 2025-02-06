@@ -795,8 +795,6 @@
         $(document).ready(function () {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
-            // let allProductData = [];
-            // let apiResponse = [];
             let selectedGrade = "";
             let productRow = "";
             let selectedPropertyGroup = "";
@@ -811,7 +809,7 @@
                 }
 
                 // Show loader while fetching product data
-                $('#productDetails').html('<div class="loader"></div>');
+                $('#full-page-preloader').show();
 
                 // Hide Step 1 and show Step 2 after the loader
                 $('#step1').hide();
@@ -859,6 +857,7 @@
                             $('#nextBolBtn').show();
                             $('#productDetails').html(' ');
                             $('#backBtn').hide();
+                            $('#full-page-preloader').hide();
                         } else {
                             $('#gradeSection').show();
                             $('#bolSection').hide();
@@ -880,19 +879,20 @@
                                 //$('#gradeSection').show();
                                 $('#backBtn').show();
                                 $('#nextBtn').show();
+                                $('#full-page-preloader').hide();
                             } else {
                                 $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
                                 $('#nextBtn').hide();
+                                $('#full-page-preloader').hide();
                             }
                         }
                     },
                     error: function () {
                         $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
                         $('#nextBtn').hide();
+                        $('#full-page-preloader').hide();
                     }
                 });
-
-
             });
 
             // Handle grade selection
@@ -910,8 +910,7 @@
 
             // Handle Next button (Step 2 -> Step 3)
             $('#nextBtn').on('click', function () {
-
-
+                $('#full-page-preloader').show();
                 if (selectedGrade === "no") {
                     // Transition to Step 3
                     $('#step2').hide();
@@ -954,7 +953,7 @@
                         });
                     }
 
-
+                    $('#full-page-preloader').hide();
                 } else if (selectedGrade === "yes") {
                     $('#step2').hide();
                     $('#yesStepDetails').show();
@@ -999,54 +998,64 @@
                             $('#productTable-update tbody').append(productRow);
                         });
                     }
+                    $('#full-page-preloader').hide();
                 } else {
+                    $('#full-page-preloader').hide();
                     alert('{{ __('product.select_grade_alert') }}');
                 }
             });
 
             // Handle Back button (Step 2 -> Step 1)
             $('#backBtn').on('click', function () {
+                $('#full-page-preloader').show();
                 $('#step2').hide();
                 $('#step1').show();
                 $('#gradeSection').hide();  // Hide grade selection section when going back
                 $('#bolSection').hide();  // Hide grade selection section when going back
                 $('#nextBtn').hide();  // Hide next button when going back
-                $('#productDetails').html('<div class="loader"></div>');  // Show loader in Step 2 again
+                $('#full-page-preloader').hide();
             });
 
             // Handle Back button (Step 2 -> Step 1)
             $('#backBolBtn').on('click', function () {
+                $('#full-page-preloader').show();
                 $('#step2').hide();
                 $('#step1').show();
                 $('#gradeSection').hide();  // Hide grade selection section when going back
                 $('#bolSection').hide();  // Hide grade selection section when going back
                 $('#nextBtn').hide();  // Hide next button when going back
-                $('#productDetails').html('<div class="loader"></div>');  // Show loader in Step 2 again
+                $('#full-page-preloader').hide();
             });
 
             $('#backBolBtnsetp3').on('click', function () {
+                $('#full-page-preloader').show();
                 $('#stepBol3').hide();
                 $('#step2').show();
                 $('#gradeSection').hide();  // Hide grade selection section when going back
                 $('#bolSection').show();  // Hide grade selection section when going back
                 $('#nextBtn').hide();  // Hide next button when going back
-                $('#productDetails').html('<div class="loader"></div>');  // Show loader in Step 2 again
+                $('#full-page-preloader').hide();
             });
 
             // Handle Back button (Step 3 -> Step 2)
             $('#backStep2Btn').on('click', function () {
+                $('#full-page-preloader').show();
                 $('#step3').hide();
                 $('#step2').show();
                 $('#nextBtn').show();  // Show next button again
+                $('#full-page-preloader').hide();
             });
 
             $('#back3YesStep').on('click', function () {
+                $('#full-page-preloader').show();
                 $('#yesStepDetails').hide();  // Hide Step 3 (Yes Step Details)
                 $('#step2').show();  // Show Step 2
+                $('#full-page-preloader').hide();
             });
 
             // Handle Update Data button (Update stock)
             $(document).on('click', '.update-stock-btn', function () {
+                $('#full-page-preloader').show();
                 const row = $(this).closest('tr'); // Get the clicked row
                 const productId = $(this).data('product-id'); // Get the product ID from the clicked button
                 const currentStock = row.find('.current-stock').text(); // Get the current stock value from the clicked row
@@ -1077,8 +1086,10 @@
                         location.reload(); // Reload the page to see updated stock values
                         $('#step3').hide();
                         $('#step1').show();
+                        $('#full-page-preloader').hide();
                     },
                     error: function () {
+                        $('#full-page-preloader').hide();
                         alert('{{ __('product.error_updating_stock') }}'); // Show error alert if update fails
                     }
                 });
@@ -1086,6 +1097,7 @@
 
             // Handle the Yes Flow
             $(document).on('click', '.edit-details-btn', function () {
+                $('#full-page-preloader').show();
                 const productId = $(this).data('product-id');
 
                 // Find the product details from allProductData
@@ -1180,7 +1192,9 @@
 
                     // Show the modal
                     $('#productEditModal').modal('show');
+                    $('#full-page-preloader').hide();
                 } else {
+                    $('#full-page-preloader').hide();
                     alert("Product details not found.");
                 }
             });

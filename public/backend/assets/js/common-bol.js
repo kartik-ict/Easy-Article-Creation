@@ -343,6 +343,7 @@ $('#sw-parent-category-select').on('select2:close', function () {
 
 /* Category button click */
 $('#searchSwCategory').on('click', function () {
+    $('#full-page-preloader').show();
     const productCategoriesElement = document.getElementById('bolCat');
     const productCategoriesText = productCategoriesElement.innerText;
 // Split the string by commas and trim whitespace
@@ -376,16 +377,11 @@ $('#searchSwCategory').on('click', function () {
                 const newOption = new Option(categoryName, categoryId, true, true);
                 $('#sw-category-select').append(newOption).trigger('change');
             }
-            // } else if (response.message === 'createNew') {
-            //     console.log('No existing category found, creating new.');
-            // Handle new category creation case
-            // } else {
-            //     console.error('Unexpected response format:', response);
-            // }
+            $('#full-page-preloader').hide();
         },
         error: function (xhr, status, error) {
-            console.error('AJAX Error:', error);
-            console.error('Server Response:', xhr.responseText);
+            $('#full-page-preloader').hide();
+            alert('Category not found');
         }
     });
 
@@ -394,7 +390,7 @@ $('#searchSwCategory').on('click', function () {
 /* Category  button click */
 
 $('#createSwCategory').on('click', function () {
-
+    $('#full-page-preloader').show();
     const productCategoriesElement = document.getElementById('sw-parent-category-select');
     const parentCategoriesValue = productCategoriesElement.value; // Get the selected category ID
     const productCategoriesElements = document.getElementById('bolCat');
@@ -424,14 +420,17 @@ $('#createSwCategory').on('click', function () {
             if (categoryName && categoryId) {
                 const newOption = new Option(categoryName, categoryId, true, true);
                 $('#sw-category-select').append(newOption).trigger('change');
+                $('#full-page-preloader').hide();
             } else {
-                console.error('Category Name or ID missing');
+                $('#full-page-preloader').hide();
+                alert('Category Name or ID missing');
             }
             // }
         },
         error: function (xhr, status, error) {
-            console.error('AJAX Error:', error);
-            console.error('Server Response:', xhr.responseText);
+            $('#full-page-preloader').hide();
+            alert('Category Name or ID missing');
+
         }
     });
 });
@@ -439,7 +438,7 @@ $('#createSwCategory').on('click', function () {
 
 // Handle Next button (Step 2 -> Step 3)
 $('#nextBolBtn').on('click', function () {
-
+    $('#full-page-preloader').show();
     const selectedManufacturer = document.getElementById('manufacturer-sw-search').value;
     const selectedManufacturerName = $('#manufacturer-sw-search option:selected').text();
 
@@ -488,11 +487,12 @@ $('#nextBolBtn').on('click', function () {
                 $('#bolAvailable').val('1');
             }
         });
+        $('#full-page-preloader').hide();
     }
 });
 
 $('#saveBolProductData').on('click', function (e) {
-
+    $('#full-page-preloader').show();
     e.preventDefault(); // Prevent default form submission
 
     const thumbnailUrl = $('#bolProductThumbnail').attr('src'); // Assuming this is the correct image URL
@@ -511,21 +511,20 @@ $('#saveBolProductData').on('click', function (e) {
 
             if (response.success == true) {
                 location.reload();
+                $('#full-page-preloader').hide();
                 alert(window.selectGradeAlert);
             }
         },
         error: function (error) {
-            console.error('Save Error:', error);
+            $('#full-page-preloader').hide();
             alert(window.selectGradeAlertError);
             // Handle error (e.g., show an error message)
             // alert('An error occurred while saving the product variant.');
         }
     });
-
 });
 
 // Tax Provider API
-
 $('#tax-provider-select-bol').select2({
     ajax: {
         url: taxSearchUrl,

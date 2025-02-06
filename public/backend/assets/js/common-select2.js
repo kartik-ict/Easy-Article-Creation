@@ -1175,23 +1175,6 @@ $('#propertyGroupSelectSix').select2({
     }
 });
 
-// Handle Property Group selection and reset Property Group Option
-$('#propertyGroupSelectSix').change(function () {
-    const groupId = $(this).val();
-
-    // Clear previous options and disable the dropdown until options are loaded
-    // destroySelect2IfExists('#propertyGroupOptionSelectFive');
-    // $('#propertyGroupOptionSelectFive').empty().select2({
-    //     width: '50%',
-    //     placeholder: 'Select Property Group Option',
-    //     allowClear: true
-    // });
-
-    // Fetch new Property Group Options if a group is selected
-    // if (groupId) {
-    //     fetchPropertyGroupOptionsFive(groupId);
-    // }
-});
 
 // Fetch property group options and enable scroll API for pagination
 function fetchPropertyGroupOptionsSix(groupId) {
@@ -1297,6 +1280,7 @@ $('#createPropertyGroupOptionBtn').on('click', function () {
 });
 
 $('#savePropertyGroupOptionBtn').on('click', function () {
+    $('#full-page-preloader').show();
     const groupId = $('#propertyGroupSelectSix').val();
     const optionName = $('#newPropertyOptionName').val();
 
@@ -1314,26 +1298,30 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
             success: function (response) {
                 // Handle the success (e.g., close the modal and display a success message)
                 $('#createPropertyGroupOptionModal').modal('hide');
+                $('#full-page-preloader').hide();
                 alert(response.message); // Display a success message
 
                 // Clear input fields
                 $('#newPropertyOptionName').val(''); // Reset option name input
                 $('#selectedPropertyGroupName').val(''); // Clear displayed group name
                 $('#selectedPropertyGroupId').val(''); // Clear hidden group ID
+
             },
             error: function (error) {
+                $('#full-page-preloader').hide();
                 // Handle the error (e.g., display an error message)
                 alert("@lang('product.error_occurred')");
             }
         });
     } else {
+        $('#full-page-preloader').hide();
         alert("@lang('product.enter_property_option_name')");
     }
 });
 
 // Add Property Option button functionality
 $('#addPropertyOptionBtn').on('click', function () {
-
+    $('#full-page-preloader').show();
     const selectedGroupId = $('#propertyGroupSelect').val();
     const selectedGroupOption = $('#propertyGroupOptionSelect').val();
     const selectedGroupName = $('#propertyGroupSelect option:selected').text();
@@ -1369,6 +1357,7 @@ $('#addPropertyOptionBtn').on('click', function () {
     ].some(item => item.group && !item.option);
 
     if (validationFailed) {
+        $('#full-page-preloader').hide();
         alert("Als een extra vastgoedgroep is geselecteerd, moet ook een bijbehorende optie worden geselecteerd.");
         return;
     }
@@ -1424,7 +1413,9 @@ $('#addPropertyOptionBtn').on('click', function () {
                 createHiddenFields(product.id, selectedGroupOption, selectedGroupOptionSecond, selectedGroupOptionThird, selectedGroupOptionFour, selectedGroupOptionFive);
             }
         });
+        $('#full-page-preloader').hide();
     } else {
+        $('#full-page-preloader').hide();
         alert("Selecteer Vastgoedgroep");
     }
 });
@@ -1457,6 +1448,7 @@ function createHiddenFields(parentId, selectedGroupOption, selectedGroupOptionSe
 
 
 $('#saveVariant').on('click', function (e) {
+    $('#full-page-preloader').show();
     e.preventDefault(); // Prevent the default form submission (if any)
 
     const formData = $('#product-form').serialize(); // Serialize the entire form data
@@ -1464,7 +1456,7 @@ $('#saveVariant').on('click', function (e) {
     const originalButtonText = button.text(); // Save original button text
 
     // Show loader on the button
-    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verwerking...');
+    // button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verwerking...');
 
     $.ajax({
         url: variantSave,
@@ -1476,10 +1468,12 @@ $('#saveVariant').on('click', function (e) {
         dataType: 'json',
         success: function (response) {
             alert(response.message);
+            $('#full-page-preloader').hide();
             $('#productEditModal').modal('hide');
             location.reload();
         },
         error: function (error) {
+            $('#full-page-preloader').hide();
             console.error('Save Error:', error);
             // Handle error (e.g., show an error message)
             alert('An error occurred while saving the product variant.');
