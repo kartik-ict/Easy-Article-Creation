@@ -107,7 +107,7 @@ $('#manufacturer-sw-search').on('select2:close', function () {
 });
 
 $('#searchSwManufacturer').on('click', function () {
-
+    $('#full-page-preloader').show();
     const productManufacturer = $('#manufacturerValue').text();
     console.log(productManufacturer);
     // Show loader while fetching product data
@@ -121,17 +121,18 @@ $('#searchSwManufacturer').on('click', function () {
         headers: {'X-CSRF-TOKEN': csrfToken},
         data: {productManufacturer: productManufacturer},
         success: function (response) {
-            console.log('Success:', response);
             if (response.productManufacturer) {
                 const manufacturerData = response.productManufacturer;
                 const manufacturerName = manufacturerData[0].attributes.translated.name;
                 const manufacturerId = manufacturerData[0].id;
                 const newOption = new Option(manufacturerName, manufacturerId, true, true);
-
+                $('#full-page-preloader').hide();
                 $('#manufacturer-sw-search').append(newOption).trigger('change');
+
             }
         },
         error: function (xhr, status, error) {
+            $('#full-page-preloader').hide();
             console.error('AJAX Error:', error);
         }
     });
@@ -438,7 +439,7 @@ $('#createSwCategory').on('click', function () {
 
 // Handle Next button (Step 2 -> Step 3)
 $('#nextBolBtn').on('click', function () {
-    $('#full-page-preloader').show();
+
     const selectedManufacturer = document.getElementById('manufacturer-sw-search').value;
     const selectedManufacturerName = $('#manufacturer-sw-search option:selected').text();
 
@@ -447,8 +448,10 @@ $('#nextBolBtn').on('click', function () {
     const selectedCategoryName = $('#sw-category-select option:selected').text();
 
     if (!selectedManufacturer || !selectedCategory) {
+        alert(window.selectCategoryAlertError);
         return;
     }
+    $('#full-page-preloader').show();
     // Transition to Step 3
     $('#step2').hide();
     $('#stepBol3').show();

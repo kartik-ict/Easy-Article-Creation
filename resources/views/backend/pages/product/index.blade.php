@@ -789,6 +789,7 @@
     <script>
         window.selectGradeAlert = @json(__('product.product_created_successfully'));
         window.selectGradeAlertError = @json(__('product.failed_to_create_product'));
+        window.selectCategoryAlertError = @json(__('product.selectCategoryAlertError'));
         let allProductData = [];
         let apiResponse = [];
         let bolApiResponse = []
@@ -962,10 +963,11 @@
                     if (Array.isArray(allProductData.productData)) {
                         allProductData.productData.forEach(product => {
                             let propertyGroupNames = '';
+
                             if (product.attributes.parentId) {
-                                $('#newVariantButton').hide();
-                            } else {
                                 $('#newVariantButton').show();
+                            } else {
+                                $('#newVariantButton').hide();
                             }
                             // Handling product attributes like options (property group)
                             if (product.attributes?.optionIds?.length) {

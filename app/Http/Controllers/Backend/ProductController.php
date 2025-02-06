@@ -559,6 +559,7 @@ class ProductController extends Controller
         ]);
         $uuid = str_replace('-', '', (string)\Str::uuid());
         $mediaId = str_replace('-', '', (string)\Str::uuid());
+        $productMediaId = str_replace('-', '', (string)\Str::uuid());
 
         $weight = $validatedData['bolPackagingWeight'];
         $width = $validatedData['bolPackagingWidth'];
@@ -629,7 +630,7 @@ class ProductController extends Controller
             'visibilities' => $visibilities,
             'taxId' => $validatedData['bolTaxId'],
             'active' => boolval($validatedData['active_for_allBol']),
-            'coverId' => $mediaId,
+            'coverId' => $productMediaId,
             'price' => [
                 [
                     'currencyId' => $currencyId,
@@ -645,6 +646,15 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
             if (isset($response['success'])) {
+                $productMediaData = [
+                    'id' => $productMediaId,
+                    'productId' => $uuid,
+                    'mediaId' => $mediaId,
+                    'position' => 1,
+                ];
+
+                $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Product created successfully'
