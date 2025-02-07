@@ -140,7 +140,7 @@
                                 <div class="step-header">Step 2: {{ __('product.product_details') }}</div>
                                 <div id="productDetails">
                                     <!-- Loading Spinner initially -->
-                                    <div class="loader"></div>
+                                    {{--                                    <div class="loader"></div>--}}
                                 </div>
                                 <!-- Ask about grade -->
                                 <div class="form-group mt-4 col-6" style="display:none;" id="gradeSection">
@@ -827,17 +827,26 @@
                             bolApiResponse = response;
                             $('#gradeSection').hide();
                             $('#bolSection').show();
-                            const categories = response.product.productData[0].categories || '';
+                            const categories = response.product.productData[0].categories;
                             const manufacturer = response.product.productData[0].brand || response.product.productData[0].manufacturer;
 
-                            let productCategories = `
+                            if (categories.length != 0) {
+                                let productCategories = `
                                     <h5 class="mb-2">{{ __('Categories') }}:
                                     <span class="p-1 fw-normal fs-6" id="bolCat">
                                         ${categories.map(category => `${category}`).join(',')}
                                     </span>
                                     </h5>`;
 
-                            $('#productCategories').html(productCategories);
+                                $('#productCategories').html(productCategories);
+
+                            } else {
+                                let productCategories = `
+                            <h5 class="mb-2">{{ __('Categories') }}:
+                                <span class="p-1 fw-normal fs-6" id="bolCat">{{ __('product.productCategoriesErrorMessage') }}</span></h5>
+                            `;
+                                $('#productCategories').html(productCategories);
+                            }
                             if (manufacturer) {
                                 let productManufacturer = `
                             <h5 class="mb-2">{{ __('product.manufacturer') }}:
@@ -884,6 +893,7 @@
                             } else {
                                 $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
                                 $('#nextBtn').hide();
+                                $('#backBtn').show();
                                 $('#full-page-preloader').hide();
                             }
                         }
@@ -891,6 +901,7 @@
                     error: function () {
                         $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
                         $('#nextBtn').hide();
+                        $('#backBtn').show();
                         $('#full-page-preloader').hide();
                     }
                 });
@@ -963,11 +974,10 @@
                     if (Array.isArray(allProductData.productData)) {
                         allProductData.productData.forEach(product => {
                             let propertyGroupNames = '';
-
                             if (product.attributes.parentId) {
-                                $('#newVariantButton').show();
-                            } else {
                                 $('#newVariantButton').hide();
+                            } else {
+                                $('#newVariantButton').show();
                             }
                             // Handling product attributes like options (property group)
                             if (product.attributes?.optionIds?.length) {
@@ -984,6 +994,10 @@
                                         propertyGroupNames += 'N/A<br>';
                                     }
                                 });
+                            }
+
+                            if (propertyGroupNames == '') {
+                                propertyGroupNames = 'N/A';
                             }
 
                             // Create a new row for the table
@@ -1072,7 +1086,7 @@
                 }
 
                 // Show loader while updating stock
-                $('#step3Content').html('<div class="loader"></div>');
+                // $('#step3Content').html('<div class="loader"></div>');
 
                 // AJAX request to update stock
                 $.ajax({

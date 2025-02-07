@@ -37,7 +37,7 @@
                         @endforeach
                     </div>
                     @endif
-                    <form action="{{ route('product.saveData') }}" method="POST">
+                    <form action="{{ route('product.saveData') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
@@ -127,8 +127,8 @@
                                     required>
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="mediaUrl">@lang('product.media_url'):</label>
-                                <input type="file" class="form-control" id="media" name="media">
+{{--                                <label for="mediaUrl">@lang('product.media_url'):</label>--}}
+{{--                                <input type="file" class="form-control" id="media" name="media">--}}
                             </div>
                         </div>
 
@@ -163,7 +163,7 @@
 
                         <!-- Submit Button -->
                         <div class="form-group mt-4">
-                            <button type="submit" class="btn btn-primary w-100">@lang('product.submit')</button>
+                            <button type="submit" class="btn btn-primary">@lang('product.submit')</button>
                         </div>
                     </form>
                 </div>
