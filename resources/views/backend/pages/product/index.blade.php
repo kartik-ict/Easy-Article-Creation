@@ -970,11 +970,12 @@
                     $('#step2').hide();
                     $('#yesStepDetails').show();
                     $('#productTable-update tbody').empty();
+                    const productLength = allProductData.productData.length;
 
                     if (Array.isArray(allProductData.productData)) {
                         allProductData.productData.forEach(product => {
                             let propertyGroupNames = '';
-                            if (product.attributes.parentId) {
+                            if (productLength == 1 && product.attributes.parentId) {
                                 $('#newVariantButton').hide();
                             } else {
                                 $('#newVariantButton').show();
