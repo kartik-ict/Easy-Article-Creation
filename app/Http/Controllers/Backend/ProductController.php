@@ -101,17 +101,17 @@ class ProductController extends Controller
                 ]);
 
                 $product = json_decode($response->getBody(), true);
-                if($product['results']) {
-                $responsePrice = $client->request('GET', $fallbackUrlPrice, [
-                    'query' => [
-                        'site' => $site,
-                        'ean' => $product['results']['0']['ean'] ?? $ean,
-                        'api_key' => $apiKey
-                    ]
-                ]);
+                if ($product['results']) {
+                    $responsePrice = $client->request('GET', $fallbackUrlPrice, [
+                        'query' => [
+                            'site' => $site,
+                            'ean' => $product['results']['0']['ean'] ?? $ean,
+                            'api_key' => $apiKey
+                        ]
+                    ]);
 
-                $productPrice = json_decode($responsePrice->getBody(), true);
-                /*                Dayanamic product data*/
+                    $productPrice = json_decode($responsePrice->getBody(), true);
+                    /*                Dayanamic product data*/
 
                     $productData = [
                         'name' => $product['results']['0']['title'],
@@ -125,7 +125,7 @@ class ProductController extends Controller
                         'bol' => true
                     ];
                     return response()->json(['product' => $productData], 200);
-                }else{
+                } else {
                     return response()->json(['error' => 'Product not found'], 404);
                 }
             } catch (RequestException $e) {
@@ -137,7 +137,7 @@ class ProductController extends Controller
             if ($product['data'][0]['attributes']['parentId'] == null) {
                 $productId = $product['data'][0]['id'];
                 $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
-                if (isset($parentProduct['data']['0']['attributes']['optionIds'])){
+                if (isset($parentProduct['data']['0']['attributes']['optionIds'])) {
                     $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
                 }
             }
@@ -242,7 +242,6 @@ class ProductController extends Controller
 
     public function SaveData(Request $request)
     {
-
         $currencyId = $this->currencyId->getCurrencyId();
 
         // Validate the incoming data
@@ -287,6 +286,95 @@ class ProductController extends Controller
         foreach ($validatedData['category'] as $categoryId) {
             $categories[] = ['id' => $categoryId];
         }
+        $mediaId = str_replace('-', '', (string)\Str::uuid());
+        $productMediaId = str_replace('-', '', (string)\Str::uuid());
+        /*$file = $request->file('media');
+
+        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $storagePath = "uploads/temp_{$fileName}.{$extension}";
+        $tempFilePath = storage_path("app/public/{$storagePath}");
+
+// Save the uploaded file temporarily in a public directory
+        $file->move(storage_path('app/public/uploads'), "temp_{$fileName}.{$extension}");
+//
+// Generate a temporary URL for Shopware
+        $fileUrl = asset("storage/{$storagePath}");
+//
+// Step 1: Create Media in Shopware
+        $data = [
+            'id' => $mediaId,
+            'name' => $fileName,
+        ];
+
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
+//
+// Step 2: Upload the image to Shopware
+        $uploadUrl = "/api/_action/media/{$mediaId}/upload";
+
+        $fileData = [
+            'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
+            'extension' => $extension,
+            'fileName' => $fileName,
+
+        ];
+//
+// Sending the file upload request
+        $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
+//
+// Clean up the temp file after upload
+        unlink($tempFilePath);*/
+//
+//// Step 3: Fetch the uploaded media details to get the final URL
+//        $mediaDetails = $this->shopwareApiService->makeApiRequest('GET', "/api/media/{$mediaId}");
+//        $mediaUrl = $mediaDetails['data']['url'] ?? null;
+//
+//        return response()->json([
+//            'message' => 'File uploaded successfully!',
+//            'mediaId' => $mediaId,
+//            'url' => $mediaUrl
+//        ]);
+
+
+
+//        try {
+//            $file = $request->file('media');
+//
+//            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+//            $extension = $file->getClientOriginalExtension();
+//            $tempFilePath = storage_path("app/temp_{$fileName}.{$extension}");
+//
+//            // Save the uploaded file temporarily
+//            $file->move(storage_path('app'), "temp_{$fileName}.{$extension}");
+//
+//            // Step 1: Create Media in Shopware
+//            $data = [
+//                'id' => $mediaId,
+//                'name' => $fileName,
+//            ];
+//            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
+//
+//            // Step 2: Upload the image to Shopware
+//            $uploadUrl = "/api/_action/media/{$mediaId}/upload";
+//
+//            // Preparing data for the file upload
+//            $fileData = [
+//                'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
+//                'extension' => $extension,
+//                'fileName' => $fileName,
+//            ];
+//
+//            // Sending the file upload request using makeApiRequest method
+//            $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
+//            dd($uploadResponse);
+//            unlink($tempFilePath); // Clean up the temp file
+//
+//            return response()->json(['message' => 'File uploaded successfully!', 'mediaId' => $mediaId]);
+//
+//        } catch (\Exception $e) {
+//            return response()->json(['error' => $e->getMessage()], 500);
+//        }
+//        'coverId' => $productMediaId,
 
         // Prepare the data for the API request
         $data = [
@@ -320,6 +408,14 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
             // If the API call is successful
             if (isset($response['success'])) {
+//                $productMediaData = [
+//                    'id' => $productMediaId,
+//                    'productId' => $uuid,
+//                    'mediaId' => $mediaId,
+//                    'position' => 1,
+//                ];
+//
+//                $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
@@ -622,7 +718,7 @@ class ProductController extends Controller
             'description' => $validatedData['bolProductDescription'],
             'ean' => $validatedData['bolProductEanNumber'],
             'categories' => array_map(fn($categoryId) => ['id' => trim($categoryId)], explode(',', $validatedData['bolProductCategoriesId'])), // Fix here
-            'stock' => (int) $validatedData['bolStock'],
+            'stock' => (int)$validatedData['bolStock'],
             'weight' => $weight,
             'width' => $width,
             'height' => $height,
