@@ -1472,12 +1472,28 @@ $('#saveVariant').on('click', function (e) {
             $('#productEditModal').modal('hide');
             location.reload();
         },
-        error: function (error) {
+        error: function (xhr) {
             $('#full-page-preloader').hide();
-            console.error('Save Error:', error);
-            // Handle error (e.g., show an error message)
-            alert('An error occurred while saving the product variant.');
+            showValidationErrors(xhr.responseJSON.errors);
         }
     });
 });
+
+function showValidationErrors(errors) {
+    // Remove previous error highlights and messages
+    $('.is-invalid').removeClass('is-invalid');
+    $('.invalid-feedback').remove();
+
+    $.each(errors, function (field, messages) {
+        let input = $('[name="' + field + '"]');
+
+        if (input.length) {
+            input.addClass('is-invalid'); // Highlight the field in red
+
+            // Create and append error message
+            let errorDiv = $('<div class="invalid-feedback">' + messages[0] + '</div>');
+            input.after(errorDiv);
+        }
+    });
+}
 

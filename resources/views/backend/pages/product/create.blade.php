@@ -41,75 +41,96 @@
                         @csrf
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="name">@lang('product.name'):</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
+                                <label for="name">@lang('product.name') <span class="text-danger">*</span>:</label>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                                @error('name') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="stock">@lang('product.stock'):</label>
-                                <input type="number" class="form-control" id="stock" name="stock" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row d-flex flex-wrap mb-4">
-                            <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="category">@lang('product.category'):</label>
-                                <select id="category-select" class="js-example-basic-single form-control" name="category[]" multiple required>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="manufacturer">@lang('product.manufacturer'):</label>
-                                <select id="manufacturer-select" class="js-example-basic-single form-control" name="manufacturer" required>
-                                </select>
+                                <label for="stock">@lang('product.stock') <span class="text-danger">*</span>:</label>
+                                <input type="number" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock') }}" required>
+                                @error('stock') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="taxId">@lang('product.tax_id'):</label>
-                                <select id="tax-provider-select" class="js-example-basic-single form-control" name="taxId" required>
+                                <label for="category">@lang('product.category') <span class="text-danger">*</span>:</label>
+                                <select id="category-select" class="js-example-basic-single form-control @error('category.*') is-invalid @enderror" name="category[]" multiple required>
                                 </select>
+                                @error('category.*') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="productNumber">@lang('product.product_number'):</label>
-                                <input type="text" class="form-control" id="productNumber" name="productNumber"
-                                    required>
+                                <label for="manufacturer">@lang('product.manufacturer') <span class="text-danger">*</span>:</label>
+                                <select id="manufacturer-select" class="js-example-basic-single form-control @error('manufacturer') is-invalid @enderror" name="manufacturer" required>
+                                </select>
+                                @error('manufacturer') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
                         </div>
 
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="price_gross">{{ __('product.price_gross') }}</label>
+                                <label for="taxId">@lang('product.tax_id') <span class="text-danger">*</span>:</label>
+                                <select id="tax-provider-select" class="js-example-basic-single form-control @error('taxId') is-invalid @enderror" name="taxId" required>
+                                </select>
+                                @error('taxId') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="productNumber">@lang('product.product_number') <span class="text-danger">*</span>:</label>
+                                <input type="text" class="form-control @error('productNumber') is-invalid @enderror" id="productNumber" name="productNumber" value="{{ old('productNumber') }}" required>
+                                @error('productNumber') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="price_gross">
+                                    {{ __('product.price_gross') }} <span class="text-danger">*</span>
+                                </label>
                                 <input
-                                    type="number"
-                                    name="priceGross"
-                                    id="priceGross"
-                                    class="form-control"
-                                    step="any"
-                                    required
-                                    placeholder="{{ __('product.enter_price_gross') }}">
+                                        type="number"
+                                        name="priceGross"
+                                        id="priceGross"
+                                        class="form-control @error('priceGross') is-invalid @enderror"
+                                        step="any"
+                                        required
+                                        placeholder="{{ __('product.enter_price_gross') }}">
+                                @error('priceGross')
+                                <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+                                @enderror
                             </div>
+
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="price_net">{{ __('product.price_net') }}</label>
+                                <label for="price_net">
+                                    {{ __('product.price_net') }} <span class="text-danger">*</span>
+                                </label>
                                 <input
                                         type="number"
                                         name="priceNet"
                                         id="priceNet"
-                                        class="form-control"
+                                        class="form-control @error('priceNet') is-invalid @enderror"
                                         step="any"
+                                        required
                                         placeholder="{{ __('product.calculated_price_net') }}">
+                                @error('priceNet')
+                                <span class="invalid-feedback" role="alert">
+                <strong>{{ $message }}</strong>
+            </span>
+                                @enderror
                             </div>
                         </div>
 
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                                 <input type="hidden" name="active_for_all" value="0">
                                 <div class="form-check form-switch">
+                                    <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                                     <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1" {{ old('active_for_all') ? 'checked' : '' }}>
                                 </div>
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="salesChannel">@lang('product.sales_channel'):</label>
+                                <label for="salesChannel">@lang('product.sales_channel') <span class="text-danger">*</span> :</label>
                                 <select id="sales-channel-select" class="js-example-basic-single form-control" name="salesChannel[]" multiple required>
                                 </select>
                             </div>
@@ -123,12 +144,12 @@
                                     id="ean"
                                     class="form-control"
                                     name="ean"
-                                    placeholder="@lang('product.enter_ean')"
-                                    required>
+                                    placeholder="@lang('product.enter_ean')">
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-{{--                                <label for="mediaUrl">@lang('product.media_url'):</label>--}}
-{{--                                <input type="file" class="form-control" id="media" name="media">--}}
+                                <label for="mediaUrl">@lang('product.media_url'):</label>
+                                <input type="file" class="form-control" id="media" name="media">
+                                <span id="uploadStatus" class="text-info"></span>
                             </div>
                         </div>
 
@@ -157,8 +178,8 @@
 
                         <div class="form-group col-md-12 col-sm-12 px-2">
                             <label for="description">@lang('product.description'):</label>
-                            <textarea class="form-control" id="description" name="description"
-                                      rows="5"></textarea>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5">{{ old('description') }}</textarea>
+                            @error('description') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
 
                         <!-- Submit Button -->
@@ -601,6 +622,39 @@
             // Calculate net price
             const priceNet = priceGross / (1 + taxRate / 100);
             $('#priceNet').val(priceNet.toFixed(5));
+        });
+
+        // Uploading the Media
+
+        $('#media').on('change', function () {
+            let file = this.files[0];
+            if (file) {
+                let formData = new FormData();
+                formData.append('media', file);
+
+                $('#uploadStatus').text('Uploading...');
+
+                $.ajax({
+                    url: '{{ route("media.upload") }}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#uploadStatus').text('Upload Successful!');
+                        } else {
+                            $('#uploadStatus').text('Upload Failed!');
+                        }
+                    },
+                    error: function () {
+                        $('#uploadStatus').text('Error Uploading File!');
+                    }
+                });
+            }
         });
 
 

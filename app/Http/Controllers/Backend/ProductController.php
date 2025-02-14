@@ -286,95 +286,7 @@ class ProductController extends Controller
         foreach ($validatedData['category'] as $categoryId) {
             $categories[] = ['id' => $categoryId];
         }
-        $mediaId = str_replace('-', '', (string)\Str::uuid());
         $productMediaId = str_replace('-', '', (string)\Str::uuid());
-        /*$file = $request->file('media');
-
-        $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $extension = $file->getClientOriginalExtension();
-        $storagePath = "uploads/temp_{$fileName}.{$extension}";
-        $tempFilePath = storage_path("app/public/{$storagePath}");
-
-// Save the uploaded file temporarily in a public directory
-        $file->move(storage_path('app/public/uploads'), "temp_{$fileName}.{$extension}");
-//
-// Generate a temporary URL for Shopware
-        $fileUrl = asset("storage/{$storagePath}");
-//
-// Step 1: Create Media in Shopware
-        $data = [
-            'id' => $mediaId,
-            'name' => $fileName,
-        ];
-
-        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
-//
-// Step 2: Upload the image to Shopware
-        $uploadUrl = "/api/_action/media/{$mediaId}/upload";
-
-        $fileData = [
-            'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
-            'extension' => $extension,
-            'fileName' => $fileName,
-
-        ];
-//
-// Sending the file upload request
-        $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
-//
-// Clean up the temp file after upload
-        unlink($tempFilePath);*/
-//
-//// Step 3: Fetch the uploaded media details to get the final URL
-//        $mediaDetails = $this->shopwareApiService->makeApiRequest('GET', "/api/media/{$mediaId}");
-//        $mediaUrl = $mediaDetails['data']['url'] ?? null;
-//
-//        return response()->json([
-//            'message' => 'File uploaded successfully!',
-//            'mediaId' => $mediaId,
-//            'url' => $mediaUrl
-//        ]);
-
-
-
-//        try {
-//            $file = $request->file('media');
-//
-//            $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-//            $extension = $file->getClientOriginalExtension();
-//            $tempFilePath = storage_path("app/temp_{$fileName}.{$extension}");
-//
-//            // Save the uploaded file temporarily
-//            $file->move(storage_path('app'), "temp_{$fileName}.{$extension}");
-//
-//            // Step 1: Create Media in Shopware
-//            $data = [
-//                'id' => $mediaId,
-//                'name' => $fileName,
-//            ];
-//            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
-//
-//            // Step 2: Upload the image to Shopware
-//            $uploadUrl = "/api/_action/media/{$mediaId}/upload";
-//
-//            // Preparing data for the file upload
-//            $fileData = [
-//                'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
-//                'extension' => $extension,
-//                'fileName' => $fileName,
-//            ];
-//
-//            // Sending the file upload request using makeApiRequest method
-//            $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
-//            dd($uploadResponse);
-//            unlink($tempFilePath); // Clean up the temp file
-//
-//            return response()->json(['message' => 'File uploaded successfully!', 'mediaId' => $mediaId]);
-//
-//        } catch (\Exception $e) {
-//            return response()->json(['error' => $e->getMessage()], 500);
-//        }
-//        'coverId' => $productMediaId,
 
         // Prepare the data for the API request
         $data = [
@@ -765,5 +677,54 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
+    public function uploadMedia(Request $request)
+    {
+        // Step 1: Validate File Upload
+        $request->validate([
+            'media' => 'required|file|mimes:jpg,jpeg,png,gif,webp,pdf|max:20480', // Max 20MB
+        ]);
+
+        // Step 2: Retrieve the Uploaded File
+        $uploadedFile = $request->file('media');
+
+        // Step 3: Generate Unique Media ID
+        $mediaId = str_replace('-', '', (string) \Str::uuid());
+
+        // Step 4: Store File in Public Storage
+        $fileName = time() . '_' . $uploadedFile->getClientOriginalName();
+        $filePath = $uploadedFile->storeAs('public/media', $fileName);
+
+        // Get public URL of the stored file
+        $imageUrl = asset("storage/media/{$fileName}");
+
+        // Step 5: Create Media Entry in Shopware
+        $data = [
+            'id' => $mediaId,
+            'name' => pathinfo($fileName, PATHINFO_FILENAME),
+        ];
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
+
+        // Step 6: Upload File to Shopware
+        $uploadUrl = "/api/_action/media/{$mediaId}/upload";
+        $fileData = [
+            'file' => new \CURLFile(storage_path("app/public/media/{$fileName}"), mime_content_type(storage_path("app/public/media/{$fileName}")), $fileName),
+            'extension' => pathinfo($fileName, PATHINFO_EXTENSION),
+            'fileName' => pathinfo($fileName, PATHINFO_FILENAME),
+            'url' => $imageUrl,
+        ];
+        $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
+        // Step 7: Return Success Response
+        return response()->json([
+            'message' => 'Media uploaded successfully',
+            'mediaId' => $mediaId,
+            'mediaUrl' => $imageUrl,
+            'shopwareResponse' => $uploadResponse,
+        ]);
+    }
+
+
+
+
 }
 
