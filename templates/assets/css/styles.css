@@ -2840,3 +2840,22 @@ table.dataTable thead td {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+@media (min-width: 1200px) and (max-width: 1364px) {
+    .sbar_collapsed .sidebar-menu {
+        left: 0;
+    }
+    .main-content {
+        float: right;
+        max-width: 100%;
+        width: calc(100vw - 365px);
+    }
+}
+
+.page-container.sbar_collapsed {
+    width: 100%;
+}
+
+table#dataTable {
+    width: 100% !important;
+}

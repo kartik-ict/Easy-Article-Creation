@@ -467,10 +467,29 @@ $('#nextBolBtn').on('click', function () {
             $('#bolProductCategories').val(selectedCategoryName);
             $('#bolProductCategoriesId').val(selectedCategory);
             $('#bolProductDescription').val(product.description);
-            $('#bolPackagingWidth').val(product.specs["Verpakking breedte"].match(/\d+/) ? parseInt(product.specs["Verpakking breedte"].match(/\d+/)[0], 10) : 0);
-            $('#bolPackagingHeight').val(product.specs["Verpakking hoogte"].match(/\d+/) ? parseInt(product.specs["Verpakking hoogte"].match(/\d+/)[0], 10) : 0);
-            $('#bolPackagingLength').val(product.specs["Verpakking lengte"].match(/\d+/) ? parseInt(product.specs["Verpakking lengte"].match(/\d+/)[0], 10) : 0);
-            $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"].match(/\d+/) ? parseInt(product.specs["Verpakkingsgewicht"].match(/\d+/)[0], 10) : 0);
+            if (product.specs && typeof product.specs["Verpakking breedte"] === "string") {
+                $('#bolPackagingWidth').val(product.specs["Verpakking breedte"].match(/\d+/) ? parseInt(product.specs["Verpakking breedte"].match(/\d+/)[0], 10) : 0);
+            } else {
+                $('#bolPackagingWidth').val(0);
+            }
+
+            if (product.specs && typeof product.specs["Verpakking hoogte"] === "string") {
+                $('#bolPackagingHeight').val(product.specs["Verpakking hoogte"].match(/\d+/) ? parseInt(product.specs["Verpakking hoogte"].match(/\d+/)[0], 10) : 0);
+            } else {
+                $('#bolPackagingHeight').val(0);
+            }
+
+            if (product.specs && typeof product.specs["Verpakking lengte"] === "string") {
+                $('#bolPackagingLength').val(product.specs["Verpakking lengte"].match(/\d+/) ? parseInt(product.specs["Verpakking lengte"].match(/\d+/)[0], 10) : 0);
+            } else {
+                $('#bolPackagingLength').val(0);
+            }
+
+            if (product.specs && typeof product.specs["Verpakkingsgewicht"] === "string") {
+                $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"].match(/\d+/) ? parseInt(product.specs["Verpakkingsgewicht"].match(/\d+/)[0], 10) : 0);
+            } else {
+                $('#bolPackagingWeight').val(0);
+            }
             $('#bolProductThumbnail').attr('src', product.thumbnail);
         });
 

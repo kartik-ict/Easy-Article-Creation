@@ -99,7 +99,6 @@ class ProductController extends Controller
                         'api_key' => $apiKey
                     ]
                 ]);
-
                 $product = json_decode($response->getBody(), true);
                 if ($product['results']) {
                     $responsePrice = $client->request('GET', $fallbackUrlPrice, [
@@ -258,7 +257,8 @@ class ProductController extends Controller
             'mediaUrl' => 'nullable|url',
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
-            'active_for_all' => 'nullable|boolean'
+            'active_for_all' => 'nullable|boolean',
+            'media_id' => 'string|regex:/^[0-9a-f]{32}$/'
         ]);
 
         // Generate a UUID for the new product
@@ -305,6 +305,7 @@ class ProductController extends Controller
             'width' => $width,
             'height' => $height,
             'length' => $length,
+            'coverId' => $productMediaId,
             'price' => [
                 [
                     'currencyId' => $currencyId,
@@ -320,14 +321,14 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
             // If the API call is successful
             if (isset($response['success'])) {
-//                $productMediaData = [
-//                    'id' => $productMediaId,
-//                    'productId' => $uuid,
-//                    'mediaId' => $mediaId,
-//                    'position' => 1,
-//                ];
-//
-//                $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
+                $productMediaData = [
+                    'id' => $productMediaId,
+                    'productId' => $uuid,
+                    'mediaId' => $validatedData['media_id'],
+                    'position' => 1,
+                ];
+
+                $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));

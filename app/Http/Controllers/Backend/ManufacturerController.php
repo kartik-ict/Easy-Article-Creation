@@ -49,8 +49,8 @@ class ManufacturerController extends Controller
 
                 return response()->json([
                     'draw' => $request->input('draw', 1), // for DataTables (helps with pagination state)
-                    'recordsTotal' => 9096,
-                    'recordsFiltered' => 9096,
+                    'recordsTotal' => 9106,
+                    'recordsFiltered' => 9106,
                     'data' => $formattedManufacturers
                 ]);
             }

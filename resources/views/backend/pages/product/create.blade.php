@@ -126,7 +126,7 @@
                                 <input type="hidden" name="active_for_all" value="0">
                                 <div class="form-check form-switch">
                                     <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
-                                    <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1" {{ old('active_for_all') ? 'checked' : '' }}>
+                                    <input type="checkbox" class="form-check-input" name="active_for_all" id="active_for_all" value="1" {{ old('active_for_all') ? 'checked' : '' }} checked>
                                 </div>
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
@@ -180,6 +180,9 @@
                             <label for="description">@lang('product.description'):</label>
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5">{{ old('description') }}</textarea>
                             @error('description') <span class="text-danger">{{ $message }}</span> @enderror
+
+                            <!-- Hidden input to store mediaId dynamically -->
+                            <input type="hidden" name="media_id" id="media_id">
                         </div>
 
                         <!-- Submit Button -->
@@ -644,8 +647,15 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function (response) {
-                        if (response.success) {
+                        if (response.mediaId && response.shopwareResponse) {
                             $('#uploadStatus').text('Upload Successful!');
+
+                            if ($('#media_id').length === 0) {
+                                $('#media').after('<input type="hidden" name="media_id" id="media_id" value="' + response.mediaId + '">');
+                            } else {
+                                $('#media_id').val(response.mediaId);
+                            }
+
                         } else {
                             $('#uploadStatus').text('Upload Failed!');
                         }
