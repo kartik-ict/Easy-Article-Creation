@@ -32,9 +32,15 @@ class ManufacturerController extends Controller
                 'limit' => $limit,
                 'page' => $page,
             ]);
+            $payload = [
+                'limit' => 25,
+                'page' => 1,
+                'total-count-mode' => 1,
+            ];
 
             // Fetch paginated manufacturers
             $response = $this->shopwareApiService->makeApiRequest('GET', "/api/product-manufacturer?$queryParams");
+            $responseforCount = $this->shopwareApiService->makeApiRequest('POST', "/api/search/product-manufacturer", $payload);
 
             if (isset($response['data'])) {
                 $manufacturers = $response['data'];
@@ -49,8 +55,8 @@ class ManufacturerController extends Controller
 
                 return response()->json([
                     'draw' => $request->input('draw', 1), // for DataTables (helps with pagination state)
-                    'recordsTotal' => 9106,
-                    'recordsFiltered' => 9106,
+                    'recordsTotal' => $responseforCount['meta']['total'],
+                    'recordsFiltered' => $responseforCount['meta']['total'],
                     'data' => $formattedManufacturers
                 ]);
             }

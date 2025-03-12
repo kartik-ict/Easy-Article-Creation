@@ -29,5 +29,8 @@ return [
     'create_admin' => 'Beheerder Aanmaken',
     'catalog' => 'Catalogus',
     'products' => 'Producten',
+    'list' => 'Alle producten',
     'manufacturers' => 'Fabrikanten',
+    'newProduct' => 'Nieuw product maken',
+    'updateProduct' => 'Product bijwerken',
 ];

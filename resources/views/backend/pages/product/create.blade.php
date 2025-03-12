@@ -474,7 +474,9 @@
                     const results = data.categories.map(function(category) {
                         return {
                             id: category.id,
-                            text: category.attributes.translated.name
+                            text: category.attributes.breadcrumb
+                                ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                                : category.attributes.translated.name
                         };
                     });
 
@@ -541,7 +543,9 @@
                             const results = data.categories.map(function(category) {
                                 return {
                                     id: category.id,
-                                    text: category.attributes.translated.name
+                                    text: category.attributes.breadcrumb
+                                        ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                                        : category.attributes.translated.name
                                 };
                             });
 

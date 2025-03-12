@@ -59,7 +59,10 @@ Route::group(['prefix' => 'admin'], function () {
     // Product Module
 
     Route::get('/product', [ProductController::class, 'index'])->name('admin.product.index');
+    Route::get('/product/list', [ProductController::class, 'list'])->name('admin.product.list');
+    Route::get('/product/getData', [ProductController::class, 'getAjaxData'])->name('admin.product.getData');
     Route::post('/product/search', [ProductController::class, 'search'])->name('product.search');
+    Route::delete('/product/delete/{id}', [ProductController::class, 'destroy'])->name('admin.product.delete');
     Route::get('/product/edit/{id}', [ProductController::class, 'edit'])->name('product.edit');
     Route::put('/product/update/{id}', [ProductController::class, 'update'])->name('product.update');
     Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');

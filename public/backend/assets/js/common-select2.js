@@ -277,7 +277,9 @@ $('#category-select-modal').select2({
             const results = data.categories.map(function (category) {
                 return {
                     id: category.id,
-                    text: category.attributes.translated.name
+                    text: category.attributes.breadcrumb
+                        ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                        : category.attributes.translated.name
                 };
             });
 
@@ -345,7 +347,9 @@ $('#category-select-modal').on('select2:open', function () {
                     const results = data.categories.map(function (category) {
                         return {
                             id: category.id,
-                            text: category.attributes.translated.name
+                            text: category.attributes.breadcrumb
+                                ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                                : category.attributes.translated.name
                         };
                     });
 

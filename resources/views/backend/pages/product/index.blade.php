@@ -192,11 +192,17 @@
 
                             if (categories.length != 0) {
                                 let productCategories = `
-                                    <h5 class="mb-2">{{ __('Categories') }}:
+                                <h6 class="mb-2">{{ __('Productnaam') }}:
                                     <span class="p-1 fw-normal fs-6" id="bolCat">
-                                        ${categories.map(category => `${category}`).join(',')}
+                                        ${response.product.name}
                                     </span>
-                                    </h5>`;
+                                    </h6>
+
+                                    <h6 class="mb-2">{{ __('Categorie Structuur') }}:
+                                    <span class="p-1 fw-normal fs-6" id="bolCat">
+                                        ${categories.map(category => `${category}`).join(' > ')}
+                                    </span>
+                                    </h6>`;
 
                                 $('#productCategories').html(productCategories);
 

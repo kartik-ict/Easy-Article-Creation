@@ -29,5 +29,8 @@ return [
     'create_admin' => 'Create Administrator',
     'catalog' => 'Catalog',
     'products' => 'Products',
+    'list' => 'All Products',
     'manufacturers' => 'Manufacturers',
+    'newProduct' => 'Create New Product',
+    'updateProduct' => 'Update Product',
 ];
