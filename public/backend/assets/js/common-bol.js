@@ -176,7 +176,9 @@ $('#sw-category-select').select2({
             const results = data.categories.map(function (category) {
                 return {
                     id: category.id,
-                    text: category.attributes.translated.name
+                    text: category.attributes.breadcrumb
+                        ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                        : category.attributes.translated.name
                 };
             });
 
@@ -243,7 +245,9 @@ $('#sw-category-select').on('select2:open', function () {
                     const results = data.categories.map(function (category) {
                         return {
                             id: category.id,
-                            text: category.attributes.translated.name
+                            text: category.attributes.breadcrumb
+                                ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                                : category.attributes.translated.name
                         };
                     });
 
@@ -299,7 +303,9 @@ $('#sw-parent-category-select').select2({
             isEndOfResultsBolCategoryParent = (data.categories.length < 25);
             const results = data.categories.map(category => ({
                 id: category.id,
-                text: category.attributes.translated.name
+                text: category.attributes.breadcrumb
+                    ? category.attributes.breadcrumb.filter(item => !["Default", "Shop"].includes(item)).join(' > ')
+                    : category.attributes.translated.name
             }));
 
             return {
@@ -566,7 +572,7 @@ $('#tax-provider-select-bol').select2({
                 results: data.taxProviders.map(function (provider) {
                     return {
                         id: provider.id,
-                        text: provider.attributes.name,
+                        text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
                         taxRate: provider.attributes.taxRate // Include tax rate
                     };
                 })
