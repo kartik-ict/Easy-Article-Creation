@@ -514,6 +514,8 @@ $('#nextBolBtn').on('click', function () {
                 $('#bolAvailable').prop('checked', true);
                 $('#bolAvailable').val('1');
             }
+            $("#bolProductListPriceGross").val(productPrice.price);
+            $("#bolProductListPriceNet").val(priceNet.toFixed(2));
         });
         $('#full-page-preloader').hide();
     }

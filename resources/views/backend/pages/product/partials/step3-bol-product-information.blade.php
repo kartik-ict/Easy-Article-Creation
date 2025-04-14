@@ -134,6 +134,10 @@
                         <label
                                 for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                         <input type="hidden" name="active_for_allBol" value="0">
+
+                        <input type="hidden" id="bolProductListPriceGross" name="bolProductListPriceGross">
+                        <input type="hidden" id="bolProductListPriceNet" name="bolProductListPriceNet">
+
                         <div class="form-check form-switch">
                             <input type="checkbox" class="form-check-input"
                                    name="active_for_allBol" id="active_for_all"

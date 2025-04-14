@@ -575,6 +575,8 @@ class ProductController extends Controller
             'bolPackagingWeight' => 'string',
             'bolProductPrice' => 'string',
             'bolTotalPrice' => 'string',
+            'bolProductListPriceGross' => 'string',
+            'bolProductListPriceNet' => 'string',
             'bolProductThumbnail' => 'string',
             'salesChannelBol.*' => 'required|string',
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
@@ -660,12 +662,18 @@ class ProductController extends Controller
                     'currencyId' => $currencyId,
                     'gross' => floatval($validatedData['bolProductPrice']),
                     'net' => floatval($validatedData['bolTotalPrice']),
-                    'linked' => true
+                    'linked' => true,
+                    'listPrice' => [
+                        'currencyId' => $currencyId,
+                        'gross' => floatval($validatedData['bolProductListPriceGross']),
+                        'net' =>  floatval($validatedData['bolProductListPriceNet']),
+                        'linked' => true,
+                    ]
                 ]
             ]
         ];
-
         try {
+            dd($data);
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
