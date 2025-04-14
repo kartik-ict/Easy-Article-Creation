@@ -41,6 +41,8 @@ return [
     'productPrice' => 'Prijs (bruto)',
     'price_net' => 'Prijs (netto)',
     'bolNetPrice' => 'Prijs (netto)',
+    'bolListGrossPrice' => 'Lijst Prijs (bruto)',
+    'bolListNetPrice' => 'Lijst Prijs (netto)',
     'enter_price_gross' => 'Voer de bruto prijs in',
     'calculated_price_net' => 'Berekening van netto prijs',
     'active_label' => 'Actief',

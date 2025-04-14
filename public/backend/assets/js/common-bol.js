@@ -574,6 +574,26 @@ $('#bolTotalPrice').on('input', function() {
     $('#bolProductPrice').val(priceGross.toFixed(2));
 });
 
+// gross price to net price convert
+$('#bolProductListPriceGross').on('input', function () {
+    const priceGross = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || 21; // Default to 21%
+
+    // Calculate net price
+    const priceNet = priceGross / (1 + taxRate / 100);
+    $('#bolProductListPriceNet').val(priceNet.toFixed(2));
+});
+
+// net price to gross price convert
+$('#bolProductListPriceNet').on('input', function() {
+    const priceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($('#bolProductListPriceGross').data('taxRate')) || 21; // Default to 21%
+
+    // Calculate gross price
+    const priceGross = priceNet * (1 + taxRate / 100);
+    $('#bolProductListPriceGross').val(priceGross.toFixed(2));
+});
+
 // Tax Provider API
 $('#tax-provider-select-bol').select2({
     ajax: {
@@ -617,7 +637,9 @@ $('#tax-provider-select-bol').select2({
 }).on('select2:select', function (e) {
     const selectedTaxRate = e.params.data.taxRate || 21;
     $('#bolProductPrice').data('taxRate', selectedTaxRate);
+    $('#bolProductListPriceGross').data('taxRate', selectedTaxRate);
     $('#bolProductPrice').trigger('input');
+    $('#bolProductListPriceGross').trigger('input');
 });
 
 // Load tax rates and set default on page load
@@ -645,6 +667,7 @@ $.ajax({
 
             // Set tax rate and trigger calculation
             $('#bolProductPrice').data('taxRate', defaultTax.taxRate);
+            $('#bolProductListPriceGross').data('taxRate', defaultTax.taxRate);
             $('#bolProductPrice').trigger('input');
         }
     }

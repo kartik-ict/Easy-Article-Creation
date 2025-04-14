@@ -59,6 +59,19 @@
                         <input type="text" name="bolTotalPrice" id="bolTotalPrice"
                                class="form-control" required>
                     </div>
+
+                    <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
+                        <label
+                                for="bolProductListPriceGross">{{ __('product.bolListGrossPrice') }}</label>
+                        <input type="text" name="bolProductListPriceGross" id="bolProductListPriceGross"
+                               class="form-control" required>
+                    </div>
+                    <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
+                        <label
+                                for="bolProductListPriceNet">{{ __('product.bolListNetPrice') }}</label>
+                        <input type="text" name="bolProductListPriceNet" id="bolProductListPriceNet"
+                               class="form-control" required>
+                    </div>
                     <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                         <label for="salesChannel">@lang('product.sales_channel'):</label>
                         <select id="sales-channel-select"
@@ -135,8 +148,7 @@
                                 for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                         <input type="hidden" name="active_for_allBol" value="0">
 
-                        <input type="hidden" id="bolProductListPriceGross" name="bolProductListPriceGross">
-                        <input type="hidden" id="bolProductListPriceNet" name="bolProductListPriceNet">
+
 
                         <div class="form-check form-switch">
                             <input type="checkbox" class="form-check-input"

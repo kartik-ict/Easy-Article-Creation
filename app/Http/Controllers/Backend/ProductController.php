@@ -673,7 +673,6 @@ class ProductController extends Controller
             ]
         ];
         try {
-            dd($data);
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
