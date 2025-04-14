@@ -8,10 +8,9 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap.min.css">
     <link rel="stylesheet" type="text/css"
-          href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap.min.css">
-    <link rel="stylesheet" type="text/css"
-          href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.jqueryui.min.css">
+        href="https://cdn.datatables.net/responsive/2.2.3/css/responsive.jqueryui.min.css">
     <style>
         .card {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -39,7 +38,9 @@
             border-radius: 6px;
         }
 
-        .btn-back, .btn-next, .btn-new-variant {
+        .btn-back,
+        .btn-next,
+        .btn-new-variant {
             margin-top: 10px;
         }
 
@@ -59,6 +60,7 @@
             0% {
                 transform: rotate(0deg);
             }
+
             100% {
                 transform: rotate(360deg);
             }
@@ -88,42 +90,39 @@
         <div class="row">
             <div class="col-lg-12 mt-5">
                 <div class="card p-4">
-                    <h2 class="mb-4">{{ __('product.search_product_ean') }}</h2>
-                    <div id="route-container"
-                         data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
+                    <h2 class="mb-4" id="step_1_title">{{ __('product.search_product_ean') }}</h2>
+                    <div id="route-container" data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
 
                     <div id="route-container-sw-manufacturer-search"
-                         data-sw-manufacturer-search="{{ route('sw.manufacturers.search') }}"></div>
+                        data-sw-manufacturer-search="{{ route('sw.manufacturers.search') }}"></div>
 
                     <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"></div>
-                    <div id="route-container-category"
-                         data-category-search="{{ route('product.categorySearch') }}"></div>
+                    <div id="route-container-category" data-category-search="{{ route('product.categorySearch') }}"></div>
                     <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
-                    <div id="route-container-property"
-                         data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
+                    <div id="route-container-property" data-property-search="{{ route('product.propertyGroupSearch') }}">
+                    </div>
                     <div id="route-container-property-option"
-                         data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
+                        data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
                     <div id="route-container-property-option-save"
-                         data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
-                    <div id="route-container-variant-save"
-                         data-variant-save="{{ route('product.saveVariantProduct') }}"></div>
+                        data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
+                    <div id="route-container-variant-save" data-variant-save="{{ route('product.saveVariantProduct') }}">
+                    </div>
 
                     <div id="route-container-sw-category-search"
-                         data-sw-category-search="{{ route('sw.category.search') }}"></div>
+                        data-sw-category-search="{{ route('sw.category.search') }}"></div>
 
                     <div id="route-container-sw-create-category"
-                         data-sw-create-category="{{ route('sw.create.category') }}">
+                        data-sw-create-category="{{ route('sw.create.category') }}">
 
-                        <div id="route-container-save-bol-data"
-                             data-save-bol-data="{{ route('product.SaveBolData') }}">
+                        <div id="route-container-save-bol-data" data-save-bol-data="{{ route('product.SaveBolData') }}">
 
                             <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}"></div>
                             <div id="route-container-property"
-                                 data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
+                                data-property-search="{{ route('product.propertyGroupSearch') }}"></div>
                             <div id="route-container-property-option"
-                                 data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
+                                data-property-search-option="{{ route('product.propertyGroupOptionSearch') }}"></div>
                             <div id="route-container-property-option-save"
-                                 data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
+                                data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
 
                             {{-- Include Step 1 Partial --}}
                             @include('backend.pages.product.partials.step1-ean-search')
@@ -153,7 +152,7 @@
         let allProductData = [];
         let apiResponse = [];
         let bolApiResponse = []
-        $(document).ready(function () {
+        $(document).ready(function() {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
             let selectedGrade = "";
@@ -161,7 +160,7 @@
             let selectedPropertyGroup = "";
 
             // Step 1: Search product by EAN
-            $('#searchBtn').on('click', function () {
+            $('#searchBtn').on('click', function() {
                 const ean = $('#ean').val();
 
                 if (!ean) {
@@ -174,31 +173,34 @@
 
                 // Hide Step 1 and show Step 2 after the loader
                 $('#step1').hide();
-                $('#step2').show();
+                $('#step_1_title').hide();
 
                 // Fetch product data
                 $.ajax({
                     url: "{{ route('product.search') }}",
                     method: "POST",
-                    data: {ean, _token: "{{ csrf_token() }}"},
-                    success: function (response) {
+                    data: {
+                        ean,
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(response) {
 
                         if (response.product.bol === true) {
+                            $('#step2').show();
                             bolApiResponse = response;
                             $('#gradeSection').hide();
                             $('#bolSection').show();
                             const categories = response.product.productData[0].categories;
-                            const manufacturer = response.product.productData[0].brand || response.product.productData[0].manufacturer;
-
-                            if (categories.length != 0) {
-                                let productCategories = `
-                                <h6 class="mb-2">{{ __('Productnaam') }}:
-                                    <span class="p-1 fw-normal fs-6" id="bolCat">
+                            const manufacturer = response.product.productData[0].brand ||
+                                response.product.productData[0].manufacturer;
+                            var productCategories = `
+                            <h3 class="mb-2">{{ __('product.product_name') }}:
+                                    <span class="p-1 fw-normal fs-4" id="bolCat">
                                         ${response.product.name}
                                     </span>
-                                    </h6>
-
-                                    <h6 class="mb-2">{{ __('Categorie Structuur') }}:
+                                    </h3>`;
+                            if (categories && categories.length != 0) {
+                                productCategories += `<h6 class="mb-2">{{ __('product.category_structure') }}:
                                     <span class="p-1 fw-normal fs-6" id="bolCat">
                                         ${categories.map(category => `${category}`).join(' > ')}
                                     </span>
@@ -207,8 +209,8 @@
                                 $('#productCategories').html(productCategories);
 
                             } else {
-                                let productCategories = `
-                            <h5 class="mb-2">{{ __('Categories') }}:
+                                productCategories += `
+                            <h5 class="mb-2">{{ __('product.categories') }}:
                                 <span class="p-1 fw-normal fs-6" id="bolCat">{{ __('product.productCategoriesErrorMessage') }}</span></h5>
                             `;
                                 $('#productCategories').html(productCategories);
@@ -235,62 +237,133 @@
                             $('#backBtn').hide();
                             $('#full-page-preloader').hide();
                         } else {
-                            $('#gradeSection').show();
-                            $('#bolSection').hide();
+                            // $('#gradeSection').show();
+                            // steps 3 show start
+                            $('#yesStepDetails').show();
+                            $("#propertyGroupSection").hide();
                             if (response.product) {
                                 allProductData = response.product;
                                 apiResponse = response;
                                 const productName = response.product.name || '-';
                                 const eanNumber = response.product.ean || '-';
                                 // const categories = response.product.productData[0].categories || '-';
-                                const categories = response.product.productData[0].categories || '-';
+                                const categories = response.product.productData[0].categories ||
+                                    '-';
                                 // const eanNumber = response.product.ean || '-';
 
                                 let productTable = `
-                        <p><strong>{{ __('product.product_name') }}:</strong> ${productName}</p>
-                        <p><strong>{{ __('product.ean_number') }}:</strong> ${eanNumber}</p>
-                    `;
-                                $('#productDetails').html(productTable);
+                                    <p class="fs-6"><strong>{{ __('product.product_name') }}:</strong> ${productName}</p>
+                                    <p class="fs-6"><strong>{{ __('product.ean_number') }}:</strong> ${eanNumber}</p>
+                                    `;
+
+                                $('#step3productDetails').html(productTable);
 
                                 //$('#gradeSection').show();
-                                $('#backBtn').show();
-                                $('#nextBtn').show();
+                                // $('#backBtn').show();
+                                // $('#nextBtn').show();
                                 $('#full-page-preloader').hide();
                             } else {
-                                $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
-                                $('#nextBtn').hide();
-                                $('#backBtn').show();
+                                $('#step3productDetails').html(
+                                    '<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>'
+                                );
+                                // $('#nextBtn').hide();
+                                // $('#backBtn').show();
                                 $('#full-page-preloader').hide();
                             }
+                            $('#productTable-update tbody').empty();
+                            $('#productTable tbody').empty();
+                            const productLength = allProductData.productData.length;
+
+                            if (Array.isArray(allProductData.productData)) {
+                                allProductData.productData.forEach(product => {
+                                    let propertyGroupNames = '';
+                                    if (productLength == 1 && product.attributes
+                                        .parentId) {
+                                        $('#newVariantButton').hide();
+                                    } else {
+                                        $('#newVariantButton').show();
+                                    }
+                                    // Handling product attributes like options (property group)
+                                    if (product.attributes?.optionIds?.length) {
+                                        product.attributes.optionIds.forEach(
+                                        optionId => {
+
+                                            // Find matching property group options from the included data
+                                            const matchingOption =
+                                                allProductData.included.find(
+                                                    data => {
+                                                        return data.id ===
+                                                            optionId && data
+                                                            .type ===
+                                                            "property_group_option";
+                                                    });
+
+                                            if (matchingOption && matchingOption
+                                                .attributes?.name) {
+                                                propertyGroupNames +=
+                                                    `${matchingOption.attributes.name}<br>`;
+                                            } else {
+                                                propertyGroupNames += 'N/A<br>';
+                                            }
+                                        });
+                                    }
+
+                                    if (propertyGroupNames == '') {
+                                        propertyGroupNames = 'N/A';
+                                    }
+
+                                    // Create a new row for the table
+                                    const productRow = `
+                                        <tr data-product-id="${product.id}">
+                                        <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
+                                        <td class="d-none">${product.attributes.ean || '-'}</td>
+                                        <td>${product.attributes.productNumber || '-'}</td>
+                                        <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
+                                        <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                                        <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
+                                        {{-- <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr> --}}
+                                        `;
+                                    $('#productTable-update tbody').append(productRow);
+                                });
+                            }
+                            $('#full-page-preloader').hide();
+                            // steps 3 show end
+
+                            $('#bolSection').hide();
+                            $('#backBolBtn').hide();
+                            $('#nextBolBtn').hide();
                         }
                     },
-                    error: function () {
-                        $('#productDetails').html('<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>');
-                        $('#nextBtn').hide();
-                        $('#backBtn').show();
+                    error: function() {
+                        $('#step2').show();
+                        $('#productDetails, #step3productDetails').html(
+                            '<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>'
+                        );
+                        // $('#nextBtn').hide();
+                        // $('#backBtn').show();
                         $('#full-page-preloader').hide();
                     }
                 });
             });
 
             // Handle grade selection
-            $('#differentGrade').on('change', function () {
+            $('#differentGrade').on('change', function() {
                 selectedGrade = $(this).val();
                 if (selectedGrade === "no") {
-                    $('#newStockSectionnewStockSection').show();  // Show new stock input
-                    $('#updateDataBtn').show();  // Show update button
-                } else if (selectedGrade === "yes") {
-                } else {
-                    $('#newStockSection').hide();  // Hide new stock input
-                    $('#updateDataBtn').hide();  // Hide update button
+                    $('#newStockSectionnewStockSection').show(); // Show new stock input
+                    $('#updateDataBtn').show(); // Show update button
+                } else if (selectedGrade === "yes") {} else {
+                    $('#newStockSection').hide(); // Hide new stock input
+                    $('#updateDataBtn').hide(); // Hide update button
                 }
             });
 
             // Handle Next button (Step 2 -> Step 3)
-            $('#nextBtn').on('click', function () {
+            $('#nextBtn').on('click', function() {
                 $('#full-page-preloader').show();
                 if (selectedGrade === "no") {
                     // Transition to Step 3
+
                     $('#step2').hide();
                     $('#step3').show();
                     $('#productTable tbody').empty();
@@ -304,12 +377,15 @@
                                 product.attributes.optionIds.forEach(optionId => {
 
                                     // Find matching property group options from the included data
-                                    const matchingOption = allProductData.included.find(data => {
-                                        return data.id === optionId && data.type === "property_group_option";
-                                    });
+                                    const matchingOption = allProductData.included.find(
+                                        data => {
+                                            return data.id === optionId && data.type ===
+                                                "property_group_option";
+                                        });
 
                                     if (matchingOption && matchingOption.attributes?.name) {
-                                        propertyGroupNames += `${matchingOption.attributes.name}<br>`;
+                                        propertyGroupNames +=
+                                            `${matchingOption.attributes.name}<br>`;
                                     } else {
                                         propertyGroupNames += 'N/A<br>';
                                     }
@@ -318,13 +394,14 @@
 
                             // Create a new row for the table
                             const productRow = `
-            <tr data-product-id="${product.id}">
-                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
-                <td>${product.attributes.ean || '-'}</td>
-                <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
-                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
-                            </tr>`;
+                                <tr data-product-id="${product.id}">
+                                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
+                                <td class="d-none">${product.attributes.ean || '-'}</td>
+                                <td>${product.attributes.productNumber || '-'}</td>
+                                <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
+                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
+                                </tr>`;
 
                             // Append the new row to the table
                             $('#productTable tbody').append(productRow);
@@ -351,12 +428,15 @@
                                 product.attributes.optionIds.forEach(optionId => {
 
                                     // Find matching property group options from the included data
-                                    const matchingOption = allProductData.included.find(data => {
-                                        return data.id === optionId && data.type === "property_group_option";
-                                    });
+                                    const matchingOption = allProductData.included.find(
+                                        data => {
+                                            return data.id === optionId && data.type ===
+                                                "property_group_option";
+                                        });
 
                                     if (matchingOption && matchingOption.attributes?.name) {
-                                        propertyGroupNames += `${matchingOption.attributes.name}<br>`;
+                                        propertyGroupNames +=
+                                            `${matchingOption.attributes.name}<br>`;
                                     } else {
                                         propertyGroupNames += 'N/A<br>';
                                     }
@@ -369,15 +449,15 @@
 
                             // Create a new row for the table
                             const productRow = `
-            <tr data-product-id="${product.id}">
-                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
-                <td>${product.attributes.ean || '-'}</td>
-                <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
-                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
-                {{--<td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr>--}}
-                            `;
-
+                                <tr data-product-id="${product.id}">
+                                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
+                                <td class="d-none">${product.attributes.ean || '-'}</td>
+                                <td>${product.attributes.productNumber || '-'}</td>
+                                <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
+                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
+                                {{-- <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr> --}}
+                                `;
                             $('#productTable-update tbody').append(productRow);
                         });
                     }
@@ -389,55 +469,61 @@
             });
 
             // Handle Back button (Step 2 -> Step 1)
-            $('#backBtn').on('click', function () {
+            $('#backBtn').on('click', function() {
                 $('#full-page-preloader').show();
                 $('#step2').hide();
                 $('#step1').show();
-                $('#gradeSection').hide();  // Hide grade selection section when going back
-                $('#bolSection').hide();  // Hide grade selection section when going back
-                $('#nextBtn').hide();  // Hide next button when going back
+                $('#step_1_title').show();
+                $('#gradeSection').hide(); // Hide grade selection section when going back
+                $('#bolSection').hide(); // Hide grade selection section when going back
+                $('#nextBtn').hide(); // Hide next button when going back
                 $('#full-page-preloader').hide();
             });
 
             // Handle Back button (Step 2 -> Step 1)
-            $('#backBolBtn').on('click', function () {
+            $('#backBolBtn').on('click', function() {
                 $('#full-page-preloader').show();
                 $('#step2').hide();
                 $('#step1').show();
-                $('#gradeSection').hide();  // Hide grade selection section when going back
-                $('#bolSection').hide();  // Hide grade selection section when going back
-                $('#nextBtn').hide();  // Hide next button when going back
+                $('#step_1_title').show();
+                $('#gradeSection').hide(); // Hide grade selection section when going back
+                $('#bolSection').hide(); // Hide grade selection section when going back
+                $('#nextBtn').hide(); // Hide next button when going back
                 $('#full-page-preloader').hide();
             });
 
-            $('#backBolBtnsetp3').on('click', function () {
+            $('#backBolBtnsetp3').on('click', function() {
                 $('#full-page-preloader').show();
                 $('#stepBol3').hide();
                 $('#step2').show();
-                $('#gradeSection').hide();  // Hide grade selection section when going back
-                $('#bolSection').show();  // Hide grade selection section when going back
-                $('#nextBtn').hide();  // Hide next button when going back
+                $('#gradeSection').hide(); // Hide grade selection section when going back
+                $('#bolSection').show(); // Hide grade selection section when going back
+                $('#nextBtn').hide(); // Hide next button when going back
                 $('#full-page-preloader').hide();
             });
 
             // Handle Back button (Step 3 -> Step 2)
-            $('#backStep2Btn').on('click', function () {
+            $('#backStep2Btn').on('click', function() {
                 $('#full-page-preloader').show();
                 $('#step3').hide();
                 $('#step2').show();
-                $('#nextBtn').show();  // Show next button again
+                $('#nextBtn').show(); // Show next button again
                 $('#full-page-preloader').hide();
             });
 
-            $('#back3YesStep').on('click', function () {
+            $('#back3YesStep').on('click', function() {
                 $('#full-page-preloader').show();
-                $('#yesStepDetails').hide();  // Hide Step 3 (Yes Step Details)
-                $('#step2').show();  // Show Step 2
+                clearPropertyGroupSelections(); // clear step3 all select elements
+                $("#propertyGroupSection").hide();
+                $('#yesStepDetails').hide(); // Hide Step 3 (Yes Step Details)
+                $('#step1').show(); // Show Step 1
+                $('#step_1_title').show();
                 $('#full-page-preloader').hide();
             });
 
             // Handle Update Data button (Update stock)
-            $(document).on('click', '.update-stock-btn', function () {
+
+            $(document).on('click', '.update-stock-btn', function() {
                 $('#full-page-preloader').show();
                 const row = $(this).closest('tr'); // Get the clicked row
                 const productId = $(this).data('product-id'); // Get the product ID from the clicked button
@@ -448,7 +534,9 @@
 
                 // Ensure that new stock value is entered
                 if (!newStock) {
-                    alert('{{ __('product.enter_new_stock_alert') }}'); // Show alert if new stock value is not entered
+                    alert(
+                        '{{ __('product.enter_new_stock_alert') }}'
+                    ); // Show alert if new stock value is not entered
                     $('#full-page-preloader').hide();
                     return;
                 }
@@ -462,25 +550,28 @@
                     method: 'POST',
                     data: {
                         product_id: productId, // Pass product ID dynamically
-                        new_stock: newStock,    // Pass new stock value
+                        new_stock: newStock, // Pass new stock value
                         _token: "{{ csrf_token() }}" // CSRF token
                     },
-                    success: function (response) {
+                    success: function(response) {
                         alert('{{ __('product.stock_updated') }}'); // Show success alert
                         location.reload(); // Reload the page to see updated stock values
                         $('#step3').hide();
                         $('#step1').show();
+                        $('#step_1_title').show();
                         $('#full-page-preloader').hide();
                     },
-                    error: function () {
+                    error: function() {
                         $('#full-page-preloader').hide();
-                        alert('{{ __('product.error_updating_stock') }}'); // Show error alert if update fails
+                        alert(
+                            '{{ __('product.error_updating_stock') }}'
+                        ); // Show error alert if update fails
                     }
                 });
             });
 
             // Handle the Yes Flow
-            $(document).on('click', '.edit-details-btn', function () {
+            $(document).on('click', '.edit-details-btn', function() {
                 $('#full-page-preloader').show();
                 const productId = $(this).data('product-id');
 
@@ -550,7 +641,7 @@
                     // Populate the modal form with product data
                     $('#name').val(productData.attributes.translated.name || '');
                     $('#eanForm').val(productData.attributes.ean || '');
-                    $('#stock').val(productData.attributes.stock || '');
+                    $('#stock').val(productData.attributes.stock || 1);
                     $('#description').val(productData.attributes.description || '');
 
                     // For the `productNumber` field, if there's a `productNumber` field in your data:
@@ -558,8 +649,10 @@
 
                     // For the `priceGross` and `priceNet` fields, if they are part of the `price` array:
                     if (productData.attributes.price && productData.attributes.price.length > 0) {
-                        $('#priceGross').val(productData.attributes.price[0].gross || ''); // Assuming gross is the first value in the price object
-                        $('#priceNet').val(productData.attributes.price[0].net || ''); // Assuming net is the first value in the price object
+                        $('#priceGross').val(productData.attributes.price[0].gross ||
+                            ''); // Assuming gross is the first value in the price object
+                        $('#priceNet').val(productData.attributes.price[0].net ||
+                            ''); // Assuming net is the first value in the price object
                     }
 
                     // For the tax provider, if you have the taxId:
@@ -582,6 +675,12 @@
                     alert("Product details not found.");
                 }
             });
+            // clear step3 all selection:
+            function clearPropertyGroupSelections() {
+                $('#propertyGroupSection select').each(function () {
+                    $(this).val(null).trigger('change'); // trigger change for Select2 or other JS listeners
+                });
+            }
         });
     </script>
     <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>

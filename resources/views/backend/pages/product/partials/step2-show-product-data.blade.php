@@ -3,7 +3,7 @@
     <div class="step-header">Step 2: {{ __('product.product_details') }}</div>
     <div id="productDetails">
         <!-- Loading Spinner initially -->
-        {{--                                    <div class="loader"></div>--}}
+        {{-- <div class="loader"></div> --}}
     </div>
     <!-- Ask about grade -->
     <div class="form-group mt-4 col-6" style="display:none;" id="gradeSection">
@@ -17,11 +17,16 @@
     </div>
 
     <!-- Back and Next Buttons -->
-    <button id="backBtn" class="btn btn-danger btn-back"
-            style="display:none;">{{ __('product.previous') }}</button>
-    <button id="nextBtn" class="btn btn-primary btn-next"
-            style="display:none;">{{ __('product.next') }}</button>
-
+    <div class="d-flex justify-content-between">
+        <div>
+            <button id="backBtn" class="btn btn-danger btn-back"
+                    style="display:none;">{{ __('product.previous') }}</button>
+        </div>
+        <div>
+            <button id="nextBtn" class="btn btn-primary btn-next"
+                    style="display:none;">{{ __('product.next') }}</button>
+        </div>
+    </div>
     @include('backend.pages.product.partials.step2-bol-section')
 
 </div>

@@ -6,7 +6,7 @@
                 <div id="productCategories" class="w-100">
                     <h5>{{ __('product.categories') }}</h5>
                 </div>
-                <div class="col-12 mb-4">
+                <div class="col-12 mb-2">
                     <a class="btn btn-xs btn-success"
                        id="searchSwCategory">{{ __('product.searchCategorySw') }}</a>
                 </div>
@@ -61,7 +61,11 @@
 
 
 <!-- Back and Next Buttons -->
-<button id="backBolBtn" class="btn btn-danger btn-back"
-        style="display:none;">{{ __('product.previous') }}</button>
-<button id="nextBolBtn" class="btn btn-primary btn-next"
-        style="display:none;">{{ __('product.next') }}</button>
+<div class="d-flex justify-content-between">
+    <div>
+        <button id="backBolBtn" class="btn btn-danger btn-back" style="display:none;">{{ __('product.previous') }}</button>
+    </div>
+    <div>
+        <button id="nextBolBtn" class="btn btn-primary btn-next" style="display:none;">{{ __('product.next') }}</button>
+    </div>
+</div>

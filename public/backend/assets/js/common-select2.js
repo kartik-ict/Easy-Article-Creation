@@ -376,64 +376,154 @@ $('#category-select-modal').on('select2:close', function () {
     isEndOfResultsCategory = false; // Reset end of results flag
 });
 
-
-// Tax Provider API
-
-$('#tax-provider-select').select2({
-    ajax: {
-        url: taxSearchUrl,
-        type: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        dataType: 'json',
-        data: function (params) {
-            return {
-                term: params.term, // Search term
-                page: params.page || 1
-            };
-        },
-        processResults: function (data) {
-            return {
-                results: data.taxProviders.map(function (provider) {
-                    return {
-                        id: provider.id,
-                        text: provider.attributes.name,
-                        taxRate: provider.attributes.taxRate // Include tax rate
-                    };
-                })
-            };
-        }
-    },
-    placeholder: 'Selecteer een belastingtarief',
-    minimumResultsForSearch: Infinity,
-    language: {
-        searching: function () {
-            return "Zoeken, even geduld...";
-        },
-        loadingMore: function () {
-            return "Meer resultaten laden...";
-        },
-        noResults: function () {
-            return "Geen resultaten gevonden.";
-        }
-    },
-    dropdownParent: $('#productEditModal'),
-
-}).on('select2:select', function (e) {
-    const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
-
-    // Update the tax rate for calculation
-    $('#priceGross').data('taxRate', selectedTaxRate);
-});
-
+// gross price to net price convert
 $('#priceGross').on('input', function () {
     const priceGross = parseFloat($(this).val()) || 0;
     const taxRate = parseFloat($(this).data('taxRate')) || 0;
 
     // Calculate net price
     const priceNet = priceGross / (1 + taxRate / 100);
-    $('#priceNet').val(priceNet.toFixed(5));
+    $('#priceNet').val(priceNet.toFixed(2));
+});
+
+// net price to gross price convert
+$('#priceNet').on('input', function () {
+    const priceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($('#priceGross').data('taxRate')) || 0;
+
+    // Calculate gross price
+    const priceGross = priceNet * (1 + taxRate / 100);
+    $('#priceGross').val(priceGross.toFixed(2));
+});
+
+// Tax Provider API
+
+// $('#tax-provider-select').select2({
+//     ajax: {
+//         url: taxSearchUrl,
+//         type: 'POST',
+//         headers: {
+//             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+//         },
+//         dataType: 'json',
+//         data: function (params) {
+//             return {
+//                 term: params.term, // Search term
+//                 page: params.page || 1
+//             };
+//         },
+//         processResults: function (data) {
+//             return {
+//                 results: data.taxProviders.map(function (provider) {
+//                     return {
+//                         id: provider.id,
+//                         text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
+//                         taxRate: provider.attributes.taxRate, // Include tax rate
+//                     };
+//                 })
+//             };
+//         }
+//     },
+//     placeholder: 'Selecteer een belastingtarief',
+//     minimumResultsForSearch: Infinity,
+//     language: {
+//         searching: function () {
+//             return "Zoeken, even geduld...";
+//         },
+//         loadingMore: function () {
+//             return "Meer resultaten laden...";
+//         },
+//         noResults: function () {
+//             return "Geen resultaten gevonden.";
+//         }
+//     },
+//     dropdownParent: $('#productEditModal'),
+
+// }).on('select2:select', function (e) {
+//     const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
+
+//     // Update the tax rate for calculation
+//     $('#priceGross').data('taxRate', selectedTaxRate);
+//     $('#priceGross').trigger('input');
+// });
+// Step 1: Fetch tax providers manually to prefill 21%
+$.ajax({
+    url: taxSearchUrl,
+    type: 'POST',
+    dataType: 'json',
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    data: {
+        term: '',
+        page: 1
+    },
+    success: function (data) {
+        // Step 4: Init select2 with AJAX config
+        $('#tax-provider-select').select2({
+            ajax: {
+                url: taxSearchUrl,
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                data: function (params) {
+                    return {
+                        term: params.term,
+                        page: params.page || 1
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.taxProviders.map(function (provider) {
+                            return {
+                                id: provider.id,
+                                text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
+                                taxRate: provider.attributes.taxRate
+                            };
+                        })
+                    };
+                }
+            },
+            placeholder: 'Selecteer een belastingtarief',
+            minimumResultsForSearch: Infinity,
+            dropdownParent: $('#productEditModal'),
+            language: {
+                searching: function () {
+                    return "Zoeken, even geduld...";
+                },
+                loadingMore: function () {
+                    return "Meer resultaten laden...";
+                },
+                noResults: function () {
+                    return "Geen resultaten gevonden.";
+                }
+            }
+        }).on('select2:select', function (e) {
+            const selectedTaxRate = e.params.data.taxRate || 0;
+
+            $('#priceGross').data('taxRate', selectedTaxRate);
+            $('#priceGross').trigger('input');
+        });
+        // Step 2: Find 21% tax rate
+        const selectedProvider = data.taxProviders.find(provider => provider.attributes.taxRate === 21);
+
+        if (selectedProvider) {
+            const option = new Option(
+                `${selectedProvider.attributes.name} (${selectedProvider.attributes.taxRate}%)`,
+                selectedProvider.id,
+                true,
+                true
+            );
+
+            // Step 3: Add and trigger change
+            $('#tax-provider-select').append(option).trigger('change');
+            $('#priceGross').data('taxRate', selectedProvider.attributes.taxRate);
+            $('#priceGross').trigger('input');
+        }
+
+    }
 });
 
 $('#newVariantButton').click(function () {
@@ -1374,8 +1464,9 @@ $('#addPropertyOptionBtn').on('click', function () {
         allProductData.productData.forEach(product => {
             $('#name').val(product.attributes.translated.name);
             $('#description').val(product.attributes.translated.description);
-            $('#stock').val(product.attributes.stock);
+            $('#stock').val(product.attributes.stock || 1);
             $('#productEanNumber').val(product.attributes.ean);
+            $('#productNumber').val(product.attributes.ean);
             $('#productPackagingHeight').val(product.attributes.height);
             $('#productPackagingLength').val(product.attributes.length);
             $('#productPackagingWeight').val(product.attributes.weight);

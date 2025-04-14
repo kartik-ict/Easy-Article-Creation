@@ -5,5 +5,7 @@
         <input type="text" id="ean" class="form-control"
                placeholder="{{ __('product.enter_ean') }}">
     </div>
-    <button id="searchBtn" class="btn btn-primary mt-2">{{ __('product.search') }}</button>
+    <div class="d-flex justify-content-end">
+        <button id="searchBtn" class="btn btn-primary mt-2">{{ __('product.search') }}</button>
+    </div>
 </div>
