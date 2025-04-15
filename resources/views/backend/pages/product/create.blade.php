@@ -572,6 +572,24 @@
             isEndOfResultsCategory = false; // Reset end of results flag
         });
 
+         // Event listener for price gross input
+         $('#priceGross').on('input', function() {
+            const priceGross = parseFloat($(this).val()) || 0;
+            const taxRate = parseFloat($(this).data('taxRate')) || 0;
+
+            // Calculate net price
+            const priceNet = priceGross / (1 + taxRate / 100);
+            $('#priceNet').val(priceNet.toFixed(2));
+        });
+        // net price to gross price convert
+        $('#priceNet').on('input', function () {
+            const priceNet = parseFloat($(this).val()) || 0;
+            const taxRate = parseFloat($('#priceGross').data('taxRate')) || 0;
+
+            // Calculate gross price
+            const priceGross = priceNet * (1 + taxRate / 100);
+            $('#priceGross').val(priceGross.toFixed(2));
+        });
 
         // Tax Provider API
 
@@ -594,7 +612,7 @@
                         results: data.taxProviders.map(function(provider) {
                             return {
                                 id: provider.id,
-                                text: provider.attributes.name,
+                                text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
                                 taxRate: provider.attributes.taxRate // Include tax rate
                             };
                         })
@@ -619,16 +637,37 @@
 
             // Update the tax rate for calculation
             $('#priceGross').data('taxRate', selectedTaxRate);
+            $('#priceGross').trigger('input');
         });
 
-        // Event listener for price gross input
-        $('#priceGross').on('input', function() {
-            const priceGross = parseFloat($(this).val()) || 0;
-            const taxRate = parseFloat($(this).data('taxRate')) || 0;
+        // Load tax rates and set default on page load
+        $.ajax({
+            url: '{{ route("product.fetchTax") }}',
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            dataType: 'json',
+            success: function(data) {
+                const taxProviders = data.taxProviders.map(provider => ({
+                    id: provider.id,
+                    text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
+                    taxRate: provider.attributes.taxRate
+                }));
 
-            // Calculate net price
-            const priceNet = priceGross / (1 + taxRate / 100);
-            $('#priceNet').val(priceNet.toFixed(5));
+                // Find 21% tax rate option
+                const defaultTax = taxProviders.find(provider => provider.taxRate === 21);
+
+                if(defaultTax) {
+                    // Set default option
+                    const newOption = new Option(defaultTax.text, defaultTax.id, true, true);
+                    $('#tax-provider-select').append(newOption).trigger('change');
+
+                    // Set tax rate and trigger calculation
+                    $('#priceGross').data('taxRate', defaultTax.taxRate);
+                    $('#priceGross').trigger('input');
+                }
+            }
         });
 
         // Uploading the Media

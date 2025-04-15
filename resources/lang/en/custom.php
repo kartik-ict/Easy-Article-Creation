@@ -10,6 +10,7 @@ return [
         'password' => 'Password',
         'remember' => 'Remember Me'
     ],
+    'side_bar_title' => 'Easy Article Creation',
     'dashboardPage' => [
         'role' => 'Roles',
         'admin' => 'Admins'

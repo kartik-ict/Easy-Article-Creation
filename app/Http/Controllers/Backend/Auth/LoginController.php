@@ -70,14 +70,14 @@ class LoginController extends Controller
         if (Auth::guard('admin')->attempt(['email' => $request->email, 'password' => $request->password], $request->remember)) {
             RateLimiter::clear($key); // Reset login attempts on successful login
             session()->flash('success', 'Successfully Logged in!');
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.product.index');
         }
 
         // Attempt to login using username
         if (Auth::guard('admin')->attempt(['username' => $request->email, 'password' => $request->password], $request->remember)) {
             RateLimiter::clear($key); // Reset login attempts on successful login
             session()->flash('success', 'Successfully Logged in!');
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.product.index');
         }
 
         // Increment login attempts on failure

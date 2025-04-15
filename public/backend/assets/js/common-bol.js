@@ -499,7 +499,7 @@ $('#nextBolBtn').on('click', function () {
             $('#bolProductThumbnail').attr('src', product.thumbnail);
         });
 
-        const taxRate = bolApiResponse.product.taxData.attributes.taxRate;
+        const taxRate = 21;//bolApiResponse.product.taxData.attributes.taxRate;
         const bolOffers = bolApiResponse.product.productPriceData
             .map(product => product.offers)
             .flat()
@@ -509,11 +509,13 @@ $('#nextBolBtn').on('click', function () {
         bolOffers.forEach(productPrice => {
             const priceNet = productPrice.price / (1 + taxRate / 100);
             $('#bolProductPrice').val(productPrice.price);
-            $('#bolTotalPrice').val(priceNet);
+            $('#bolTotalPrice').val(priceNet.toFixed(2));
             if (productPrice.availability === 'InStock') {
                 $('#bolAvailable').prop('checked', true);
                 $('#bolAvailable').val('1');
             }
+            $("#bolProductListPriceGross").val(productPrice.price);
+            $("#bolProductListPriceNet").val(priceNet.toFixed(2));
         });
         $('#full-page-preloader').hide();
     }
@@ -552,6 +554,46 @@ $('#saveBolProductData').on('click', function (e) {
     });
 });
 
+// gross price to net price convert
+$('#bolProductPrice').on('input', function () {
+    const priceGross = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || 21; // Default to 21%
+
+    // Calculate net price
+    const priceNet = priceGross / (1 + taxRate / 100);
+    $('#bolTotalPrice').val(priceNet.toFixed(2));
+});
+
+// net price to gross price convert
+$('#bolTotalPrice').on('input', function() {
+    const priceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($('#bolProductPrice').data('taxRate')) || 21; // Default to 21%
+
+    // Calculate gross price
+    const priceGross = priceNet * (1 + taxRate / 100);
+    $('#bolProductPrice').val(priceGross.toFixed(2));
+});
+
+// gross price to net price convert
+$('#bolProductListPriceGross').on('input', function () {
+    const priceGross = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || 21; // Default to 21%
+
+    // Calculate net price
+    const priceNet = priceGross / (1 + taxRate / 100);
+    $('#bolProductListPriceNet').val(priceNet.toFixed(2));
+});
+
+// net price to gross price convert
+$('#bolProductListPriceNet').on('input', function() {
+    const priceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($('#bolProductListPriceGross').data('taxRate')) || 21; // Default to 21%
+
+    // Calculate gross price
+    const priceGross = priceNet * (1 + taxRate / 100);
+    $('#bolProductListPriceGross').val(priceGross.toFixed(2));
+});
+
 // Tax Provider API
 $('#tax-provider-select-bol').select2({
     ajax: {
@@ -573,7 +615,7 @@ $('#tax-provider-select-bol').select2({
                     return {
                         id: provider.id,
                         text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
-                        taxRate: provider.attributes.taxRate // Include tax rate
+                        taxRate: provider.attributes.taxRate
                     };
                 })
             };
@@ -593,19 +635,42 @@ $('#tax-provider-select-bol').select2({
         }
     },
 }).on('select2:select', function (e) {
-    const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
-
-    // Update the tax rate for calculation
+    const selectedTaxRate = e.params.data.taxRate || 21;
     $('#bolProductPrice').data('taxRate', selectedTaxRate);
+    $('#bolProductListPriceGross').data('taxRate', selectedTaxRate);
+    $('#bolProductPrice').trigger('input');
+    $('#bolProductListPriceGross').trigger('input');
 });
 
-$('#bolProductPrice').on('input', function () {
-    const priceGross = parseFloat($(this).val()) || 0;
-    const taxRate = parseFloat($(this).data('taxRate')) || 0;
+// Load tax rates and set default on page load
+$.ajax({
+    url: taxSearchUrl,
+    type: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    dataType: 'json',
+    success: function(data) {
+        const taxProviders = data.taxProviders.map(provider => ({
+            id: provider.id,
+            text: `${provider.attributes.name} (${provider.attributes.taxRate}%)`,
+            taxRate: provider.attributes.taxRate
+        }));
 
-    // Calculate net price
-    const priceNet = priceGross / (1 + taxRate / 100);
-    $('#bolTotalPrice').val(priceNet.toFixed(5));
+        // Find 21% tax rate option
+        const defaultTax = taxProviders.find(provider => provider.taxRate === 21);
+
+        if(defaultTax) {
+            // Set default option
+            const newOption = new Option(defaultTax.text, defaultTax.id, true, true);
+            $('#tax-provider-select-bol').append(newOption).trigger('change');
+
+            // Set tax rate and trigger calculation
+            $('#bolProductPrice').data('taxRate', defaultTax.taxRate);
+            $('#bolProductListPriceGross').data('taxRate', defaultTax.taxRate);
+            $('#bolProductPrice').trigger('input');
+        }
+    }
 });
 
 

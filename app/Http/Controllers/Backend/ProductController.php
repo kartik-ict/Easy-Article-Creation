@@ -22,6 +22,7 @@ class ProductController extends Controller
     private $shopwareApiService;
     private $currencyId;
     private $taxId;
+    private $taxDetail;
 
     private $client;
 
@@ -47,12 +48,24 @@ class ProductController extends Controller
         ]);
 
         $ean = $request->input('ean');
+        // added multiple filter to search the product by EAN or Product number from shopware site.
         $payload = [
             'filter' => [
                 [
-                    'type' => 'equals',
-                    'field' => 'ean',
-                    'value' => $ean,
+                    'type' => 'multi',
+                    'operator' => 'or',
+                    'queries' => [
+                        [
+                            'type' => 'equals',
+                            'field' => 'ean',
+                            'value' => $ean,
+                        ],
+                        [
+                            'type' => 'equals',
+                            'field' => 'productNumber',
+                            'value' => $ean,
+                        ]
+                    ]
                 ]
             ],
             'associations' => [
@@ -262,8 +275,7 @@ class ProductController extends Controller
         ]);
 
         // Generate a UUID for the new product
-        $uuid = str_replace('-', '', (string)\Str::uuid());
-
+        $uuid = str_replace('-', '', (string) Str::uuid());
         $width = $request->get('productWidth');
         $height = $request->get('productHeight');
         $length = $request->get('productLength');
@@ -272,7 +284,7 @@ class ProductController extends Controller
         // Prepare visibilities
         $visibilities = [];
         foreach ($validatedData['salesChannel'] as $salesChannelId) {
-            $visibilityId = str_replace('-', '', (string)\Str::uuid()); // Generate a random ID
+            $visibilityId = str_replace('-', '', (string) Str::uuid()); // Generate a random ID
             $visibilities[] = [
                 'id' => $visibilityId,
                 'productId' => $uuid,
@@ -286,7 +298,7 @@ class ProductController extends Controller
         foreach ($validatedData['category'] as $categoryId) {
             $categories[] = ['id' => $categoryId];
         }
-        $productMediaId = str_replace('-', '', (string)\Str::uuid());
+        $productMediaId = str_replace('-', '', (string) Str::uuid());
 
         // Prepare the data for the API request
         $data = [
@@ -306,6 +318,7 @@ class ProductController extends Controller
             'height' => $height,
             'length' => $length,
             'coverId' => $productMediaId,
+            'markAsTopseller' => true, // to make on sale default true
             'price' => [
                 [
                     'currencyId' => $currencyId,
@@ -335,7 +348,7 @@ class ProductController extends Controller
             }
         } catch (\Exception $e) {
             // Log and return error
-            \Log::error('Error creating product: ' . $e->getMessage());
+            Log::error('Error creating product: ' . $e->getMessage());
             return back()->withErrors(__('product.failed_to_create_product'));
         }
     }
@@ -371,7 +384,7 @@ class ProductController extends Controller
         $data = [
             'page' => $request->get('page', 1),
             'limit' => 25,             // You can adjust this limit if needed
-//            'term' => $request->get('term', ''),
+            // 'term' => $request->get('term', ''),
             'total-count-mode' => 1    // Flag to include the total count in the response
         ];
 
@@ -420,7 +433,7 @@ class ProductController extends Controller
         ]);
 
         // Prepare the payload for the API request
-        $uuid = str_replace('-', '', (string)\Str::uuid());
+        $uuid = str_replace('-', '', (string) Str::uuid());
         $payload = [
             'id' => $uuid,
             'groupId' => $validatedData['groupId'],
@@ -457,7 +470,7 @@ class ProductController extends Controller
         ]);
 
         // Generate a UUID for the new product
-        $uuid = str_replace('-', '', (string)\Str::uuid());
+        $uuid = str_replace('-', '', (string) Str::uuid());
 
         try {
             // Step 1: Update Parent Product
@@ -514,6 +527,7 @@ class ProductController extends Controller
                     'height' => $height,
                     'ean' => $validatedData['productEanNumber'],
                     'length' => $length,
+                    'markAsTopseller' => true, // to make on sale default true
                     'price' => [
                         [
                             'currencyId' => $currencyId,
@@ -561,14 +575,16 @@ class ProductController extends Controller
             'bolPackagingWeight' => 'string',
             'bolProductPrice' => 'string',
             'bolTotalPrice' => 'string',
+            'bolProductListPriceGross' => 'string',
+            'bolProductListPriceNet' => 'string',
             'bolProductThumbnail' => 'string',
             'salesChannelBol.*' => 'required|string',
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'active_for_allBol' => 'nullable|boolean'
         ]);
-        $uuid = str_replace('-', '', (string)\Str::uuid());
-        $mediaId = str_replace('-', '', (string)\Str::uuid());
-        $productMediaId = str_replace('-', '', (string)\Str::uuid());
+        $uuid = str_replace('-', '', (string) Str::uuid());
+        $mediaId = str_replace('-', '', (string) Str::uuid());
+        $productMediaId = str_replace('-', '', (string) Str::uuid());
 
         $weight = $validatedData['bolPackagingWeight'];
         $width = $validatedData['bolPackagingWidth'];
@@ -614,7 +630,7 @@ class ProductController extends Controller
         // Prepare visibilities
         $visibilities = [];
         foreach ($validatedData['salesChannelBol'] as $salesChannelId) {
-            $visibilityId = str_replace('-', '', (string)\Str::uuid()); // Generate a random ID
+            $visibilityId = str_replace('-', '', (string) Str::uuid()); // Generate a random ID
             $visibilities[] = [
                 'id' => $visibilityId,
                 'productId' => $uuid,
@@ -640,16 +656,22 @@ class ProductController extends Controller
             'taxId' => $validatedData['bolTaxId'],
             'active' => boolval($validatedData['active_for_allBol']),
             'coverId' => $productMediaId,
+            'markAsTopseller' => true, // to make on sale default true
             'price' => [
                 [
                     'currencyId' => $currencyId,
                     'gross' => floatval($validatedData['bolProductPrice']),
                     'net' => floatval($validatedData['bolTotalPrice']),
-                    'linked' => true
+                    'linked' => true,
+                    'listPrice' => [
+                        'currencyId' => $currencyId,
+                        'gross' => floatval($validatedData['bolProductListPriceGross']),
+                        'net' =>  floatval($validatedData['bolProductListPriceNet']),
+                        'linked' => true,
+                    ]
                 ]
             ]
         ];
-
         try {
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
@@ -669,7 +691,6 @@ class ProductController extends Controller
                     'message' => 'Product created successfully'
                 ], 200);
             }
-
         } catch (\Exception $e) {
             // Log and return error
             return response()->json([
@@ -690,7 +711,7 @@ class ProductController extends Controller
         $uploadedFile = $request->file('media');
 
         // Step 3: Generate Unique Media ID
-        $mediaId = str_replace('-', '', (string) \Str::uuid());
+        $mediaId = str_replace('-', '', (string)  Str::uuid());
 
         // Step 4: Store File in Public Storage
         $fileName = time() . '_' . $uploadedFile->getClientOriginalName();
@@ -723,9 +744,4 @@ class ProductController extends Controller
             'shopwareResponse' => $uploadResponse,
         ]);
     }
-
-
-
-
 }
-

@@ -14,14 +14,19 @@
                 <ul class="metismenu" id="menu">
 
                     @if ($usr->can('dashboard.view'))
-                        <li class="active">
-                            <a href="javascript:void(0)" aria-expanded="true"><i class="ti-dashboard"></i><span>{{ trans('custom.dashboard') }}</span></a>
-                            <ul class="collapse">
-                                <li class="{{ Route::is('admin.dashboard') ? 'active' : '' }}"><a
-                                            href="{{ route('admin.dashboard') }}">{{ trans('custom.dashboard') }}</a></li>
-                            </ul>
+                        <li class="{{ Route::is('admin.dashboard') ? 'active' : '' }}">
+                            <a href="{{ route('admin.dashboard') }}"><i class="ti-dashboard"></i><span>{{ trans('custom.dashboard') }}</span></a>
                         </li>
                     @endif
+
+                    @if ($usr->can('catalogue.view'))
+                        <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
+                            <a href="{{ route('admin.product.index') }}"><i class="fa fa-product-hunt"></i><span>{{ trans('custom.products') }}</span></a>
+                        </li>
+                    @endif
+                    {{-- <li class="{{ Route::is('admin.product.list')  ? 'active' : '' }}">
+                        <a href="{{ route('admin.product.list') }}">{{ trans('custom.list') }}</a>
+                    </li> --}}
 
                     @if ($usr->can('role.create') || $usr->can('role.view') ||  $usr->can('role.edit') ||  $usr->can('role.delete'))
                         <li>
@@ -61,30 +66,11 @@
                         </li>
                     @endif
 
-                    @if ($usr->can('catalogue'))
-                        <li>
-                            <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-product-hunt"></i><span>{{ trans('custom.catalog') }}</span></a>
-                                <ul class="collapse {{ Route::is('admin.product.index') || Route::is('admin.product.list') ? 'in' : '' }}">
-                                    <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
-                                        <a href="{{ route('admin.product.index') }}">{{ trans('custom.products') }}</a>
-                                    </li>
-                                    <li class="{{ Route::is('admin.product.list')  ? 'active' : '' }}">
-                                        <a href="{{ route('admin.product.list') }}">{{ trans('custom.list') }}</a>
-                                    </li>
-                                </ul>
+                    @if ($usr->can('manufacture.view'))
+                        <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
+                            <a href="{{ route('admin.manufacturers.index') }}"><i class="fa fa-compass"></i><span>{{ trans('custom.manufacturers') }}</span></a>
                         </li>
-                        @endif
-
-                        @if ($usr->can('manufacture.view'))
-                            <li>
-                                <a href="javascript:void(0)" aria-expanded="true"><i class="fa fa-compass"></i><span>{{ trans('custom.manufacturers') }}</span></a>
-                                    <ul class="collapse {{ Route::is('admin.manufacturers.create') || Route::is('admin.manufacturers.index') || Route::is('admin.manufacturers.edit') || Route::is('admin.manufacturers.show') ? 'in' : '' }}">
-                                        <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
-                                            <a href="{{ route('admin.manufacturers.index') }}">{{ trans('custom.manufacturers') }}</a>
-                                        </li>
-                                    </ul>
-                            </li>
-                        @endif
+                    @endif
                 </ul>
             </nav>
         </div>

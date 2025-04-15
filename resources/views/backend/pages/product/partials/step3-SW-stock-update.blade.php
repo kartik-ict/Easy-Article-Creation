@@ -7,7 +7,8 @@
             <thead>
             <tr>
                 <th>{{ __('product.product_name') }}</th>
-                <th>{{ __('product.ean_number') }}</th>
+                <th class="d-none">{{ __('product.ean_number') }}</th>
+                <th>{{ __('product.product_number') }}</th>
                 <th>{{ __('product.current_stock') }}</th>
                 <th>{{ __('product.new_stock') }}</th>
                 <th>{{ __('product.action') }}</th>

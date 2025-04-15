@@ -1,13 +1,17 @@
 <!-- Additional Section for Yes Selection (Initially hidden) -->
 
 <div id="yesStepDetails" style="display:none;" class="step">
-    <div class="step-header">{{ __('product.step3_show_product_details') }}</div>
-
+    <div class="step-header">{{ __('product.step2_yes_flow_show_product_details') }}</div>
+    <div id="step3productDetails">
+        <!-- Loading Spinner initially -->
+        {{-- <div class="loader"></div> --}}
+    </div>
     <table class="table table-bordered mt-3" id="productTable-update">
         <thead>
         <tr>
             <th>{{ __('product.product_name') }}</th>
-            <th>{{ __('product.ean_number') }}</th>
+            <th class="d-none">{{ __('product.ean_number') }}</th>
+            <th>{{ __('product.product_number') }}</th>
             <th>{{ __('product.current_stock') }}</th>
             <th>{{ __('product.new_stock') }}</th>
             <th>{{ __('product.action') }}</th>
@@ -59,7 +63,7 @@
                                            name="productEanNumber" required>
                                 </div>
 
-                                <div class="form-group mb-3">
+                                <div class="form-group mb-3 d-none">
                                     <label for="manufacturer">@lang('product.manufacturer')
                                         :</label>
                                     <select id="manufacturer-select"
@@ -96,7 +100,12 @@
                             <!-- Right Column -->
                             <div class="col-md-6">
                                 <h5 class="mb-3">{{ __('product.additional_information') }}</h5>
-
+                                <div class="form-group mb-3">
+                                    <label for="shortDescription">@lang('product.shortDescription')
+                                        :</label>
+                                    <textarea class="form-control" id="shortDescription"
+                                              name="shortDescription" rows="2"></textarea>
+                                </div>
                                 <div class="form-group mb-3">
                                     <label for="description">@lang('product.description')
                                         :</label>
@@ -112,7 +121,7 @@
                                            id="productNumber"
                                            name="productNumber" required>
                                 </div>
-                                <div class="form-group mb-3">
+                                <div class="form-group mb-3 d-none">
                                     <label
                                             for="productPackagingWidth">{{ __('product.productPackagingWidth') }}</label>
                                     <input type="text" name="productPackagingWidth"
@@ -120,7 +129,7 @@
                                            class="form-control" required>
                                 </div>
 
-                                <div class="form-group mb-3">
+                                <div class="form-group mb-3 d-none">
                                     <label
                                             for="productPackagingHeight">{{ __('product.productPackagingHeight') }}</label>
                                     <input type="text" name="productPackagingHeight"
@@ -128,7 +137,7 @@
                                            class="form-control" required>
                                 </div>
 
-                                <div class="form-group mb-3">
+                                <div class="form-group mb-3 d-none">
                                     <label
                                             for="productPackagingLength">{{ __('product.productPackagingLength') }}</label>
                                     <input type="text" name="productPackagingLength"
@@ -136,7 +145,7 @@
                                            class="form-control" required>
                                 </div>
 
-                                <div class="form-group mb-3">
+                                <div class="form-group mb-3 d-none">
                                     <label
                                             for="productPackagingWeight">{{ __('product.productPackagingWeight') }}</label>
                                     <input type="text" name="productPackagingWeight"
@@ -154,7 +163,7 @@
                             </div>
                         </div>
                         <button type="submit"
-                                class="btn btn-success w-100"
+                                class="btn btn-success w-100 mt-2"
                                 id="saveVariant">{{ __('product.submit') }}</button>
                     </form>
                 </div>
@@ -306,13 +315,13 @@
         <!--...................-->
         <div id="addPropertyOptionWrapper" class="mt-4 d-flex align-items-center gap-2"
              style="visibility : hidden;">
+             <div class="col-md-3">
+                 <button id="createPropertyGroupOptionBtn"
+                 class="btn btn-primary w-100">@lang('product.create_new_property')</button>
+            </div>
             <div class="col-md-3">
                 <button id="addPropertyOptionBtn"
                         class="btn btn-success w-100">@lang('product.add_option')</button>
-            </div>
-            <div class="col-md-3">
-                <button id="createPropertyGroupOptionBtn"
-                        class="btn btn-primary w-100">@lang('product.create_new_property')</button>
             </div>
         </div>
         <!--...................-->
