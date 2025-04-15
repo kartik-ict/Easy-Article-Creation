@@ -24,6 +24,8 @@
                             <a href="{{ route('admin.product.index') }}"><i class="fa fa-product-hunt"></i><span>{{ trans('custom.products') }}</span></a>
                         </li>
                     @endif
+
+
                     {{-- <li class="{{ Route::is('admin.product.list')  ? 'active' : '' }}">
                         <a href="{{ route('admin.product.list') }}">{{ trans('custom.list') }}</a>
                     </li> --}}
