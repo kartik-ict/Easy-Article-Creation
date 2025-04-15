@@ -496,7 +496,7 @@ $('#nextBolBtn').on('click', function () {
             } else {
                 $('#bolPackagingWeight').val(0);
             }
-            $('#bolProductThumbnail').attr('src', product.thumbnail);
+            $('#bolProductThumbnail').attr('src', product.thumbnail ?? "");
         });
 
         const taxRate = 21;//bolApiResponse.product.taxData.attributes.taxRate;
