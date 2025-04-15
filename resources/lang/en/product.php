@@ -52,7 +52,7 @@ return [
     'product_created_successfully' => 'Product succesvol aangemaakt.',
     'failed_to_create_product' => 'Het is niet gelukt om het product aan te maken.',
     'ean' => 'EAN-nummer',
-    'enter_ean' => 'Voer een EAN-nummer of productnummer in!',
+    'enter_ean_or_product' => 'Voer een EAN-nummer of productnummer in!',
     'is_different_grade' => 'Is het product een andere kwaliteit?',
     'no' => 'Nee',
     'yes' => 'Ja',

@@ -496,7 +496,7 @@ $('#nextBolBtn').on('click', function () {
             } else {
                 $('#bolPackagingWeight').val(0);
             }
-            $('#bolProductThumbnail').attr('src', product.thumbnail);
+            $('#bolProductThumbnail').attr('src', product.thumbnail ?? "");
         });
 
         const taxRate = 21;//bolApiResponse.product.taxData.attributes.taxRate;
@@ -557,8 +557,7 @@ $('#saveBolProductData').on('click', function (e) {
 // gross price to net price convert
 $('#bolProductPrice').on('input', function () {
     const priceGross = parseFloat($(this).val()) || 0;
-    const taxRate = parseFloat($(this).data('taxRate')) || 21; // Default to 21%
-
+    const taxRate = parseFloat($(this).data('taxRate'));
     // Calculate net price
     const priceNet = priceGross / (1 + taxRate / 100);
     $('#bolTotalPrice').val(priceNet.toFixed(2));
@@ -567,8 +566,7 @@ $('#bolProductPrice').on('input', function () {
 // net price to gross price convert
 $('#bolTotalPrice').on('input', function() {
     const priceNet = parseFloat($(this).val()) || 0;
-    const taxRate = parseFloat($('#bolProductPrice').data('taxRate')) || 21; // Default to 21%
-
+    const taxRate = parseFloat($('#bolProductPrice').data('taxRate'));
     // Calculate gross price
     const priceGross = priceNet * (1 + taxRate / 100);
     $('#bolProductPrice').val(priceGross.toFixed(2));
@@ -577,7 +575,7 @@ $('#bolTotalPrice').on('input', function() {
 // gross price to net price convert
 $('#bolProductListPriceGross').on('input', function () {
     const priceGross = parseFloat($(this).val()) || 0;
-    const taxRate = parseFloat($(this).data('taxRate')) || 21; // Default to 21%
+    const taxRate = parseFloat($(this).data('taxRate'));
 
     // Calculate net price
     const priceNet = priceGross / (1 + taxRate / 100);
@@ -587,7 +585,7 @@ $('#bolProductListPriceGross').on('input', function () {
 // net price to gross price convert
 $('#bolProductListPriceNet').on('input', function() {
     const priceNet = parseFloat($(this).val()) || 0;
-    const taxRate = parseFloat($('#bolProductListPriceGross').data('taxRate')) || 21; // Default to 21%
+    const taxRate = parseFloat($('#bolProductListPriceGross').data('taxRate'));
 
     // Calculate gross price
     const priceGross = priceNet * (1 + taxRate / 100);
@@ -635,7 +633,7 @@ $('#tax-provider-select-bol').select2({
         }
     },
 }).on('select2:select', function (e) {
-    const selectedTaxRate = e.params.data.taxRate || 21;
+    const selectedTaxRate = e.params.data.taxRate || 0;
     $('#bolProductPrice').data('taxRate', selectedTaxRate);
     $('#bolProductListPriceGross').data('taxRate', selectedTaxRate);
     $('#bolProductPrice').trigger('input');

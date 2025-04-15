@@ -577,7 +577,7 @@ class ProductController extends Controller
             'bolTotalPrice' => 'string',
             'bolProductListPriceGross' => 'string',
             'bolProductListPriceNet' => 'string',
-            'bolProductThumbnail' => 'string',
+            'bolProductThumbnail' => 'nullable|string',
             'salesChannelBol.*' => 'required|string',
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'active_for_allBol' => 'nullable|boolean'
@@ -586,44 +586,45 @@ class ProductController extends Controller
         $mediaId = str_replace('-', '', (string) Str::uuid());
         $productMediaId = str_replace('-', '', (string) Str::uuid());
 
-        $weight = $validatedData['bolPackagingWeight'];
-        $width = $validatedData['bolPackagingWidth'];
-        $height = $validatedData['bolPackagingHeight'];
-        $length = $validatedData['bolPackagingLength'];
+        $weight = $validatedData['bolPackagingWeight'] ?? 0;
+        $width = $validatedData['bolPackagingWidth'] ?? 0;
+        $height = $validatedData['bolPackagingHeight'] ?? 0;
+        $length = $validatedData['bolPackagingLength'] ?? 0;
 
         $imageUrl = $validatedData['bolProductThumbnail'];
         $fileName = 'test';
 
-        try {
-            $data = [
-                'id' => $mediaId,
-                'name' => pathinfo($imageUrl, PATHINFO_FILENAME),
-            ];
+        if ($imageUrl) {
+            try {
+                $data = [
+                    'id' => $mediaId,
+                    'name' => pathinfo($imageUrl, PATHINFO_FILENAME),
+                ];
+                $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
 
-            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/media', $data);
+                // Step 2: Download the image
+                $imageContent = Http::get($imageUrl)->body();
+                $tempFilePath = storage_path("app/temp_{$fileName}");
+                file_put_contents($tempFilePath, $imageContent);
 
-            // Step 2: Download the image
-            $imageContent = Http::get($imageUrl)->body();
-            $tempFilePath = storage_path("app/temp_{$fileName}");
-            file_put_contents($tempFilePath, $imageContent);
+                // Step 3: Upload the image to Shopware
+                $uploadUrl = "/api/_action/media/{$mediaId}/upload";
 
-            // Step 3: Upload the image to Shopware
-            $uploadUrl = "/api/_action/media/{$mediaId}/upload";
+                // Preparing data for the file upload
+                $fileData = [
+                    'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
+                    'extension' => pathinfo($fileName, PATHINFO_EXTENSION),
+                    'fileName' => pathinfo($fileName, PATHINFO_FILENAME),
+                    'url' => $imageUrl,
+                ];
 
-            // Preparing data for the file upload
-            $fileData = [
-                'file' => new \CURLFile($tempFilePath, mime_content_type($tempFilePath), $fileName),
-                'extension' => pathinfo($fileName, PATHINFO_EXTENSION),
-                'fileName' => pathinfo($fileName, PATHINFO_FILENAME),
-                'url' => $imageUrl,
-            ];
+                // Sending the file upload request using the makeApiRequest method
+                $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
+                unlink($tempFilePath); // Clean up the temp file
 
-            // Sending the file upload request using the makeApiRequest method
-            $uploadResponse = $this->shopwareApiService->makeApiRequest('POST', $uploadUrl, $fileData);
-            unlink($tempFilePath); // Clean up the temp file
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
         }
 
 
