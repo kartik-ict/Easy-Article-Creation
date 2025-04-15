@@ -31,6 +31,8 @@ return [
     'sales_channel' => 'Verkoopkanaal',
     'category' => 'Categorie',
     'categories' => 'Categorie',
+    'active_for_bol_nl'=> 'Bol NL',
+    'active_for_bol_be'=> 'Bol BE',
     'media_url' => 'Media URL',
     'submit' => 'Verzenden',
     'searching' => 'Zoeken, even geduld a.u.b...',
