@@ -69,7 +69,7 @@ return [
     'enter_new_stock' => 'Voer een nieuwe voorraad in',
     'stock_updated' => 'Voorraad bijgewerkt.',
     'stock_update_failed' => 'Voorraadupdate mislukt.',
-    'step2_yes_flow_show_product_details' => 'Step 3: Productinformatie',
+    'step2_yes_flow_show_product_details' => 'Step 2: Productinformatie',
     'product_price' => 'Productprijs',
     'product_description' => 'Productbeschrijving',
     'property_group' => 'Eigenschappengroep',
