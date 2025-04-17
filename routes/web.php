@@ -38,16 +38,10 @@ Route::group(['prefix' => 'admin'], function () {
     Route::post('/login/submit', [LoginController::class, 'login'])->name('admin.login.submit');
     Route::group(['middleware' => 'auth:admin'], function () {
         Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
-        // Route::resource('roles', 'Backend\RolesController', ['names' => 'admin.roles']);
 
-        Route::resource('roles', 'Backend\RolesController', ['names' => 'admin.roles'])
-            ->middleware(['can:role.create', 'can:role.view', 'can:role.edit', 'can:role.delete']);
-
+        Route::resource('roles', 'Backend\RolesController', ['names' => 'admin.roles']);
         Route::resource('users', 'Backend\UsersController', ['names' => 'admin.users']);
-
-        Route::resource('admins', 'Backend\AdminsController', ['names' => 'admin.admins'])
-            ->middleware(['can:admin.create', 'can:admin.view', 'can:admin.edit', 'can:admin.delete']);;
-
+        Route::resource('admins', 'Backend\AdminsController', ['names' => 'admin.admins']);
         // Logout Routes
         Route::post('/logout/submit', [LoginController::class, 'logout'])->name('admin.logout.submit');
 
