@@ -19,7 +19,7 @@
                         </li>
                     @endif
 
-                    @if ($usr->can('product.view'))
+                    @if ($usr->can('product.create'))
                         <li class="{{ Route::is('admin.product.index')  ? 'active' : '' }}">
                             <a href="{{ route('admin.product.index') }}"><i class="fa fa-product-hunt"></i><span>{{ trans('custom.products') }}</span></a>
                         </li>
