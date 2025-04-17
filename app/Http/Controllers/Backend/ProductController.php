@@ -271,9 +271,8 @@ class ProductController extends Controller
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
             'active_for_all' => 'nullable|boolean',
-            'media_id' => 'string|regex:/^[0-9a-f]{32}$/'
+            'media_id' => 'nullable|string|regex:/^[0-9a-f]{32}$/'
         ]);
-
         // Generate a UUID for the new product
         $uuid = str_replace('-', '', (string) Str::uuid());
         $width = $request->get('productWidth');
@@ -329,19 +328,22 @@ class ProductController extends Controller
             ]
         ];
 
+
         try {
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
             // If the API call is successful
             if (isset($response['success'])) {
-                $productMediaData = [
-                    'id' => $productMediaId,
-                    'productId' => $uuid,
-                    'mediaId' => $validatedData['media_id'],
-                    'position' => 1,
-                ];
+                if (isset($validatedData['media_id']) && !empty($validatedData['media_id'])) {
+                    $productMediaData = [
+                        'id' => $productMediaId,
+                        'productId' => $uuid,
+                        'mediaId' => $validatedData['media_id'],
+                        'position' => 1,
+                    ];
 
-                $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
+                    $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
+                }
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));

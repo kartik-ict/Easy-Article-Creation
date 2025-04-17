@@ -4,6 +4,8 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Spatie\Permission\Exceptions\UnauthorizedException;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class Handler extends ExceptionHandler
 {
@@ -50,6 +52,15 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        if (
+            $exception instanceof UnauthorizedException ||
+            $exception instanceof AuthorizationException ||
+            ($exception instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $exception->getStatusCode() === 403)
+        ) {
+            if ($request->is('admin/*')) {
+                return redirect()->route('admin.dashboard')->with('error', 'You do not have permission to access that page.');
+            }
+        }
         return parent::render($request, $exception);
     }
 }

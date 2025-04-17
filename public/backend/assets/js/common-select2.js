@@ -1471,6 +1471,7 @@ $('#addPropertyOptionBtn').on('click', function () {
             $('#productPackagingLength').val(product.attributes.length);
             $('#productPackagingWeight').val(product.attributes.weight);
             $('#productPackagingWidth').val(product.attributes.width);
+            $('#manufacturer').val(product.attributes.manufacturerId);
 
         });
         $('#productConfiguratorSettingsIds').val(allProductData.optionsIds);
