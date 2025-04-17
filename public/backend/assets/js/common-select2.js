@@ -1570,7 +1570,11 @@ $('#saveVariant').on('click', function (e) {
         },
         error: function (xhr) {
             $('#full-page-preloader').hide();
-            showValidationErrors(xhr.responseJSON.errors);
+            if(xhr.status == 400){
+                alert(xhr.responseJSON.errors);
+            }else{
+                showValidationErrors(xhr.responseJSON.errors);
+            }
         }
     });
 });

@@ -552,6 +552,16 @@ class ProductController extends Controller
                         'message' => __('product.product_created_successfully')
                     ]);
                 }
+            } else if ($responseParent['error']) {
+                $errors = json_decode($responseParent['error'], true);
+                if (
+                    is_array($errors['errors']) &&
+                    $errors['errors'][0]['code'] === 'PRODUCT_CONFIGURATION_OPTION_EXISTS_ALREADY'
+                ) {
+                    return response()->json(['errors' => "Configuratieoptie bestaat al"], 400);
+                } else {
+                    return response()->json(['errors' => "Er is iets fout gegaan!"], 400);
+                }
             }
         } catch (\Exception $e) {
             dd($e->getMessage());
