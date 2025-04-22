@@ -134,11 +134,12 @@ class ProductController extends Controller
                         'productPriceData' => $productPrice['results'],
                         'taxData' => $this->taxDetail->getTaxDetail(),
                         'included' => '',
-                        'bol' => true
+                        'bol' => true,
+                        'custom_fields' => $this->getCustomFieldData(),
                     ];
                     return response()->json(['product' => $productData], 200);
                 } else {
-                    return response()->json(['error' => 'Product not found'], 404);
+                    return response()->json(['error' => 'Product not found', 'custom_fields' => $this->getCustomFieldData()], 404);
                 }
             } catch (RequestException $e) {
                 return response()->json(['error' => 'Product not found'], 404);
@@ -162,7 +163,8 @@ class ProductController extends Controller
                 'productData' => $product['data'],
                 'included' => $product['included'],
                 'bol' => false,
-                'optionsIds' => $optionsIds
+                'optionsIds' => $optionsIds,
+                'custom_fields' => $this->getCustomFieldData(),
             ];
             return response()->json(['product' => $productData], 200);
         }
@@ -469,6 +471,20 @@ class ProductController extends Controller
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
             'productEanNumber' => 'string',
+
+            'bolNlPrice' => 'nullable|numeric',
+            'bolBePrice' => 'nullable|numeric',
+            'bolBeActive' => 'nullable|in:0,1',
+            'bolCondition' => 'nullable|string',
+            'bolConditionDescription' => 'nullable|string',
+            'bolNlActive' => 'nullable|in:0,1',
+            'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
+            'bolOrderBefore' => 'nullable|in:0,1',
+            'bolLetterboxPackage' => 'nullable|in:0,1',
+            'bolLetterboxPackageUp' => 'nullable|in:0,1',
+            'bolPickUpOnly' => 'nullable|in:0,1',
+            'bolBEDeliveryTime' => 'nullable|string',
+            'bolNLDeliveryTime' => 'nullable|string'
         ]);
 
         // Generate a UUID for the new product
@@ -541,6 +557,21 @@ class ProductController extends Controller
                     'options' => $options,
                     "variantListingConfig" => [
                         "displayParent" => true
+                    ],
+                    "customFields" => [
+                        "migration_DMG_product_bol_price_be" => $validatedData['bolBePrice'] ?? null,
+                        "migration_DMG_product_bol_price_nl" => $validatedData['bolNlPrice'] ?? null,
+                        "migration_DMG_product_bol_be_active" => $validatedData['bolBeActive'] ? true : false,
+                        "migration_DMG_product_bol_condition" => $validatedData['bolCondition'] ?? null,
+                        "migration_DMG_product_bol_condition_desc" => $validatedData['bolConditionDescription'] ?? null,
+                        "migration_DMG_product_bol_nl_active" => $validatedData['bolNlActive'] ? true : false,
+                        "migration_DMG_product_proposition_1" => $validatedData['bolOrderBeforeTomorrow'] ? true : false,
+                        "migration_DMG_product_proposition_2" => $validatedData['bolOrderBefore'] ? true : false,
+                        "migration_DMG_product_proposition_3" => $validatedData['bolLetterboxPackage'] ? true : false,
+                        "migration_DMG_product_proposition_4" => $validatedData['bolLetterboxPackageUp'] ? true : false,
+                        "migration_DMG_product_proposition_5" => $validatedData['bolPickUpOnly'] ? true : false,
+                        "migration_DMG_product_bol_be_delivery_code" => $validatedData['bolBEDeliveryTime'] ?? null,
+                        "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null,
                     ]
                 ];
 
@@ -756,5 +787,83 @@ class ProductController extends Controller
             'mediaUrl' => $imageUrl,
             'shopwareResponse' => $uploadResponse,
         ]);
+    }
+
+
+    // to get the custome-fields data for product
+    public function getCustomFieldData()
+    {
+        $customFieldSetData = [
+            'page' => 1,
+            'limit' => 25,
+            'filter' => [
+                [
+                    'type' => 'equals',
+                    'field' => 'relations.entityName',
+                    'value' => 'product'
+                ],
+                [
+                    'type' => 'equals',
+                    'field' => 'name',
+                    'value' => 'migration_DMG_product'
+                ]
+            ],
+            'total-count-mode' => 1
+        ];
+
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/custom-field-set', $customFieldSetData);
+
+        if (empty($response['data'][0])) {
+            return [];
+        }
+
+        $customFieldSetId = $response['data'][0]['id'];
+
+        $customFieldData = $this->shopwareApiService->makeApiRequest('POST', "/api/search/custom-field-set/{$customFieldSetId}/custom-fields", [
+            'filter' => [
+                [
+                    'type' => 'equals',
+                    'field' => 'customFieldSetId',
+                    'value' => $customFieldSetId
+                ],
+                [
+                    'type' => 'multi',
+                    'operator' => 'OR',
+                    'queries' => array_map(fn($fieldName) => [
+                        'type' => 'equals',
+                        'field' => 'name',
+                        'value' => $fieldName,
+                    ], config('shopware.custom_fields'))
+                ]
+            ],
+            'sort' => [
+                [
+                    'field' => 'config.customFieldPosition',
+                    'order' => 'ASC',
+                    'naturalSorting' => true
+                ]
+            ],
+            'total-count-mode' => 1
+        ]);
+
+        return array_map(function ($item) {
+            $attr = $item['attributes'];
+            $config = $attr['config'] ?? [];
+
+            $options = [];
+            if (!empty($config['options']) && is_array($config['options'])) {
+                $options = array_map(fn($opt) => [
+                    'label' => $opt['label']['nl-NL'] ?? $opt['value'],
+                    'value' => $opt['value']
+                ], $config['options']);
+            }
+
+            return [
+                'name' => $attr['name'],
+                'label' => $config['label']['nl-NL'] ?? $attr['name'],
+                'is_select_type' => ($config['type'] ?? '') === 'select',
+                'options' => $options
+            ];
+        }, $customFieldData['data'] ?? []);
     }
 }

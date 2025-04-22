@@ -1412,6 +1412,8 @@ $('#savePropertyGroupOptionBtn').on('click', function () {
         alert("@lang('product.enter_property_option_name')");
     }
 });
+// $('#yesStepDetails').show();
+// $('#productEditModal').modal('show');
 
 // Add Property Option button functionality
 $('#addPropertyOptionBtn').on('click', function () {

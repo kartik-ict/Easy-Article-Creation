@@ -35,15 +35,15 @@
                     </div>
                     <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                         <label
-                                for="bolProductDescription">{{ __('product.bolProductDescription') }}</label>
-                        <textarea class="form-control" id="bolProductDescription"
-                                  name="bolProductDescription" rows="5"></textarea>
+                        for="bolProductShortDescription">{{ __('product.bolProductShortDescription') }}</label>
+                        <textarea class="form-control" id="bolProductShortDescription"
+                        name="bolProductShortDescription" rows="2"></textarea>
                     </div>
                     <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                         <label
-                                for="bolProductShortDescription">{{ __('product.bolProductShortDescription') }}</label>
-                        <textarea class="form-control" id="bolProductShortDescription"
-                                  name="bolProductShortDescription" rows="2"></textarea>
+                                for="bolProductDescription">{{ __('product.bolProductDescription') }}</label>
+                        <textarea class="form-control" id="bolProductDescription"
+                                  name="bolProductDescription" rows="5"></textarea>
                     </div>
 
                     <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
@@ -105,8 +105,72 @@
                         <input type="hidden" id="bolProductCategoriesId"
                                name="bolProductCategoriesId">
                     </div>
-
-                    <div class="form-group mb-3 col-sm-6 col-xs-12 px-3 d-none">
+                    <div class="col-md-12">
+                        <div class="row p-3">
+                            <div class="form-group mb-3 col-sm-2 col-xs-4 px-3">
+                                <label for="active_for_bol_nl">{{ __('product.active_for_bol_nl') }}</label>
+                                <input type="hidden" name="active_for_bol_nl" value="0">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input"
+                                           name="active_for_bol_nl" id="active_for_bol_nl"
+                                           value="1" {{ old('active_for_bol_nl') ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3 col-sm-4 col-xs-6 px-3">
+                                <label
+                                        for="bolNlPrice">{{ __('product.price') }}</label>
+                                <input type="text" name="bolNlPrice" id="bolNlPrice"
+                                       class="form-control" required>
+                            </div>
+                            <div class="form-group mb-3 col-sm-6 col-xs-6 px-3">
+                                <label
+                                        for="bolBeDeliveryTime">{{ __('product.bol_delivery_time') }}</label>
+                                <select name="bolBeDeliveryTime" id="bolBeDeliveryTime" class="form-control" required>
+                                    <option value="">Select Delivery Time</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row p-3">
+                            <div class="form-group mb-3 col-sm-2 col-xs-4 px-3">
+                                <label for="active_for_bol_be">{{ __('product.active_for_bol_be') }}</label>
+                                <input type="hidden" name="active_for_bol_be" value="0">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input"
+                                        name="active_for_bol_be" id="active_for_bol_be"
+                                        value="1" {{ old('active_for_bol_be') ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3 col-sm-4 col-xs-6 px-3">
+                                <label
+                                        for="bolBePrice">{{ __('product.price') }}</label>
+                                <input type="text" name="bolBePrice" id="bolBePrice"
+                                       class="form-control" required>
+                            </div>
+                            <div class="form-group mb-3 col-sm-6 col-xs-6 px-3">
+                                <label
+                                        for="bolBeDeliveryTime">{{ __('product.bol_delivery_time') }}</label>
+                                <select name="bolBeDeliveryTime" id="bolBeDeliveryTime" class="form-control" required>
+                                    <option value="">Select Delivery Time</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
+                        <label
+                                for="bolCondition">{{ __('product.bol_condition') }}</label>
+                        <select name="bolCondition" id="bolCondition" class="form-control" required>
+                            <option value="">Select Condition</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
+                        <label
+                        for="bolDescription">{{ __('product.bolDescription') }}</label>
+                        <textarea class="form-control" id="bolDescription"
+                        name="bolDescription" rows="2"></textarea>
+                    </div>
+                    {{-- <div class="form-group mb-3 col-sm-6 col-xs-12 px-3 d-none">
                         <label
                                 for="bolPackagingWidth">{{ __('product.PackagingWidth') }}</label>
                         <input type="text" name="bolPackagingWidth" id="bolPackagingWidth"
@@ -132,7 +196,7 @@
                                 for="bolPackagingWeight">{{ __('product.PackagingWeight') }}</label>
                         <input type="text" name="bolPackagingWeight" id="bolPackagingWeight"
                                class="form-control" required>
-                    </div>
+                    </div> --}}
 
                     <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                         <label
@@ -144,12 +208,8 @@
                         </div>
                     </div>
                     <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                        <label
-                                for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                        <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                         <input type="hidden" name="active_for_allBol" value="0">
-
-
-
                         <div class="form-check form-switch">
                             <input type="checkbox" class="form-check-input"
                                    name="active_for_allBol" id="active_for_all"

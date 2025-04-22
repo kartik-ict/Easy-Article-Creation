@@ -116,5 +116,8 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/product/propertySave', [ProductController::class, 'savePropertyOption'])->name('product.savePropertyOption')->middleware('can:product.create');
         Route::post('/product/variantProduct', [ProductController::class, 'saveVariantProduct'])->name('product.saveVariantProduct')->middleware('can:product.create');
         Route::post('/media/upload', [ProductController::class, 'uploadMedia'])->name('media.upload')->middleware('can:product.create');
+
+        Route::get('/product/get-custom-fields', [ProductController::class, 'getCustomFieldData'])->name('product.getCustomFieldData')->middleware('can:product.create');
+
     });
 });

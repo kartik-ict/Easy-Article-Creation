@@ -36,95 +36,226 @@
                     <form id="product-form" method="POST">
                         @csrf
                         <div class="row">
-                            <!-- Left Column -->
                             <div class="col-md-6">
                                 <h5 class="mb-3">{{ __('product.general_information') }}</h5>
-
-                                <div class="form-group mb-3">
-                                    <label for="name">@lang('product.name'):</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="stock">@lang('product.stock'):</label>
-                                    <input type="number" class="form-control" id="stock" name="stock" required>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="productEanNumber">@lang('product.bolProductEanNumber')
-                                        :</label>
-                                    <input type="text" class="form-control" id="productEanNumber"
-                                        name="productEanNumber" required>
-                                </div>
-
-                                <input type="hidden" id="manufacturer" name="manufacturer" value="" />
-
-                                {{-- <div class="form-group mb-3 d-none">
-                                    <label for="manufacturer">@lang('product.manufacturer')
-                                        :</label>
-                                    <select id="manufacturer-select" class="js-example-basic-single form-control"
-                                        name="manufacturer" required>
-                                    </select>
-                                </div> --}}
-
-                                <div class="form-group mb-3">
-                                    <label for="taxId">@lang('product.tax_id'):</label>
-                                    <select id="tax-provider-select" class="js-example-basic-single form-control"
-                                        name="taxId" required>
-                                    </select>
-                                </div>
-
-                                <div class="form-group mb-3">
-                                    <label for="price_gross">{{ __('product.price_gross') }}</label>
-                                    <input type="number" name="priceGross" id="priceGross" class="form-control"
-                                        step="any" required placeholder="{{ __('product.enter_price_gross') }}">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="price_net">{{ __('product.price_net') }}</label>
-                                    <input type="number" name="priceNet" id="priceNet" class="form-control"
-                                        step="any" placeholder="{{ __('product.calculated_price_net') }}">
-                                </div>
                             </div>
-
-                            <!-- Right Column -->
                             <div class="col-md-6">
                                 <h5 class="mb-3">{{ __('product.additional_information') }}</h5>
-                                <div class="form-group mb-3">
-                                    <label for="shortDescription">@lang('product.shortDescription'):</label>
-                                    <textarea class="form-control" id="shortDescription" name="shortDescription" rows="2"></textarea>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label for="description">@lang('product.description'):</label>
-                                    <textarea class="form-control" id="description" name="description" rows="5"></textarea>
-                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="name">@lang('product.name'):</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="shortDescription">@lang('product.shortDescription'):</label>
+                                <textarea class="form-control" id="shortDescription" name="shortDescription" rows="1"></textarea>
+                            </div>
 
-                                <div class="form-group mb-3">
-                                    <label for="productNumber">@lang('product.product_number'):</label>
-                                    <input type="text" class="form-control" id="productNumber"
-                                        name="productNumber" required>
-                                </div>
-                                <input type="hidden" name="productPackagingWidth" id="productPackagingWidth"
-                                    class="form-control" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="stock">@lang('product.stock'):</label>
+                                <input type="number" class="form-control" id="stock" name="stock" required>
+                            </div>
 
-                                <input type="hidden" name="productPackagingHeight" id="productPackagingHeight"
-                                    class="form-control" required>
 
-                                <input type="hidden" name="productPackagingLength" id="productPackagingLength"
-                                    class="form-control" required>
-
-                                <input type="hidden" name="productPackagingWeight" id="productPackagingWeight"
-                                    class="form-control" required>
-                                <input type="hidden" id="productConfiguratorSettingsIds"
-                                    name="productConfiguratorSettingsIds" />
-                                <div class="form-group mb-3">
-                                    <strong>@lang('product.selectedGroup'):</strong> <span
-                                        id="selectedPropertyGroupDisplay"></span><br>
-                                    <strong>@lang('product.selectedPropertyGroup'):</strong>
-                                    <span id="selectedPropertyOptionDisplay"></span>
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="description">@lang('product.description'):</label>
+                                <textarea class="form-control" id="description" name="description" rows="1"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="productEanNumber">@lang('product.bolProductEanNumber')
+                                    :</label>
+                                <input type="text" class="form-control" id="productEanNumber" name="productEanNumber"
+                                    required>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="productNumber">@lang('product.product_number'):</label>
+                                <input type="text" class="form-control" id="productNumber" name="productNumber"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="taxId">@lang('product.tax_id'):</label>
+                                <select id="tax-provider-select" class="js-example-basic-single form-control"
+                                    name="taxId" required>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group mt-3">
+                                <div class="d-flex flex-column">
+                                    <div>
+                                        <strong>@lang('product.selectedGroup'):</strong>
+                                        <span id="selectedPropertyGroupDisplay"></span>
+                                    </div>
+                                    <div>
+                                        <strong>@lang('product.selectedPropertyGroup'):</strong>
+                                        <span id="selectedPropertyOptionDisplay"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="price_gross">{{ __('product.price_gross') }}</label>
+                                <input type="number" name="priceGross" id="priceGross" class="form-control"
+                                    step="any" required placeholder="{{ __('product.enter_price_gross') }}">
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="price_net">{{ __('product.price_net') }}</label>
+                                <input type="number" name="priceNet" id="priceNet" class="form-control" step="any"
+                                    placeholder="{{ __('product.calculated_price_net') }}">
+                            </div>
+                        </div>
+
+                        {{-- Product Marketplace Section --}}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="my-3">{{ __('product.product_marketplace_information') }}</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <input type="hidden" name="bolNlActive" value="0">
+                                <label for="bolNlActive"
+                                    class="bolNlActive">{{ __('product.active_for_bol_nl') }}</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" name="bolNlActive"
+                                        id="bolNlActive" value="1" {{ old('bolNlActive') ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <input type="hidden" name="bolBeActive" value="0">
+                                <label for="bolBeActive"
+                                    class="bolBeActive">{{ __('product.active_for_bol_be') }}</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" name="bolBeActive"
+                                        id="bolBeActive" value="1" {{ old('bolBeActive') ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="bolNlPrice" class="bolNlPrice">{{ __('product.bol_nl_price') }}</label>
+                                <input type="text" name="bolNlPrice" id="bolNlPrice" class="form-control"
+                                    required>
+                            </div>
+
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="bolBePrice" class="bolBePrice">{{ __('product.bol_be_price') }}</label>
+                                <input type="text" name="bolBePrice" id="bolBePrice" class="form-control"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="bolNLDeliveryTime" class="bolNLDeliveryTime">@lang('product.bol_nl_delivery_time'):</label>
+                                <select id="bolNLDeliveryTime"
+                                    class="js-example-basic-single form-control bolNLDeliveryTimeSelect"
+                                    name="bolNLDeliveryTime" required>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="bolBEDeliveryTime" class="bolBEDeliveryTime">@lang('product.bol_be_delivery_time'):</label>
+                                <select id="bolBEDeliveryTime"
+                                    class="js-example-basic-single form-control bolBEDeliveryTimeSelect"
+                                    name="bolBEDeliveryTime" required>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="bolCondition" class="bolCondition">@lang('product.bol_condition'):</label>
+                                <select id="bolCondition"
+                                    class="js-example-basic-single form-control bolConditionSelect"
+                                    name="bolCondition" required>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="bolConditionDescription"
+                                    class="bolConditionDescription">@lang('product.bol_condition_description'):</label>
+                                <input type="text" class="form-control" id="bolConditionDescription"
+                                    name="bolConditionDescription" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <div class="form-check">
+                                    <input type="hidden" name="bolOrderBeforeTomorrow" value="0">
+                                    <input type="checkbox" class="form-check-input bolOrderBeforeTomorrow"
+                                        id="bolOrderBeforeTomorrow" value="1" name="bolOrderBeforeTomorrow">
+                                    <label class="form-check-label bolOrderBeforeTomorrow"
+                                        for="bolOrderBeforeTomorrow">@lang('product.bol_ordered_tomorrow')</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <div class="form-check">
+                                    <input type="hidden" name="bolOrderBefore" value="0">
+                                    <input type="checkbox" class="form-check-input bolOrderBefore"
+                                        id="bolOrderBefore" value="1" name="bolOrderBefore">
+                                    <label class="form-check-label bolOrderBefore"
+                                        for="bolOrderBefore">@lang('product.bol_ordered_before')</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <div class="form-check">
+                                    <input type="hidden" name="bolLetterboxPackage" value="0">
+                                    <input type="checkbox" class="form-check-input bolLetterboxPackage"
+                                        id="bolLetterboxPackage" value="1" name="bolLetterboxPackage">
+                                    <label class="form-check-label bolLetterboxPackage"
+                                        for="bolLetterboxPackage">@lang('product.bol_letterbox_package')</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <div class="form-check">
+                                    <input type="hidden" name="bolLetterboxPackageUp" value="0">
+                                    <input type="checkbox" class="form-check-input bolLetterboxPackageUp"
+                                        id="bolLetterboxPackageUp" value="1" name="bolLetterboxPackageUp">
+                                    <label class="form-check-label bolLetterboxPackageUp"
+                                        for="bolLetterboxPackageUp">@lang('product.bol_letterbox_package_up')</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <input type="hidden" name="bolPickUpOnly" value="0">
+                                <label for="bolPickUpOnly"
+                                    class="bolPickUpOnly">{{ __('product.bol_pick_up_only') }}</label>
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" name="bolPickUpOnly"
+                                        id="bolPickUpOnly" value="1"
+                                        {{ old('bolPickUpOnly') ? 'checked' : '' }}>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Hidden Fields Start --}}
+
+                        <input type="hidden" id="manufacturer" name="manufacturer" value="" />
+
+                        <input type="hidden" name="productPackagingWidth" id="productPackagingWidth"
+                            class="form-control" required>
+
+                        <input type="hidden" name="productPackagingHeight" id="productPackagingHeight"
+                            class="form-control" required>
+
+                        <input type="hidden" name="productPackagingLength" id="productPackagingLength"
+                            class="form-control" required>
+
+                        <input type="hidden" name="productPackagingWeight" id="productPackagingWeight"
+                            class="form-control" required>
+                        <input type="hidden" id="productConfiguratorSettingsIds"
+                            name="productConfiguratorSettingsIds" />
+                        {{-- Hidden Fields End --}}
                         <button type="submit" class="btn btn-success w-100 mt-2"
                             id="saveVariant">{{ __('product.submit') }}</button>
                     </form>
@@ -134,8 +265,8 @@
     </div>
 
     <!-- Back and Next Buttons -->
-    <button id="back3YesStep" class="btn btn-danger btn-back">{{ __('product.previous') }}</button>
-    <button id="newVariantButton" class="btn btn-success btn-new-variant">
+    <button type="button" id="back3YesStep" class="btn btn-danger btn-back">{{ __('product.previous') }}</button>
+    <button type="button" id="newVariantButton" class="btn btn-success btn-new-variant">
         {{ __('product.create_new_variant') }}
     </button>
 
@@ -251,10 +382,12 @@
         <!--...................-->
         <div id="addPropertyOptionWrapper" class="mt-4 d-flex align-items-center gap-2" style="visibility : hidden;">
             <div class="col-md-3">
-                <button id="createPropertyGroupOptionBtn" class="btn btn-primary w-100">@lang('product.create_new_property')</button>
+                <button type="button" id="createPropertyGroupOptionBtn"
+                    class="btn btn-primary w-100">@lang('product.create_new_property')</button>
             </div>
             <div class="col-md-3">
-                <button id="addPropertyOptionBtn" class="btn btn-success w-100">@lang('product.add_option')</button>
+                <button type="button" id="addPropertyOptionBtn"
+                    class="btn btn-success w-100">@lang('product.add_option')</button>
             </div>
         </div>
         <!--...................-->
