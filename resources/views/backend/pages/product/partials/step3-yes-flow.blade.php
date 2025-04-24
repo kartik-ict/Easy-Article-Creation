@@ -49,8 +49,8 @@
                                 <input type="text" class="form-control" id="name" name="name" required>
                             </div>
                             <div class="col-md-6 form-group mb-3">
-                                <label for="shortDescription">@lang('product.shortDescription'):</label>
-                                <textarea class="form-control" id="shortDescription" name="shortDescription" rows="1"></textarea>
+                                <label for="bolProductShortDescription">@lang('product.shortDescription'):</label>
+                                <textarea class="form-control" id="shortDescription" name="bolProductShortDescription" rows="1"></textarea>
                             </div>
 
                         </div>

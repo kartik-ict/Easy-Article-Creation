@@ -726,31 +726,37 @@
                         const $select = $(selectClass);
 
                         if ($select.length) {
-                            $select.empty();
-                            item.options.forEach(opt => {
-                                $select.append(
-                                    `<option value="${opt.value}">${opt.label}</option>`);
-                            });
+                            $select.each(function() {
+                                const $currentSelect = $(this);
+                                $currentSelect.empty();
 
-                            $select.select2({
-                                placeholder: item.label,
-                                minimumInputLength: 0,
-                                allowClear: true,
-                                multiple: false,
-                                language: {
-                                    searching: function() {
-                                        return "Zoeken, even geduld...";
-                                    },
-                                    loadingMore: function() {
-                                        return "Meer resultaten laden...";
-                                    },
-                                    noResults: function() {
-                                        return "Geen resultaten gevonden.";
+                                item.options.forEach(opt => {
+                                    $currentSelect.append(
+                                        `<option value="${opt.value}">${opt.label}</option>`
+                                        );
+                                });
+
+                                $currentSelect.select2({
+                                    placeholder: item.label,
+                                    minimumInputLength: 0,
+                                    allowClear: true,
+                                    multiple: false,
+                                    language: {
+                                        searching: function() {
+                                            return "Zoeken, even geduld...";
+                                        },
+                                        loadingMore: function() {
+                                            return "Meer resultaten laden...";
+                                        },
+                                        noResults: function() {
+                                            return "Geen resultaten gevonden.";
+                                        }
                                     }
-                                }
+                                });
+
+                                $currentSelect.val('').trigger('change');
+                                $currentSelect.trigger("select2:close");
                             });
-                            $select.val('').trigger('change');
-                            $select.trigger("select2:close");
                         }
                     }
                 });
@@ -763,7 +769,6 @@
             $('#productEditModal').on('shown.bs.modal', function() {
                 setCustomFieldData(customFieldData);
             });
-
         });
     </script>
     <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>

@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -172,7 +171,9 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('backend.pages.product.create');
+        $customFields = $this->getCustomFieldData();
+        $customFields = array_combine(array_column($customFields, 'name'), $customFields);
+        return view('backend.pages.product.create', compact('customFields'));
     }
 
     public function manufacturerSearch(Request $request)
@@ -273,10 +274,27 @@ class ProductController extends Controller
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
             'active_for_all' => 'nullable|boolean',
-            'media_id' => 'nullable|string|regex:/^[0-9a-f]{32}$/'
+            'media_id' => 'nullable|string|regex:/^[0-9a-f]{32}$/',
+
+            'bolProductShortDescription' => 'nullable|string',
+            'bolNlPrice' => 'nullable|numeric',
+            'bolBePrice' => 'nullable|numeric',
+            'bolBeActive' => 'nullable|in:0,1',
+            'bolCondition' => 'nullable|string',
+            'bolConditionDescription' => 'nullable|string',
+            'bolNlActive' => 'nullable|in:0,1',
+            'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
+            'bolOrderBefore' => 'nullable|in:0,1',
+            'bolLetterboxPackage' => 'nullable|in:0,1',
+            'bolLetterboxPackageUp' => 'nullable|in:0,1',
+            'bolPickUpOnly' => 'nullable|in:0,1',
+            'bolBEDeliveryTime' => 'nullable|string',
+            'bolNLDeliveryTime' => 'nullable|string'
         ]);
-        // Generate a UUID for the new product
-        $uuid = str_replace('-', '', (string) Str::uuid());
+
+        $customFields = $this->setCustomFieldd($validatedData);
+
+        $productId = str_replace('-', '', (string) Str::uuid());
         $width = $request->get('productWidth');
         $height = $request->get('productHeight');
         $length = $request->get('productLength');
@@ -288,7 +306,7 @@ class ProductController extends Controller
             $visibilityId = str_replace('-', '', (string) Str::uuid()); // Generate a random ID
             $visibilities[] = [
                 'id' => $visibilityId,
-                'productId' => $uuid,
+                'productId' => $productId,
                 'salesChannelId' => $salesChannelId,
                 'visibility' => 30 // Default visibility
             ];
@@ -303,7 +321,7 @@ class ProductController extends Controller
 
         // Prepare the data for the API request
         $data = [
-            'id' => $uuid,
+            'id' => $productId,
             'name' => $validatedData['name'],
             'stock' => intval($validatedData['stock']),
             'manufacturerId' => $validatedData['manufacturer'],
@@ -330,7 +348,6 @@ class ProductController extends Controller
             ]
         ];
 
-
         try {
             // Make the API request to create the product
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
@@ -339,13 +356,14 @@ class ProductController extends Controller
                 if (isset($validatedData['media_id']) && !empty($validatedData['media_id'])) {
                     $productMediaData = [
                         'id' => $productMediaId,
-                        'productId' => $uuid,
+                        'productId' => $productId,
                         'mediaId' => $validatedData['media_id'],
                         'position' => 1,
                     ];
 
                     $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
                 }
+                $this->patchProductCustomData($productId, $customFields);
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
@@ -472,6 +490,7 @@ class ProductController extends Controller
             'priceNet' => 'required|numeric',
             'productEanNumber' => 'string',
 
+            'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
             'bolBeActive' => 'nullable|in:0,1',
@@ -487,8 +506,10 @@ class ProductController extends Controller
             'bolNLDeliveryTime' => 'nullable|string'
         ]);
 
+        $customFields = $this->setCustomFieldd($validatedData);
+
         // Generate a UUID for the new product
-        $uuid = str_replace('-', '', (string) Str::uuid());
+        $productVariantId = str_replace('-', '', (string) Str::uuid());
 
         try {
             // Step 1: Update Parent Product
@@ -507,8 +528,20 @@ class ProductController extends Controller
 
                 try {
                     $responseParent = $this->shopwareApiService->makeApiRequest('PATCH', $parentEndpoint, $parentUpdatePayload);
+                    if (isset($responseParent['error']) && !empty($responseParent['error'])) {
+                        $errors = json_decode($responseParent['error'], true);
+                        if (
+                            is_array($errors['errors']) &&
+                            $errors['errors'][0]['code'] === 'PRODUCT_CONFIGURATION_OPTION_EXISTS_ALREADY'
+                        ) {
+                            return response()->json(['errors' => "Configuratieoptie bestaat al"], 400);
+                        } else {
+                            return response()->json(['errors' => "Er is iets fout gegaan!"], 400);
+                        }
+                    }
                 } catch (\Exception $e) {
-                    return back()->withErrors(__('product.failed_to_update_product'));
+                    Log::info('Product variant creation Error ' . $e->getMessage());
+                    return response()->json(['errors' => __('product.failed_to_update_product')], 400);
                 }
             } else {
                 $responseParent['success'] = true;
@@ -532,7 +565,7 @@ class ProductController extends Controller
                 // Remove any null values from the array
                 $options = array_filter($options, fn($option) => !is_null($option['id']));
                 $data = [
-                    'id' => $uuid,
+                    'id' => $productVariantId,
                     'name' => $validatedData['name'],
                     'stock' => intval($validatedData['stock']),
                     'manufacturerId' => $validatedData['manufacturer'],
@@ -558,40 +591,17 @@ class ProductController extends Controller
                     "variantListingConfig" => [
                         "displayParent" => true
                     ],
-                    "customFields" => [
-                        "migration_DMG_product_bol_price_be" => $validatedData['bolBePrice'] ?? null,
-                        "migration_DMG_product_bol_price_nl" => $validatedData['bolNlPrice'] ?? null,
-                        "migration_DMG_product_bol_be_active" => $validatedData['bolBeActive'] ? true : false,
-                        "migration_DMG_product_bol_condition" => $validatedData['bolCondition'] ?? null,
-                        "migration_DMG_product_bol_condition_desc" => $validatedData['bolConditionDescription'] ?? null,
-                        "migration_DMG_product_bol_nl_active" => $validatedData['bolNlActive'] ? true : false,
-                        "migration_DMG_product_proposition_1" => $validatedData['bolOrderBeforeTomorrow'] ? true : false,
-                        "migration_DMG_product_proposition_2" => $validatedData['bolOrderBefore'] ? true : false,
-                        "migration_DMG_product_proposition_3" => $validatedData['bolLetterboxPackage'] ? true : false,
-                        "migration_DMG_product_proposition_4" => $validatedData['bolLetterboxPackageUp'] ? true : false,
-                        "migration_DMG_product_proposition_5" => $validatedData['bolPickUpOnly'] ? true : false,
-                        "migration_DMG_product_bol_be_delivery_code" => $validatedData['bolBEDeliveryTime'] ?? null,
-                        "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null,
-                    ]
+
                 ];
 
                 $childEndpoint = "/api/product";
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
 
                 if (isset($response['success'])) {
+                    $this->patchProductCustomData($productVariantId, $customFields);
                     return response()->json([
                         'message' => __('product.product_created_successfully')
                     ]);
-                }
-            } else if ($responseParent['error']) {
-                $errors = json_decode($responseParent['error'], true);
-                if (
-                    is_array($errors['errors']) &&
-                    $errors['errors'][0]['code'] === 'PRODUCT_CONFIGURATION_OPTION_EXISTS_ALREADY'
-                ) {
-                    return response()->json(['errors' => "Configuratieoptie bestaat al"], 400);
-                } else {
-                    return response()->json(['errors' => "Er is iets fout gegaan!"], 400);
                 }
             }
         } catch (\Exception $e) {
@@ -623,8 +633,26 @@ class ProductController extends Controller
             'bolProductThumbnail' => 'nullable|string',
             'salesChannelBol.*' => 'required|string',
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
-            'active_for_allBol' => 'nullable|boolean'
+            'active_for_allBol' => 'nullable|boolean',
+
+            'bolProductShortDescription' => 'nullable|string',
+            'bolNlPrice' => 'nullable|numeric',
+            'bolBePrice' => 'nullable|numeric',
+            'bolBeActive' => 'nullable|in:0,1',
+            'bolCondition' => 'nullable|string',
+            'bolConditionDescription' => 'nullable|string',
+            'bolNlActive' => 'nullable|in:0,1',
+            'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
+            'bolOrderBefore' => 'nullable|in:0,1',
+            'bolLetterboxPackage' => 'nullable|in:0,1',
+            'bolLetterboxPackageUp' => 'nullable|in:0,1',
+            'bolPickUpOnly' => 'nullable|in:0,1',
+            'bolBEDeliveryTime' => 'nullable|string',
+            'bolNLDeliveryTime' => 'nullable|string'
         ]);
+
+        $customFields = $this->setCustomFieldd($validatedData);
+
         $uuid = str_replace('-', '', (string) Str::uuid());
         $mediaId = str_replace('-', '', (string) Str::uuid());
         $productMediaId = str_replace('-', '', (string) Str::uuid());
@@ -721,6 +749,9 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
             if (isset($response['success'])) {
+
+                $this->patchProductCustomData($uuid, $customFields);
+
                 $productMediaData = [
                     'id' => $productMediaId,
                     'productId' => $uuid,
@@ -788,7 +819,6 @@ class ProductController extends Controller
             'shopwareResponse' => $uploadResponse,
         ]);
     }
-
 
     // to get the custome-fields data for product
     public function getCustomFieldData()
@@ -865,5 +895,39 @@ class ProductController extends Controller
                 'options' => $options
             ];
         }, $customFieldData['data'] ?? []);
+    }
+
+    public function patchProductCustomData($productVariantId, $customFields)
+    {
+        $data = [
+            'id' => $productVariantId,
+            'customFields' => $customFields
+        ];
+        $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $productVariantId, $data);
+        if (isset($response['success'])) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function setCustomFieldd($validatedData)
+    {
+        return [
+            "custom_product_message_" => $validatedData['bolProductShortDescription'] ?? null,
+            "migration_DMG_product_bol_price_be" => $validatedData['bolBePrice'] ?? null,
+            "migration_DMG_product_bol_price_nl" => $validatedData['bolNlPrice'] ?? null,
+            "migration_DMG_product_bol_be_active" => $validatedData['bolBeActive'] ? true : false,
+            "migration_DMG_product_bol_condition" => $validatedData['bolCondition'] ?? null,
+            "migration_DMG_product_bol_condition_desc" => $validatedData['bolConditionDescription'] ?? null,
+            "migration_DMG_product_bol_nl_active" => $validatedData['bolNlActive'] ? true : false,
+            "migration_DMG_product_proposition_1" => $validatedData['bolOrderBeforeTomorrow'] ? true : false,
+            "migration_DMG_product_proposition_2" => $validatedData['bolOrderBefore'] ? true : false,
+            "migration_DMG_product_proposition_3" => $validatedData['bolLetterboxPackage'] ? true : false,
+            "migration_DMG_product_proposition_4" => $validatedData['bolLetterboxPackageUp'] ? true : false,
+            "migration_DMG_product_proposition_5" => $validatedData['bolPickUpOnly'] ? true : false,
+            "migration_DMG_product_bol_be_delivery_code" => $validatedData['bolBEDeliveryTime'] ?? null,
+            "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null
+        ];
     }
 }
