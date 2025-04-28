@@ -225,7 +225,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-md-6 form-group">
                                 <input type="hidden" name="bolPickUpOnly" value="0">
                                 <label for="bolPickUpOnly"
@@ -236,6 +236,15 @@
                                         {{ old('bolPickUpOnly') ? 'checked' : '' }}>
                                 </div>
                             </div>
+                            <div class="col-md-6 form-group">
+                                <label for="binLocation">@lang('product.bin_location')</label>
+                                <select name="bin_location_id" id="binLocation" class="form-control">
+                                    @foreach ($binLocationList as $location)
+                                        <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <input type="hidden" name="warehouse" value="{{ $admin->warehouse_id }}" />
                         </div>
 
                         {{-- Hidden Fields Start --}}

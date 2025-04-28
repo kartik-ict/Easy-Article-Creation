@@ -25,7 +25,7 @@ class Admin extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'warehouse_id', 'bin_location_ids'
     ];
 
     /**
@@ -44,6 +44,7 @@ class Admin extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'bin_location_ids' => 'array'
     ];
 
     public static function getpermissionGroups()

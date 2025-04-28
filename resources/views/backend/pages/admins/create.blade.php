@@ -46,7 +46,9 @@
                 <div class="card-body">
                     <h4 class="header-title">@lang('admins.create_new_admin')</h4>
                     @include('backend.layouts.partials.messages')
-                    
+                    <div id="route-container-warehouse" data-warehouse-search="{{ route('product.warehouseSearch') }}"></div>
+                    <div id="route-container-bin-location" data-bin-location-search="{{ route('product.binLocationSearch') }}"></div>
+
                     <form action="{{ route('admin.admins.store') }}" method="POST">
                         @csrf
                         <div class="form-row d-flex flex-wrap mb-4">
@@ -85,22 +87,30 @@
                                 <input type="text" class="form-control" id="username" name="username" placeholder="@lang('admins.form.placeholder.username')" required>
                             </div>
                         </div>
+                        <div class="form-row d-flex flex-wrap mb-4">
+                            <div class="form-group col-md-6 col-sm-6 px-2">
+                                <label for="warehouse">@lang('product.warehouse')</label>
+                                <select name="warehouse" id="warehouse" class="form-control">
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6 col-sm-6 px-2">
+                                <label for="binLocation">@lang('product.bin_location')</label>
+                                <select name="bin_location[]" id="binLocation" class="form-control" multiple>
+                                </select>
+                            </div>
+                        </div>
                         <button type="submit" class="btn btn-primary mt-4 pr-4 pl-4">@lang('admins.save_admin')</button>
                     </form>
                 </div>
             </div>
         </div>
         <!-- data table end -->
-        
+
     </div>
 </div>
 @endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('.select2').select2();
-    })
-</script>
+<script src="{{ asset('backend/assets/js/bin-location.js') }}"></script>
 @endsection

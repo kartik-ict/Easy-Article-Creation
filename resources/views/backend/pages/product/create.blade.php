@@ -318,6 +318,15 @@
                                             {{ old('bolPickUpOnly') ? 'checked' : '' }}>
                                     </div>
                                 </div>
+                                <div class="col-md-6 form-group">
+                                    <label for="binLocation">@lang('product.bin_location')</label>
+                                    <select name="bin_location_id" id="binLocation" class="form-control">
+                                        @foreach ($binLocationList as $location)
+                                            <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <input type="hidden" name="warehouse" value="{{ $admin->warehouse_id }}" />
                             </div>
                             <!-- Submit Button -->
                             <div class="form-group mt-4">
@@ -542,7 +551,7 @@
                 const dropdown = $('.select2-results__options');
                 dropdown.html(
                     '<li class="select2-results__option" style="text-align: center;">Aan het laden...</li>'
-                    ); // Custom loader
+                ); // Custom loader
             });
 
             // Handle scroll for infinite loading
@@ -591,7 +600,7 @@
                                 });
 
                                 isSalesChannelEnd = (data.salesChannels.length <
-                                25); // Check if there are more results
+                                    25); // Check if there are more results
                             },
                             complete: function() {
                                 isSalesChannelLoading = false; // Reset loading flag
@@ -648,8 +657,8 @@
                                 text: category.attributes.breadcrumb ?
                                     category.attributes.breadcrumb.filter(item => !["Default",
                                         "Shop"
-                                    ].includes(item)).join(' > ') :
-                                    category.attributes.translated.name
+                                    ].includes(item)).join(' > ') : category.attributes
+                                    .translated.name
                             };
                         });
 
@@ -696,7 +705,7 @@
                     if (scrollTop + containerHeight >= scrollHeight - 10 && !
                         isEndOfResultsCategory && !isLoadingCategory) {
                         isLoadingCategory =
-                        true; // Set loading flag to true to prevent multiple requests
+                            true; // Set loading flag to true to prevent multiple requests
 
                         currentPageCategory++;
 

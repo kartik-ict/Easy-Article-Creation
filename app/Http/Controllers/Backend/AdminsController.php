@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Services\ShopwareAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,13 +13,15 @@ use Spatie\Permission\Models\Role;
 class AdminsController extends Controller
 {
     public $user;
+    private $shopwareApiService;
 
-    public function __construct()
+    public function __construct(ShopwareAuthService $shopwareApiService)
     {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::guard('admin')->user();
             return $next($request);
         });
+        $this->shopwareApiService = $shopwareApiService;
     }
 
     /**
@@ -69,6 +72,9 @@ class AdminsController extends Controller
             'email' => 'required|max:100|email|unique:admins',
             'username' => 'required|max:100|unique:admins',
             'password' => 'required|min:6|confirmed',
+            'warehouse' => 'required|string|max:100',
+            'bin_location' => 'required|array',
+            'bin_location.*' => 'string'
         ]);
 
         // Create New Admin
@@ -77,6 +83,9 @@ class AdminsController extends Controller
         $admin->username = $request->username;
         $admin->email = $request->email;
         $admin->password = Hash::make($request->password);
+        $admin->warehouse_id = $request->warehouse;
+        $admin->bin_location_ids = $request->bin_location;
+
         $admin->save();
 
         if ($request->roles) {
@@ -130,6 +139,9 @@ class AdminsController extends Controller
             'name' => 'required|max:50',
             'email' => 'required|max:100|email|unique:admins,email,' . $id,
             'password' => 'nullable|min:6|confirmed',
+            'warehouse' => 'required|string|max:100',
+            'bin_location' => 'required|array',
+            'bin_location_ids.*' => 'string'
         ]);
 
         $admin = Admin::find($id);
@@ -139,6 +151,8 @@ class AdminsController extends Controller
         if ($request->password) {
             $admin->password = Hash::make($request->password);
         }
+        $admin->warehouse_id = $request->warehouse;
+        $admin->bin_location_ids = $request->bin_location;
         $admin->save();
 
         $admin->roles()->detach();
@@ -150,8 +164,8 @@ class AdminsController extends Controller
 
         return redirect()->route('admin.admins.index');
     }
-    
-    
+
+
     /**
      * Display the specified resource.
      *

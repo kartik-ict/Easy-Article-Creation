@@ -35,9 +35,21 @@ class ProductController extends Controller
         $this->client = new Client();
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('backend.pages.product.index');
+        $admin = $request->user();
+
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', [
+            'filter' => [
+                [
+                    'type' => 'equalsAny',
+                    'field' => 'id',
+                    'value' => $admin->bin_location_ids
+                ]
+            ],
+        ]);
+        $binLocationList = $response['data'];
+        return view('backend.pages.product.index', compact('admin', 'binLocationList'));
     }
 
     public function search(Request $request)
@@ -169,11 +181,23 @@ class ProductController extends Controller
         }
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $customFields = $this->getCustomFieldData();
         $customFields = array_combine(array_column($customFields, 'name'), $customFields);
-        return view('backend.pages.product.create', compact('customFields'));
+        $admin = $request->user();
+
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', [
+            'filter' => [
+                [
+                    'type' => 'equalsAny',
+                    'field' => 'id',
+                    'value' => $admin->bin_location_ids
+                ]
+            ],
+        ]);
+        $binLocationList = $response['data'];
+        return view('backend.pages.product.create', compact('customFields', 'admin', 'binLocationList'));
     }
 
     public function manufacturerSearch(Request $request)
@@ -289,7 +313,8 @@ class ProductController extends Controller
             'bolLetterboxPackageUp' => 'nullable|in:0,1',
             'bolPickUpOnly' => 'nullable|in:0,1',
             'bolBEDeliveryTime' => 'nullable|string',
-            'bolNLDeliveryTime' => 'nullable|string'
+            'bolNLDeliveryTime' => 'nullable|string',
+            'bin_location_id' => 'required|string',
         ]);
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -363,7 +388,16 @@ class ProductController extends Controller
 
                     $this->shopwareApiService->makeApiRequest('POST', '/api/product-media', $productMediaData);
                 }
+
+                // set custom fields data for created product
                 $this->patchProductCustomData($productId, $customFields);
+
+                // set stock to bin location
+                $stockData = [
+                    'product_id' => $productId,
+                    'stock' => intval($validatedData['stock'])
+                ];
+                $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
@@ -503,7 +537,9 @@ class ProductController extends Controller
             'bolLetterboxPackageUp' => 'nullable|in:0,1',
             'bolPickUpOnly' => 'nullable|in:0,1',
             'bolBEDeliveryTime' => 'nullable|string',
-            'bolNLDeliveryTime' => 'nullable|string'
+            'bolNLDeliveryTime' => 'nullable|string',
+            'bin_location_id' => 'required|string',
+
         ]);
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -598,14 +634,26 @@ class ProductController extends Controller
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
 
                 if (isset($response['success'])) {
+                    // set custom fields data for created product
                     $this->patchProductCustomData($productVariantId, $customFields);
+
+                    // set stock to bin location
+                    $stockData = [
+                        'product_id' => $productVariantId,
+                        'stock' => intval($validatedData['stock'])
+                    ];
+                    $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
                     return response()->json([
                         'message' => __('product.product_created_successfully')
                     ]);
                 }
+            } else {
+                Log::error('Product variant creation Error: ' . json_encode($responseParent));
+                return response()->json(['errors' => __('product.failed_to_update_product')], 400);
             }
         } catch (\Exception $e) {
             dd($e->getMessage());
+            return response()->json(['errors' => "Er is iets fout gegaan!"], 400);
         }
     }
 
@@ -648,7 +696,8 @@ class ProductController extends Controller
             'bolLetterboxPackageUp' => 'nullable|in:0,1',
             'bolPickUpOnly' => 'nullable|in:0,1',
             'bolBEDeliveryTime' => 'nullable|string',
-            'bolNLDeliveryTime' => 'nullable|string'
+            'bolNLDeliveryTime' => 'nullable|string',
+            'bin_location_id' => 'required|string',
         ]);
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -750,7 +799,15 @@ class ProductController extends Controller
 
             if (isset($response['success'])) {
 
+                // set custom fields data for created product
                 $this->patchProductCustomData($uuid, $customFields);
+
+                // set stock to bin location
+                $stockData = [
+                    'product_id' => $uuid,
+                    'stock' => intval($validatedData['stock'])
+                ];
+                $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
 
                 $productMediaData = [
                     'id' => $productMediaId,
@@ -929,5 +986,97 @@ class ProductController extends Controller
             "migration_DMG_product_bol_be_delivery_code" => $validatedData['bolBEDeliveryTime'] ?? null,
             "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null
         ];
+    }
+
+
+    public function warehouseSearch(Request $request)
+    {
+        $data = [
+            'page' => $request->get('page', 1),
+            'limit' => 25,             // You can adjust this limit if needed
+            'term' => $request->get('term', ''),
+            'total-count-mode' => 1    // Flag to include the total count in the response
+        ];
+
+        // Make the API request using the shopwareApiService
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-warehouse', $data);
+
+
+        return response()->json([
+            'warehouses' => $response['data'] ?? [], // category data
+            'total' => $response['meta']['total'] ?? 0,          // Total category available
+        ]);
+    }
+
+    public function binLocationSearch(Request $request)
+    {
+        $data = [
+            'page' => $request->get('page', 1),
+            'limit' => 25,             // You can adjust this limit if needed
+            'term' => $request->get('term', ''),
+            'associations' => [
+                'warehouse' => [
+                    'total-count-mode' => 1
+                ]
+            ],
+            'total-count-mode' => 1    // Flag to include the total count in the response
+        ];
+
+        if ($request->get('warehouseId')) {
+            $data['filter'] = [
+                [
+                    'type' => 'equals',
+                    'field' => 'warehouse.id',
+                    'value' => $request->get('warehouseId')
+                ]
+            ];
+        }
+
+        // Make the API request using the shopwareApiService
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', $data);
+
+
+        return response()->json([
+            'binLocations' => $response['data'] ?? [], // category data
+            'total' => $response['meta']['total'] ?? 0,          // Total category available
+        ]);
+    }
+
+    public function setBinLocationStock($productData, $binLocationId)
+    {
+        // Source can be one of:
+        // "unknown" - Stock from unknown source
+        // "supplier" - Stock received from supplier
+        // "return" - Stock returned by customer
+        // "correction" - Manual stock correction
+        // "production" - Stock from production
+        // Create stock movement payload for Pickware ERP
+        $data = [
+            [
+                "id" => str_replace('-', '', (string) Str::uuid()),
+                "productId" => $productData['product_id'],
+                "quantity" => $productData['stock'],
+                "source" => "unknown",
+                "comment" => "",
+                "destination" => [
+                    "binLocation" => [
+                        "id" => $binLocationId
+                    ]
+                ]
+            ]
+        ];
+
+        try {
+            // Make API request to create stock movement in Pickware
+            $response = $this->shopwareApiService->makeApiRequest(
+                'POST',
+                '/api/_action/pickware-erp/stock/move',
+                $data
+            );
+
+            return isset($response['success']);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

@@ -76,6 +76,9 @@ class ShopwareAuthService
                     ],
                     'json' => $data,
                 ]);
+                if ($response->getStatusCode() === 201) {
+                    return ['success' => true];
+                }
 
                 if ($response->getStatusCode() === 204) {
                     return ['success' => true];
