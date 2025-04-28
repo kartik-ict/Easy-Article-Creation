@@ -152,6 +152,22 @@
         let allProductData = [];
         let apiResponse = [];
         let bolApiResponse = []
+        const fieldMapping = {
+            "migration_DMG_product_bol_nl_active": "bolNlActive",
+            "migration_DMG_product_bol_be_active": "bolBeActive",
+            "migration_DMG_product_bol_price_nl": "bolNlPrice",
+            "migration_DMG_product_bol_price_be": "bolBePrice",
+            "migration_DMG_product_bol_nl_delivery_code": "bolNLDeliveryTime",
+            "migration_DMG_product_bol_be_delivery_code": "bolBEDeliveryTime",
+            "migration_DMG_product_bol_condition": "bolCondition",
+            "migration_DMG_product_bol_condition_desc": "bolConditionDescription",
+            "migration_DMG_product_proposition_1": "bolOrderBeforeTomorrow",
+            "migration_DMG_product_proposition_2": "bolOrderBefore",
+            "migration_DMG_product_proposition_3": "bolLetterboxPackage",
+            "migration_DMG_product_proposition_4": "bolLetterboxPackageUp",
+            "migration_DMG_product_proposition_5": "bolPickUpOnly"
+        };
+        let customFieldData = [];
         $(document).ready(function() {
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
@@ -184,7 +200,6 @@
                         _token: "{{ csrf_token() }}"
                     },
                     success: function(response) {
-
                         if (response.product.bol === true) {
                             $('#step2').show();
                             bolApiResponse = response;
@@ -241,6 +256,8 @@
                             // steps 3 show start
                             $('#yesStepDetails').show();
                             $("#propertyGroupSection").hide();
+
+
                             if (response.product) {
                                 allProductData = response.product;
                                 apiResponse = response;
@@ -286,26 +303,26 @@
                                     // Handling product attributes like options (property group)
                                     if (product.attributes?.optionIds?.length) {
                                         product.attributes.optionIds.forEach(
-                                        optionId => {
+                                            optionId => {
 
-                                            // Find matching property group options from the included data
-                                            const matchingOption =
-                                                allProductData.included.find(
-                                                    data => {
-                                                        return data.id ===
-                                                            optionId && data
-                                                            .type ===
-                                                            "property_group_option";
-                                                    });
+                                                // Find matching property group options from the included data
+                                                const matchingOption =
+                                                    allProductData.included.find(
+                                                        data => {
+                                                            return data.id ===
+                                                                optionId && data
+                                                                .type ===
+                                                                "property_group_option";
+                                                        });
 
-                                            if (matchingOption && matchingOption
-                                                .attributes?.name) {
-                                                propertyGroupNames +=
-                                                    `${matchingOption.attributes.name}<br>`;
-                                            } else {
-                                                propertyGroupNames += 'N/A<br>';
-                                            }
-                                        });
+                                                if (matchingOption && matchingOption
+                                                    .attributes?.name) {
+                                                    propertyGroupNames +=
+                                                        `${matchingOption.attributes.name}<br>`;
+                                                } else {
+                                                    propertyGroupNames += 'N/A<br>';
+                                                }
+                                            });
                                     }
 
                                     if (propertyGroupNames == '') {
@@ -333,12 +350,19 @@
                             $('#backBolBtn').hide();
                             $('#nextBolBtn').hide();
                         }
+                        if (response.product.custom_fields) {
+                            customFieldData = response.product.custom_fields;
+                            setCustomFieldData(response.product.custom_fields);
+                        }
                     },
-                    error: function() {
+                    error: function(xhr) {
                         $('#step2').show();
                         $('#productDetails, #step3productDetails').html(
                             '<p class="text-danger">{{ __('product.error_notfound') }}</p><p class="text-success">{{ __('product.create_product_message') }}</p><a href="{{ route('product.create') }}" class="btn btn-xs btn-success">{{ __('product.create_product') }}</a>'
                         );
+                        if (xhr.responseJSON && xhr.responseJSON.custom_fields) {
+                            setCustomFieldData(xhr.responseJSON.custom_fields);
+                        }
                         // $('#nextBtn').hide();
                         // $('#backBtn').show();
                         $('#full-page-preloader').hide();
@@ -527,7 +551,8 @@
                 $('#full-page-preloader').show();
                 const row = $(this).closest('tr'); // Get the clicked row
                 const productId = $(this).data('product-id'); // Get the product ID from the clicked button
-                const currentStock = row.find('.current-stock').text(); // Get the current stock value from the clicked row
+                const currentStock = row.find('.current-stock')
+                    .text(); // Get the current stock value from the clicked row
                 const newStockInput = row.find('.new-stock'); // Get the new stock input for this row
 
                 const newStock = newStockInput.val(); // Get the new stock value from input
@@ -677,10 +702,73 @@
             });
             // clear step3 all selection:
             function clearPropertyGroupSelections() {
-                $('#propertyGroupSection select').each(function () {
+                $('#propertyGroupSection select').each(function() {
                     $(this).val(null).trigger('change'); // trigger change for Select2 or other JS listeners
                 });
             }
+
+            // Function to set label text
+            function setCustomFieldLabels(customData, fieldMapping) {
+                customData.forEach(item => {
+                    const className = fieldMapping[item.name];
+                    if (className) {
+                        $('.' + className).text(item.label);
+                    }
+                });
+            }
+
+            // Function to set select options and initialize select2
+            function setCustomFieldSelects(customData, fieldMapping) {
+                customData.forEach(item => {
+                    const className = fieldMapping[item.name];
+                    if (className && item.is_select_type && Array.isArray(item.options)) {
+                        const selectClass = '.' + className + 'Select';
+                        const $select = $(selectClass);
+
+                        if ($select.length) {
+                            $select.each(function() {
+                                const $currentSelect = $(this);
+                                $currentSelect.empty();
+
+                                item.options.forEach(opt => {
+                                    $currentSelect.append(
+                                        `<option value="${opt.value}">${opt.label}</option>`
+                                        );
+                                });
+
+                                $currentSelect.select2({
+                                    placeholder: item.label,
+                                    minimumInputLength: 0,
+                                    allowClear: true,
+                                    multiple: false,
+                                    language: {
+                                        searching: function() {
+                                            return "Zoeken, even geduld...";
+                                        },
+                                        loadingMore: function() {
+                                            return "Meer resultaten laden...";
+                                        },
+                                        noResults: function() {
+                                            return "Geen resultaten gevonden.";
+                                        }
+                                    }
+                                });
+
+                                $currentSelect.val('').trigger('change');
+                                $currentSelect.trigger("select2:close");
+                            });
+                        }
+                    }
+                });
+            }
+
+            function setCustomFieldData(customData) {
+                setCustomFieldLabels(customData, fieldMapping);
+                setCustomFieldSelects(customData, fieldMapping);
+            }
+            $('#productEditModal').on('shown.bs.modal', function() {
+                setCustomFieldData(customFieldData);
+            });
         });
     </script>
     <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
