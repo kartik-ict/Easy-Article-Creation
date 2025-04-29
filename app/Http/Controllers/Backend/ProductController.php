@@ -39,15 +39,19 @@ class ProductController extends Controller
     {
         $admin = $request->user();
 
-        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', [
-            'filter' => [
-                [
-                    'type' => 'equalsAny',
-                    'field' => 'id',
-                    'value' => $admin->bin_location_ids
+        $filter = [];
+        if (!empty($admin->bin_location_ids)) {
+            $filter = [
+                'filter' => [
+                    [
+                        'type' => 'equalsAny',
+                        'field' => 'id',
+                        'value' => $admin->bin_location_ids
+                    ]
                 ]
-            ],
-        ]);
+            ];
+        }
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', $filter);
         $binLocationList = $response['data'];
         return view('backend.pages.product.index', compact('admin', 'binLocationList'));
     }
@@ -187,15 +191,19 @@ class ProductController extends Controller
         $customFields = array_combine(array_column($customFields, 'name'), $customFields);
         $admin = $request->user();
 
-        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', [
-            'filter' => [
-                [
-                    'type' => 'equalsAny',
-                    'field' => 'id',
-                    'value' => $admin->bin_location_ids
+        $filter = [];
+        if (!empty($admin->bin_location_ids)) {
+            $filter = [
+                'filter' => [
+                    [
+                        'type' => 'equalsAny',
+                        'field' => 'id',
+                        'value' => $admin->bin_location_ids
+                    ]
                 ]
-            ],
-        ]);
+            ];
+        }
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', $filter);
         $binLocationList = $response['data'];
         return view('backend.pages.product.create', compact('customFields', 'admin', 'binLocationList'));
     }
@@ -348,7 +356,7 @@ class ProductController extends Controller
         $data = [
             'id' => $productId,
             'name' => $validatedData['name'],
-            'stock' => intval($validatedData['stock']),
+            'stock' => 0,
             'manufacturerId' => $validatedData['manufacturer'],
             'taxId' => $validatedData['taxId'],
             'productNumber' => $validatedData['productNumber'],
@@ -546,7 +554,6 @@ class ProductController extends Controller
 
         // Generate a UUID for the new product
         $productVariantId = str_replace('-', '', (string) Str::uuid());
-
         try {
             // Step 1: Update Parent Product
             $optionIds = explode(',', $request->get('propertyOptionIdAll'));
@@ -603,7 +610,7 @@ class ProductController extends Controller
                 $data = [
                     'id' => $productVariantId,
                     'name' => $validatedData['name'],
-                    'stock' => intval($validatedData['stock']),
+                    'stock' => 0,
                     'manufacturerId' => $validatedData['manufacturer'],
                     'taxId' => $validatedData['taxId'],
                     'parentId' => $validatedData['parentId'],
@@ -646,6 +653,9 @@ class ProductController extends Controller
                     return response()->json([
                         'message' => __('product.product_created_successfully')
                     ]);
+                } else {
+                    Log::error('Product variant creation Error: ' . json_encode($response));
+                    return response()->json(['errors' => __('product.failed_to_update_product')], 400);
                 }
             } else {
                 Log::error('Product variant creation Error: ' . json_encode($responseParent));
@@ -679,6 +689,8 @@ class ProductController extends Controller
             'bolProductListPriceGross' => 'string',
             'bolProductListPriceNet' => 'string',
             'bolProductThumbnail' => 'nullable|string',
+            'salesChannelBol' => 'required|array',
+            'salesChannelBol.*' => 'required|string',
             'salesChannelBol.*' => 'required|string',
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'active_for_allBol' => 'nullable|boolean',
@@ -768,7 +780,7 @@ class ProductController extends Controller
             'description' => $validatedData['bolProductDescription'],
             'ean' => $validatedData['bolProductEanNumber'],
             'categories' => array_map(fn($categoryId) => ['id' => trim($categoryId)], explode(',', $validatedData['bolProductCategoriesId'])), // Fix here
-            'stock' => (int)$validatedData['bolStock'],
+            // 'stock' => (int)$validatedData['bolStock'],
             'weight' => $weight,
             'width' => $width,
             'height' => $height,
@@ -805,7 +817,7 @@ class ProductController extends Controller
                 // set stock to bin location
                 $stockData = [
                     'product_id' => $uuid,
-                    'stock' => intval($validatedData['stock'])
+                    'stock' => intval($validatedData['bolStock'])
                 ];
                 $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
 

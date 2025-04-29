@@ -240,7 +240,7 @@
             <input type="hidden" name="bolPackagingWeight" id="bolPackagingWeight" class="form-control" required>
         </form>
     </div>
-    <div class="col-md-12">
+    <div class="col-md-12 mt-5">
         <div class="d-flex justify-content-between">
             <div>
                 <button type="button" id="backBolBtnsetp3"
