@@ -25,12 +25,14 @@ return [
         'confirm_password' => 'Confirm Password',
         'username' => 'Admin Username',
         'assign_roles' => 'Assign Roles',
+        'ip_address' => 'IP Address',
         'placeholder' => [
             'name' => 'Enter Name',
             'email' => 'Enter Email',
             'password' => 'Enter Password',
             'confirm_password' => 'Enter Password',
             'username' => 'Enter Username',
+            'ip_address' => 'Enter allowed IP address'
         ],
     ],
     'save_admin' => 'Save Admin',

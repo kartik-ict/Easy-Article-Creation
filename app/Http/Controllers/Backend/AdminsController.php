@@ -69,6 +69,7 @@ class AdminsController extends Controller
             'email' => 'required|max:100|email|unique:admins',
             'username' => 'required|max:100|unique:admins',
             'password' => 'required|min:6|confirmed',
+            'ip_address' => 'nullable|ip',
         ]);
 
         // Create New Admin
@@ -77,6 +78,7 @@ class AdminsController extends Controller
         $admin->username = $request->username;
         $admin->email = $request->email;
         $admin->password = Hash::make($request->password);
+        $admin->ip_address = $request->ip_address;
         $admin->save();
 
         if ($request->roles) {

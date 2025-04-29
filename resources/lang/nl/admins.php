@@ -26,12 +26,14 @@ return [
         'confirm_password' => 'Bevestig Wachtwoord',
         'username' => 'Gebruikersnaam Beheerder',
         'assign_roles' => 'Rollen Toewijzen',
+        'ip_address' => 'IP-adres',
         'placeholder' => [
             'name' => 'Voer Naam In',
             'email' => 'Voer E-mail In',
             'password' => 'Voer Wachtwoord In',
             'confirm_password' => 'Voer Wachtwoord In',
             'username' => 'Voer Gebruikersnaam In',
+            'ip_address' => 'Toegestaan IP-adres invoeren'
         ],
     ],
     'save_admin' => 'Beheerder Opslaan',
