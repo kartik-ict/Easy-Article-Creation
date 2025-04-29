@@ -25,12 +25,14 @@ return [
         'confirm_password' => 'Confirm Password',
         'username' => 'Admin Username',
         'assign_roles' => 'Assign Roles',
+        'ip_address' => 'IP Address',
         'placeholder' => [
             'name' => 'Enter Name',
             'email' => 'Enter Email',
             'password' => 'Enter Password',
             'confirm_password' => 'Enter Password',
             'username' => 'Enter Username',
+            'ip_address' => 'Enter allowed IP address'
         ],
     ],
     'save_admin' => 'Save Admin',
@@ -47,5 +49,5 @@ return [
     'unauthorized_create_admin' => 'You are not authorized to create a new admin.',
     'unauthorized_edit_admin' => 'You are not authorized to edit this admin.',
     'unauthorized_delete_admin' => 'You are not authorized to delete this admin.',
-
+    'unauthorized_ip_address' => 'You can only login from your registered IP address',
 ];
