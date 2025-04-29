@@ -69,7 +69,7 @@ class AdminsController extends Controller
             'email' => 'required|max:100|email|unique:admins',
             'username' => 'required|max:100|unique:admins',
             'password' => 'required|min:6|confirmed',
-            'ip_address' => 'nullable|ip',
+            'ip_address' => 'required|ip',
         ]);
 
         // Create New Admin
@@ -132,6 +132,7 @@ class AdminsController extends Controller
             'name' => 'required|max:50',
             'email' => 'required|max:100|email|unique:admins,email,' . $id,
             'password' => 'nullable|min:6|confirmed',
+            'ip_address' => 'required|ip',
         ]);
 
         $admin = Admin::find($id);
@@ -141,6 +142,7 @@ class AdminsController extends Controller
         if ($request->password) {
             $admin->password = Hash::make($request->password);
         }
+        $admin->ip_address = $request->ip_address;
         $admin->save();
 
         $admin->roles()->detach();
@@ -152,8 +154,8 @@ class AdminsController extends Controller
 
         return redirect()->route('admin.admins.index');
     }
-    
-    
+
+
     /**
      * Display the specified resource.
      *

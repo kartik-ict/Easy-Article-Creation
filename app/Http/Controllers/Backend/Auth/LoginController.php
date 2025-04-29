@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -64,6 +65,16 @@ class LoginController extends Controller
             throw ValidationException::withMessages([
                 'email' => [__('auth.throttle', ['seconds' => $seconds])],
             ]);
+        }
+
+        // Get admin by email
+        $admin = Admin::where('email', $request->email)
+            ->orWhere('username', $request->email)
+            ->first();
+        // Check if admin exists and IP matches (skip for superadmin)
+        if ($admin && !$admin->hasRole('superadmin') && $admin->ip_address != $request->ip()) {
+            session()->flash('error', __('admins.unauthorized_ip_address'));
+            return back();
         }
 
         // Attempt to login using email

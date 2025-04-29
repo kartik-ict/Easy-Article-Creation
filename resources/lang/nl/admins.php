@@ -50,6 +50,7 @@ return [
     'unauthorized_create_admin' => 'Je bent niet bevoegd om een nieuwe beheerder aan te maken.',
     'unauthorized_edit_admin' => 'Je bent niet bevoegd om deze beheerder te bewerken.',
     'unauthorized_delete_admin' => 'Je bent niet bevoegd om deze beheerder te verwijderen.',
+    'unauthorized_ip_address' => 'U kunt alleen inloggen vanaf uw geregistreerde IP-adres',
 
 
 ];

@@ -49,5 +49,5 @@ return [
     'unauthorized_create_admin' => 'You are not authorized to create a new admin.',
     'unauthorized_edit_admin' => 'You are not authorized to edit this admin.',
     'unauthorized_delete_admin' => 'You are not authorized to delete this admin.',
-
+    'unauthorized_ip_address' => 'You can only login from your registered IP address',
 ];

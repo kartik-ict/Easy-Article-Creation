@@ -46,7 +46,7 @@
                 <div class="card-body">
                     <h4 class="header-title">@lang('admins.create_new_admin')</h4>
                     @include('backend.layouts.partials.messages')
-                    
+
                     <form action="{{ route('admin.admins.store') }}" method="POST">
                         @csrf
                         <div class="form-row d-flex flex-wrap mb-4">
@@ -102,7 +102,7 @@
             </div>
         </div>
         <!-- data table end -->
-        
+
     </div>
 </div>
 @endsection
@@ -112,6 +112,10 @@
 <script>
     $(document).ready(function() {
         $('.select2').select2();
+        $('#ip_address').on('input', function () {
+            // Replace any character that is not a digit or dot
+            this.value = this.value.replace(/[^0-9.]/g, '');
+        });
     })
 </script>
 @endsection
