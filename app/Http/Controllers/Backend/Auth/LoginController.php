@@ -8,6 +8,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -73,7 +74,8 @@ class LoginController extends Controller
             ->first();
         // Check if admin exists and IP matches (skip for superadmin)
         if ($admin && !$admin->hasRole('superadmin') && $admin->ip_address != $request->ip()) {
-            session()->flash('error', __('admins.unauthorized_ip_address'));
+            Log::info("Client IP detected: " . $request->getClientIp() . "\trequest ip:" . $request->ip());
+            session()->flash('error', __('admins.unauthorized_ip_address') . " (".$request->ip().")");
             return back();
         }
 
