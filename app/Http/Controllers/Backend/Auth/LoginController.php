@@ -74,8 +74,7 @@ class LoginController extends Controller
             ->first();
         // Check if admin exists and IP matches (skip for superadmin)
         if ($admin && !$admin->hasRole('superadmin') && $admin->ip_address != $request->ip()) {
-            Log::info("Client IP detected: " . $request->getClientIp() . "\trequest ip:" . $request->ip());
-            session()->flash('error', __('admins.unauthorized_ip_address') . " (".$request->ip().")");
+            session()->flash('error', __('admins.unauthorized_ip_address'));
             return back();
         }
 
