@@ -1465,7 +1465,7 @@ $('#addPropertyOptionBtn').on('click', function () {
 
         allProductData.productData.forEach(product => {
             $('#name').val(product.attributes.translated.name);
-            $('#description').val(product.attributes.translated.description);
+            ckEditors['description'].setData(product.attributes.translated.description);
             $('#stock').val(product.attributes.stock || 1);
             $('#productEanNumber').val(product.attributes.ean);
             $('#productNumber').val(product.attributes.ean);
