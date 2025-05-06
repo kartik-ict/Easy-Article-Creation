@@ -54,37 +54,37 @@
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
                                 <label for="name">@lang('admins.form.name')</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="@lang('admins.form.placeholder.name')">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="@lang('admins.form.placeholder.name')" value="{{ old('name') }}" >
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
                                 <label for="email">@lang('admins.form.email')</label>
-                                <input type="text" class="form-control" id="email" name="email" placeholder="@lang('admins.form.placeholder.email')">
+                                <input type="text" class="form-control" id="email" name="email" placeholder="@lang('admins.form.placeholder.email')" value="{{ old('email') }}" >
                             </div>
                         </div>
 
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-12 px-2">
                                 <label for="password">@lang('admins.form.password')</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="@lang('admins.form.placeholder.password')">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="@lang('admins.form.placeholder.password')" value="{{ old('password') }}" >
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
                             <label for="password_confirmation">@lang('admins.form.confirm_password')</label>
-                                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="@lang('admins.form.placeholder.confirm_password')">
+                                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="@lang('admins.form.placeholder.confirm_password')" value="{{ old('password_confirmation') }}" >
                             </div>
                         </div>
 
                         <div class="form-row d-flex flex-wrap mb-4">
                             <div class="form-group col-md-6 col-sm-6 px-2">
                                 <label for="roles">@lang('admins.form.assign_roles')</label>
-                                <select name="roles[]" id="roles" class="form-control select2">
+                                <select name="roles[]" id="roles" class="form-control select2" >
                                     @foreach ($roles as $role)
-                                        <option value="{{ $role->name }}">{{ $role->name }}</option>
+                                        <option value="{{ $role->name }}" {{ in_array($role->name, old('roles', [])) ? 'selected' : '' }}>{{ $role->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="form-group col-md-6 col-sm-6 px-2">
                                 <label for="username">@lang('admins.form.username')</label>
-                                <input type="text" class="form-control" id="username" name="username" placeholder="@lang('admins.form.placeholder.username')" required>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="@lang('admins.form.placeholder.username')" value="{{ old('username') }}" required>
                             </div>
                         </div>
                         <div class="form-row d-flex flex-wrap mb-4">
@@ -98,6 +98,14 @@
                                 <select name="bin_location[]" id="binLocation" class="form-control" multiple>
                                 </select>
                             </div>
+                        <div class="form-group col-md-6 col-sm-6 px-2">
+                            <label for="ip_address">@lang('admins.form.ip_address')</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="ip_address"
+                                   name="ip_address"
+                                   value="{{ old('ip_address', $admin->ip_address ?? '') }}"
+                                   placeholder="@lang('admins.form.placeholder.ip_address')">
                         </div>
                         <button type="submit" class="btn btn-primary mt-4 pr-4 pl-4">@lang('admins.save_admin')</button>
                     </form>

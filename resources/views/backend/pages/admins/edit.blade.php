@@ -98,6 +98,14 @@
                                 <select name="bin_location[]" id="binLocation" class="form-control" multiple>
                                 </select>
                             </div>
+                        <div class="form-group col-md-6 col-sm-6 px-2">
+                            <label for="ip_address">@lang('admins.form.ip_address')</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="ip_address"
+                                   name="ip_address"
+                                   value="{{ old('ip_address', $admin->ip_address ?? '') }}"
+                                   placeholder="@lang('admins.form.placeholder.ip_address')">
                         </div>
                         <button type="submit" class="btn btn-primary mt-4 pr-4 pl-4">{{ __('admins.save_admin') }}</button>
                     </form>

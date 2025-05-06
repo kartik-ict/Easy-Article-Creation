@@ -1,4 +1,9 @@
 jQuery(function () {
+    $('.select2').select2();
+    $('#ip_address').on('input', function () {
+        // Replace any character that is not a digit or dot
+        this.value = this.value.replace(/[^0-9.]/g, '');
+    });
     // ------------------------------------------------  Warehouse Selection -------------------------------------------
 
     const wareHouseSearchUrl = $("#route-container-warehouse").data(

@@ -26,12 +26,14 @@ return [
         'confirm_password' => 'Bevestig Wachtwoord',
         'username' => 'Gebruikersnaam Beheerder',
         'assign_roles' => 'Rollen Toewijzen',
+        'ip_address' => 'IP-adres',
         'placeholder' => [
             'name' => 'Voer Naam In',
             'email' => 'Voer E-mail In',
             'password' => 'Voer Wachtwoord In',
             'confirm_password' => 'Voer Wachtwoord In',
             'username' => 'Voer Gebruikersnaam In',
+            'ip_address' => 'Toegestaan IP-adres invoeren'
         ],
     ],
     'save_admin' => 'Beheerder Opslaan',
@@ -48,6 +50,7 @@ return [
     'unauthorized_create_admin' => 'Je bent niet bevoegd om een nieuwe beheerder aan te maken.',
     'unauthorized_edit_admin' => 'Je bent niet bevoegd om deze beheerder te bewerken.',
     'unauthorized_delete_admin' => 'Je bent niet bevoegd om deze beheerder te verwijderen.',
+    'unauthorized_ip_address' => 'U kunt alleen inloggen vanaf uw geregistreerde IP-adres',
 
 
 ];

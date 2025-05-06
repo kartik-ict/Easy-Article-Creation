@@ -74,7 +74,8 @@ class AdminsController extends Controller
             'password' => 'required|min:6|confirmed',
             'warehouse' => 'required|string|max:100',
             'bin_location' => 'required|array',
-            'bin_location.*' => 'string'
+            'bin_location.*' => 'string',
+            'ip_address' => 'required|ip',
         ]);
 
         // Create New Admin
@@ -86,6 +87,7 @@ class AdminsController extends Controller
         $admin->warehouse_id = $request->warehouse;
         $admin->bin_location_ids = $request->bin_location;
 
+        $admin->ip_address = $request->ip_address;
         $admin->save();
 
         if ($request->roles) {
@@ -141,7 +143,8 @@ class AdminsController extends Controller
             'password' => 'nullable|min:6|confirmed',
             'warehouse' => 'required|string|max:100',
             'bin_location' => 'required|array',
-            'bin_location_ids.*' => 'string'
+            'bin_location_ids.*' => 'string',
+            'ip_address' => 'required|ip',
         ]);
 
         $admin = Admin::find($id);
@@ -153,6 +156,7 @@ class AdminsController extends Controller
         }
         $admin->warehouse_id = $request->warehouse;
         $admin->bin_location_ids = $request->bin_location;
+        $admin->ip_address = $request->ip_address;
         $admin->save();
 
         $admin->roles()->detach();
