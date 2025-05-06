@@ -780,7 +780,7 @@ class ProductController extends Controller
             'description' => $validatedData['bolProductDescription'],
             'ean' => $validatedData['bolProductEanNumber'],
             'categories' => array_map(fn($categoryId) => ['id' => trim($categoryId)], explode(',', $validatedData['bolProductCategoriesId'])), // Fix here
-            // 'stock' => (int)$validatedData['bolStock'],
+            'stock' => 0,
             'weight' => $weight,
             'width' => $width,
             'height' => $height,
@@ -817,7 +817,7 @@ class ProductController extends Controller
                 // set stock to bin location
                 $stockData = [
                     'product_id' => $uuid,
-                    'stock' => intval($validatedData['bolStock'])
+                    'stock' => (int)$validatedData['bolStock']
                 ];
                 $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
 
