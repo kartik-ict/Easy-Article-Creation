@@ -131,4 +131,6 @@ return [
     'selectCategoryAlertError'                  => 'Select a category or manufacturer.',
     'failed_to_update_product'                  => 'Failed to update product.',
     'product_marketplace_information'           => 'Product Marketplace Information',
+    'warehouse'                                 => 'Warehouse',
+    'bin_location'                              => 'Bin Locations',
 ];

@@ -119,5 +119,9 @@ Route::group(['prefix' => 'admin'], function () {
 
         Route::get('/product/get-custom-fields', [ProductController::class, 'getCustomFieldData'])->name('product.getCustomFieldData')->middleware('can:product.create');
 
+        Route::post('/warehouse', [ProductController::class, 'warehouseSearch'])->name('product.warehouseSearch')->middleware('can:product.create');
+        Route::post('/bin-location', [ProductController::class, 'binLocationSearch'])->name('product.binLocationSearch')->middleware('can:product.create');
+
+
     });
 });

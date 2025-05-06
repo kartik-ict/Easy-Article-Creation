@@ -545,9 +545,9 @@ $('#saveBolProductData').on('click', function (e) {
                 alert(window.selectGradeAlert);
             }
         },
-        error: function (error) {
+        error: function (xhr) {
             $('#full-page-preloader').hide();
-            alert(window.selectGradeAlertError);
+            alert(xhr.responseJSON.message ?? window.selectGradeAlertError);
             // Handle error (e.g., show an error message)
             // alert('An error occurred while saving the product variant.');
         }

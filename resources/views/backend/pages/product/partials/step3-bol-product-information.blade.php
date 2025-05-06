@@ -222,7 +222,17 @@
                             style="width: 200px">
                     </div>
                 </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="binLocation">@lang('product.bin_location')</label>
+                    <select name="bin_location_id" id="binLocation" class="form-control">
+                        @foreach ($binLocationList as $location)
+                            <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
+            <input type="hidden" name="warehouse" value="{{ $admin->warehouse_id }}" />
             <input type="hidden" class="form-control" id="bolProductEanNumber" name="bolProductEanNumber" required>
             <input type="hidden" name="bolPackagingWidth" id="bolPackagingWidth" class="form-control" required>
             <input type="hidden" name="bolPackagingHeight" id="bolPackagingHeight" class="form-control" required>
@@ -230,7 +240,7 @@
             <input type="hidden" name="bolPackagingWeight" id="bolPackagingWeight" class="form-control" required>
         </form>
     </div>
-    <div class="col-md-12">
+    <div class="col-md-12 mt-5">
         <div class="d-flex justify-content-between">
             <div>
                 <button type="button" id="backBolBtnsetp3"

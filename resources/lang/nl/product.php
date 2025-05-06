@@ -128,4 +128,6 @@ return [
     'selectCategoryAlertError'                      => 'Selecteer een categorie of fabrikant.',
     'failed_to_update_product'                      => 'Het is niet gelukt om het product bij te werken.',
     'product_marketplace_information'               => 'Product Marketplace informatie',
+    'warehouse'                                     => 'magazijn',
+    'bin_location'                                  => 'locaties van bakken',
 ];
