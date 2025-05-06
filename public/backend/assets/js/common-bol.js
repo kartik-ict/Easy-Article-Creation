@@ -472,7 +472,7 @@ $('#nextBolBtn').on('click', function () {
             $('#bolProductManufacturerId').val(selectedManufacturer);
             $('#bolProductCategories').val(selectedCategoryName);
             $('#bolProductCategoriesId').val(selectedCategory);
-            $('#bolProductDescription').val(product.description);
+            ckEditors['bolProductDescription'].setData(product.description);
             if (product.specs && typeof product.specs["Verpakking breedte"] === "string") {
                 $('#bolPackagingWidth').val(product.specs["Verpakking breedte"].match(/\d+/) ? parseInt(product.specs["Verpakking breedte"].match(/\d+/)[0], 10) : 0);
             } else {

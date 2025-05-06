@@ -144,6 +144,7 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/23.0.0/classic/ckeditor.js"></script>
 
     <script>
         window.selectGradeAlert = @json(__('product.product_created_successfully'));
@@ -168,7 +169,22 @@
             "migration_DMG_product_proposition_5": "bolPickUpOnly"
         };
         let customFieldData = [];
+        // Define ckEditors as a global variable
+        window.ckEditors = {};
+
         $(document).ready(function() {
+            document.querySelectorAll('.description-editor').forEach((el, index) => {
+                const editorId = el.id || `editor-${index}`;
+                if (!window.ckEditors[editorId]) {
+                    ClassicEditor.create(el)
+                        .then(editor => {
+                            window.ckEditors[editorId] = editor;
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+                }
+            });
             const apiUrl = "{{ url('/api/product') }}";
             let productDetails = {};
             let selectedGrade = "";
@@ -733,7 +749,7 @@
                                 item.options.forEach(opt => {
                                     $currentSelect.append(
                                         `<option value="${opt.value}">${opt.label}</option>`
-                                        );
+                                    );
                                 });
 
                                 $currentSelect.select2({

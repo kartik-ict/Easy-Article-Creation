@@ -63,7 +63,7 @@
 
                             <div class="col-md-6 form-group mb-3">
                                 <label for="description">@lang('product.description'):</label>
-                                <textarea class="form-control" id="description" name="description" rows="1"></textarea>
+                                <textarea class="form-control description-editor" id="description" name="description" rows="1"></textarea>
                             </div>
                         </div>
                         <div class="row">
