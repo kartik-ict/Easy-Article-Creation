@@ -1,8 +1,10 @@
 jQuery(function () {
-    $('.select2').select2();
-    $('#ip_address').on('input', function () {
+    let isPreselecting = true;
+
+    $(".select2").select2();
+    $("#ip_address").on("input", function () {
         // Replace any character that is not a digit or dot
-        this.value = this.value.replace(/[^0-9.]/g, '');
+        this.value = this.value.replace(/[^0-9.]/g, "");
     });
     // ------------------------------------------------  Warehouse Selection -------------------------------------------
 
@@ -42,10 +44,18 @@ jQuery(function () {
                         true,
                         true
                     );
-                    $("#warehouse").append(option).trigger("change");
+                    $("#warehouse")
+                        .append(option)
+                        .trigger("change", { suppress: true });
                 }
+
+                // Start preselecting bin locations after warehouse is set
+                preselectBinLocations();
             },
         });
+    } else {
+        // If no warehouse is preselected, just allow regular behavior
+        isPreselecting = false;
     }
 
     $("#warehouse").select2({
@@ -144,6 +154,8 @@ jQuery(function () {
     });
 
     $("#warehouse").on("change", function () {
+        if (isPreselecting) return; // Skip reset if preselecting
+
         $("#binLocation").val(null).empty().trigger("change");
     });
 
@@ -157,61 +169,68 @@ jQuery(function () {
     let isLoadingBinLocation = false;
     let isEndOfResultsBinLocation = false;
 
-    if (
-        window.selectedBinLocationIds &&
-        window.selectedBinLocationIds.length > 0
-    ) {
-        $("#full-page-preloader").show();
-        let completedRequests = 0;
-        window.selectedBinLocationIds.forEach(function (binLocationId) {
-            $.ajax({
-                type: "POST",
-                url: binLocationSearchUrl,
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                },
-                data: {
-                    term: "",
-                    page: 1,
-                    limit: 1,
-                    "total-count-mode": 1,
-                    warehouseId: window.selectedWarehouseId, // Important: binLocations depend on selected warehouse
-                },
-                success: function (data) {
-                    const binLocations = data.binLocations || [];
-                    const selectedBin = binLocations.find(
-                        (b) => b.id == binLocationId
-                    );
+    function preselectBinLocations() {
+        if (
+            window.selectedBinLocationIds &&
+            window.selectedBinLocationIds.length > 0
+        ) {
+            $("#full-page-preloader").show();
+            let completedRequests = 0;
 
-                    if (selectedBin) {
-                        const option = new Option(
-                            selectedBin.attributes.code,
-                            selectedBin.id,
-                            true,
-                            true
+            window.selectedBinLocationIds.forEach(function (binLocationId) {
+                $.ajax({
+                    type: "POST",
+                    url: binLocationSearchUrl,
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    data: {
+                        term: "",
+                        page: 1,
+                        limit: 1,
+                        "total-count-mode": 1,
+                        warehouseId: window.selectedWarehouseId,
+                    },
+                    success: function (data) {
+                        const binLocations = data.binLocations || [];
+                        const selectedBin = binLocations.find(
+                            (b) => b.id == binLocationId
                         );
-                        $("#binLocation").append(option).trigger("change");
-                    }
 
-                    completedRequests++;
-                    if (
-                        completedRequests ===
-                        window.selectedBinLocationIds.length
-                    ) {
-                        $("#full-page-preloader").hide();
-                    }
-                },
-                error: function () {
-                    completedRequests++;
-                    if (
-                        completedRequests ===
-                        window.selectedBinLocationIds.length
-                    ) {
-                        $("#full-page-preloader").hide();
-                    }
-                },
+                        if (selectedBin) {
+                            const option = new Option(
+                                selectedBin.attributes.code,
+                                selectedBin.id,
+                                true,
+                                true
+                            );
+                            $("#binLocation").append(option).trigger("change");
+                        }
+
+                        completedRequests++;
+                        if (
+                            completedRequests ===
+                            window.selectedBinLocationIds.length
+                        ) {
+                            $("#full-page-preloader").hide();
+                            isPreselecting = false; // ✅ Allow change event after this
+                        }
+                    },
+                    error: function () {
+                        completedRequests++;
+                        if (
+                            completedRequests ===
+                            window.selectedBinLocationIds.length
+                        ) {
+                            $("#full-page-preloader").hide();
+                            isPreselecting = false;
+                        }
+                    },
+                });
             });
-        });
+        } else {
+            isPreselecting = false;
+        }
     }
 
     $("#binLocation").select2({
