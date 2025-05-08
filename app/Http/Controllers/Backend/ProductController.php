@@ -1028,7 +1028,6 @@ class ProductController extends Controller
     {
         $data = [
             'page' => $request->get('page', 1),
-            'limit' => 25,             // You can adjust this limit if needed
             'term' => $request->get('term', ''),
             'associations' => [
                 'warehouse' => [
@@ -1037,15 +1036,20 @@ class ProductController extends Controller
             ],
             'total-count-mode' => 1    // Flag to include the total count in the response
         ];
+        if ($request->has('filter')) {
+            $data['filter'] = $request->get('filter');
+        } else {
+            $data['limit'] = 25;
+        }
 
         if ($request->get('warehouseId')) {
-            $data['filter'] = [
-                [
-                    'type' => 'equals',
-                    'field' => 'warehouse.id',
-                    'value' => $request->get('warehouseId')
-                ]
+            $filters = isset($data['filter']) ? $data['filter'] : [];
+            $filters[] = [
+                'type' => 'equals',
+                'field' => 'warehouse.id',
+                'value' => $request->get('warehouseId')
             ];
+            $data['filter'] = $filters;
         }
 
         // Make the API request using the shopwareApiService

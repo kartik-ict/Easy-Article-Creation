@@ -175,58 +175,44 @@ jQuery(function () {
             window.selectedBinLocationIds.length > 0
         ) {
             $("#full-page-preloader").show();
-            let completedRequests = 0;
-
-            window.selectedBinLocationIds.forEach(function (binLocationId) {
-                $.ajax({
-                    type: "POST",
-                    url: binLocationSearchUrl,
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken,
-                    },
-                    data: {
-                        term: "",
-                        page: 1,
-                        limit: 1,
-                        "total-count-mode": 1,
-                        warehouseId: window.selectedWarehouseId,
-                    },
-                    success: function (data) {
-                        const binLocations = data.binLocations || [];
-                        const selectedBin = binLocations.find(
-                            (b) => b.id == binLocationId
+            $.ajax({
+                type: "POST",
+                url: binLocationSearchUrl,
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                data: {
+                    term: "",
+                    page: 1,
+                    limit: 1,
+                    "total-count-mode": 1,
+                    warehouseId: window.selectedWarehouseId,
+                    filter: [
+                        {
+                            type: "equalsAny",
+                            field: "id",
+                            value: window.selectedBinLocationIds,
+                        },
+                    ],
+                },
+                success: function (data) {
+                    const binLocations = data.binLocations || [];
+                    binLocations.forEach((bin) => {
+                        const option = new Option(
+                            bin.attributes.code,
+                            bin.id,
+                            true,
+                            true
                         );
-
-                        if (selectedBin) {
-                            const option = new Option(
-                                selectedBin.attributes.code,
-                                selectedBin.id,
-                                true,
-                                true
-                            );
-                            $("#binLocation").append(option).trigger("change");
-                        }
-
-                        completedRequests++;
-                        if (
-                            completedRequests ===
-                            window.selectedBinLocationIds.length
-                        ) {
-                            $("#full-page-preloader").hide();
-                            isPreselecting = false; // ✅ Allow change event after this
-                        }
-                    },
-                    error: function () {
-                        completedRequests++;
-                        if (
-                            completedRequests ===
-                            window.selectedBinLocationIds.length
-                        ) {
-                            $("#full-page-preloader").hide();
-                            isPreselecting = false;
-                        }
-                    },
-                });
+                        $("#binLocation").append(option);
+                    });
+                    $("#binLocation").trigger("change");
+                    $("#full-page-preloader").hide();
+                    isPreselecting = false;
+                },
+                error: function () {
+                    isPreselecting = false;
+                },
             });
         } else {
             isPreselecting = false;

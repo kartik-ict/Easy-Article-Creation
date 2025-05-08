@@ -281,7 +281,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="binLocationModalLabel">Select Bin Location</h5>
+                    <h5 class="modal-title" id="binLocationModalLabel">{{ __('product.select_bin_location') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -295,8 +295,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" id="updateBinLocation">Update</button>
+                    <button type="button" class="btn btn-danger"
+                        data-bs-dismiss="modal">{{ __('product.cancel') }}</button>
+                    <button type="button" class="btn btn-success"
+                        id="updateBinLocation">{{ __('product.update') }}</button>
                 </div>
             </div>
         </div>

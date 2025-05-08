@@ -133,4 +133,6 @@ return [
     'product_marketplace_information'           => 'Product Marketplace Information',
     'warehouse'                                 => 'Warehouse',
     'bin_location'                              => 'Bin Locations',
+    'select_bin_location'                       => 'Select Bin Location',
+    'error_updating_stock'                      => 'Error updating stock',
 ];
