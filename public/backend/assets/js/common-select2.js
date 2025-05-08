@@ -1465,7 +1465,10 @@ $('#addPropertyOptionBtn').on('click', function () {
 
         allProductData.productData.forEach(product => {
             $('#name').val(product.attributes.translated.name);
-            ckEditors['description'].setData(product.attributes.translated.description);
+            if (ckEditors['description']) {
+                const desc = product.attributes?.translated?.description || '';
+                ckEditors['description'].setData(desc);
+            }
             $('#stock').val(product.attributes.stock || 1);
             $('#productEanNumber').val(product.attributes.ean);
             $('#productNumber').val(product.attributes.ean);
@@ -1549,6 +1552,9 @@ $('#saveVariant').on('click', function (e) {
     $('#full-page-preloader').show();
     e.preventDefault(); // Prevent the default form submission (if any)
 
+    if (ckEditors['description']) {
+        $('#description').val(ckEditors['description'].getData());
+    }
     const formData = $('#product-form').serialize(); // Serialize the entire form data
     const button = $(this);
     const originalButtonText = button.text(); // Save original button text

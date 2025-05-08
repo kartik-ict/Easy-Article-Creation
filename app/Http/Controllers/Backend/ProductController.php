@@ -421,22 +421,26 @@ class ProductController extends Controller
     {
         $request->validate([
             'product_id' => 'required|string|regex:/^[0-9a-f]{32}$/',
-            'new_stock' => 'required|integer|min:0'
+            'new_stock' => 'required|integer|min:0',
+            'bin_location_id' => 'required|string',
         ]);
 
-        $data = [
-            'id' => $request->product_id,
+        $stockData = [
+            'product_id' => $request->product_id,
             'stock' => intval($request->new_stock)
         ];
         // Using common API call function
         try {
-            $response = $this->shopwareApiService->makeApiRequest(
-                'PATCH',
-                '/api/product/' . $request->product_id,
-                $data
-            );
+            //set the stock to select bin location
+            $this->setBinLocationStock($stockData, $request->bin_location_id);
 
-            return response()->json(['success' => true, 'response' => $response]);
+            // $response = $this->shopwareApiService->makeApiRequest(
+            //     'PATCH',
+            //     '/api/product/' . $request->product_id,
+            //     $data
+            // );
+
+            return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

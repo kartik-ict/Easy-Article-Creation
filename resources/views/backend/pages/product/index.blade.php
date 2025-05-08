@@ -178,6 +178,19 @@
                 if (!window.ckEditors[editorId]) {
                     ClassicEditor.create(el)
                         .then(editor => {
+                            editor.editing.view.change(writer => {
+                                writer.setStyle(
+                                    'max-height',
+                                    '200px',
+                                    editor.editing.view.document.getRoot()
+                                );
+                                writer.setStyle(
+                                    'overflow-y',
+                                    'auto',
+                                    editor.editing.view.document.getRoot()
+                                );
+                            });
+
                             window.ckEditors[editorId] = editor;
                         })
                         .catch(error => {
@@ -352,7 +365,7 @@
                                         <td class="d-none">${product.attributes.ean || '-'}</td>
                                         <td>${product.attributes.productNumber || '-'}</td>
                                         <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                                        <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                                        <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}" min="0"></td>
                                         <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                                         {{-- <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr> --}}
                                         `;
@@ -439,7 +452,7 @@
                                 <td class="d-none">${product.attributes.ean || '-'}</td>
                                 <td>${product.attributes.productNumber || '-'}</td>
                                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
+                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}" min="0"></td>
                                 <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                                 </tr>`;
 
@@ -494,9 +507,8 @@
                                 <td class="d-none">${product.attributes.ean || '-'}</td>
                                 <td>${product.attributes.productNumber || '-'}</td>
                                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}"></td>
-                                <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
-                                {{-- <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr> --}}
+                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}" min="0"></td>
+                                <td><button type="button" class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                                 `;
                             $('#productTable-update tbody').append(productRow);
                         });
@@ -564,49 +576,76 @@
             // Handle Update Data button (Update stock)
 
             $(document).on('click', '.update-stock-btn', function() {
-                $('#full-page-preloader').show();
-                const row = $(this).closest('tr'); // Get the clicked row
-                const productId = $(this).data('product-id'); // Get the product ID from the clicked button
-                const currentStock = row.find('.current-stock')
-                    .text(); // Get the current stock value from the clicked row
-                const newStockInput = row.find('.new-stock'); // Get the new stock input for this row
+                const row = $(this).closest('tr');
+                const productId = $(this).data('product-id');
+                const newStockInput = row.find('.new-stock');
+                const newStock = newStockInput.val();
 
-                const newStock = newStockInput.val(); // Get the new stock value from input
+                // Store productId and newStock in data attributes on the modal
+                $('#binLocationSelectionModal').data('productId', productId);
+                $('#binLocationSelectionModal').data('newStock', newStock);
 
-                // Ensure that new stock value is entered
                 if (!newStock) {
-                    alert(
-                        '{{ __('product.enter_new_stock_alert') }}'
-                    ); // Show alert if new stock value is not entered
+                    alert('{{ __('product.enter_new_stock_alert') }}');
+                    $('#full-page-preloader').hide();
+                    return;
+                }
+                if (newStock < 0) {
+                    alert('{{ __('product.new_stock_alert_not_negative') }}');
                     $('#full-page-preloader').hide();
                     return;
                 }
 
-                // Show loader while updating stock
-                // $('#step3Content').html('<div class="loader"></div>');
+                $("#binLocationSelectionModal").modal('show');
+                setTimeout(() => {
+                    $("#modalBinLocation").select2({
+                        minimumInputLength: 0,
+                        allowClear: true,
+                        multiple: false,
+                        dropdownParent: $('#binLocationSelectionModal'),
+                        language: {
+                            searching: function() {
+                                return "Zoeken, even geduld...";
+                            },
+                            loadingMore: function() {
+                                return "Meer resultaten laden...";
+                            },
+                            noResults: function() {
+                                return "Geen resultaten gevonden.";
+                            }
+                        }
+                    });
+                }, 500);
+            });
 
-                // AJAX request to update stock
+            $(document).on('click', '#updateBinLocation', function() {
+                $('#full-page-preloader').show();
+                // Get stored values from modal data attributes
+                const productId = $('#binLocationSelectionModal').data('productId');
+                const newStock = $('#binLocationSelectionModal').data('newStock');
+                const binLocationId = $('#modalBinLocation').val();
+
                 $.ajax({
                     url: "{{ route('product.update_stock') }}",
                     method: 'POST',
                     data: {
-                        product_id: productId, // Pass product ID dynamically
-                        new_stock: newStock, // Pass new stock value
-                        _token: "{{ csrf_token() }}" // CSRF token
+                        product_id: productId,
+                        new_stock: newStock,
+                        bin_location_id: binLocationId,
+                        _token: "{{ csrf_token() }}"
                     },
                     success: function(response) {
-                        alert('{{ __('product.stock_updated') }}'); // Show success alert
-                        location.reload(); // Reload the page to see updated stock values
-                        $('#step3').hide();
-                        $('#step1').show();
-                        $('#step_1_title').show();
+                        $("#binLocationSelectionModal").modal('hide');
+                        alert('{{ __('product.stock_updated') }}');
+                        location.reload();
+                        // $('#step3').hide();
+                        // $('#step1').show();
+                        // $('#step_1_title').show();
                         $('#full-page-preloader').hide();
                     },
                     error: function() {
                         $('#full-page-preloader').hide();
-                        alert(
-                            '{{ __('product.error_updating_stock') }}'
-                        ); // Show error alert if update fails
+                        alert('{{ __('product.error_updating_stock') }}');
                     }
                 });
             });

@@ -472,7 +472,11 @@ $('#nextBolBtn').on('click', function () {
             $('#bolProductManufacturerId').val(selectedManufacturer);
             $('#bolProductCategories').val(selectedCategoryName);
             $('#bolProductCategoriesId').val(selectedCategory);
-            ckEditors['bolProductDescription'].setData(product.description);
+            if (ckEditors['bolProductDescription']) {
+                const desc = product?.description || '';
+                ckEditors['bolProductDescription'].setData(desc);
+            }
+
             if (product.specs && typeof product.specs["Verpakking breedte"] === "string") {
                 $('#bolPackagingWidth').val(product.specs["Verpakking breedte"].match(/\d+/) ? parseInt(product.specs["Verpakking breedte"].match(/\d+/)[0], 10) : 0);
             } else {
@@ -524,6 +528,10 @@ $('#nextBolBtn').on('click', function () {
 $('#saveBolProductData').on('click', function (e) {
     $('#full-page-preloader').show();
     e.preventDefault(); // Prevent default form submission
+
+    if (ckEditors['bolProductDescription']) {
+        $('#bolProductDescription').val(ckEditors['bolProductDescription'].getData());
+    }
 
     const thumbnailUrl = $('#bolProductThumbnail').attr('src'); // Assuming this is the correct image URL
     const formData = $('#bol-product-form').serialize() + '&bolProductThumbnail=' + encodeURIComponent(thumbnailUrl);

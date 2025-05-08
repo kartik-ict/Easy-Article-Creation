@@ -240,7 +240,8 @@
                                 <label for="binLocation">@lang('product.bin_location')</label>
                                 <select name="bin_location_id" id="binLocation" class="form-control">
                                     @foreach ($binLocationList as $location)
-                                        <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                                        <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -268,6 +269,34 @@
                         <button type="submit" class="btn btn-success w-100 mt-2"
                             id="saveVariant">{{ __('product.submit') }}</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bin Location Selection Modal -->
+    <div class="modal fade" id="binLocationSelectionModal" tabindex="-1" role="dialog"
+        aria-labelledby="binLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="binLocationModalLabel">Select Bin Location</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-12 form-group">
+                        <label for="binLocation">@lang('product.bin_location')</label>
+                        <select name="bin_location_id" id="modalBinLocation" class="form-control">
+                            @foreach ($binLocationList as $location)
+                                <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="updateBinLocation">Update</button>
                 </div>
             </div>
         </div>
