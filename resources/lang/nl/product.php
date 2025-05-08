@@ -130,4 +130,6 @@ return [
     'product_marketplace_information'               => 'Product Marketplace informatie',
     'warehouse'                                     => 'magazijn',
     'bin_location'                                  => 'locaties van bakken',
+    'select_bin_location'                           => 'Selecteer binlocatie',
+    'error_updating_stock'                          => 'Fout bij bijwerken voorraad'
 ];

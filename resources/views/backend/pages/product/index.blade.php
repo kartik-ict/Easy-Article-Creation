@@ -600,7 +600,7 @@
                 setTimeout(() => {
                     $("#modalBinLocation").select2({
                         minimumInputLength: 0,
-                        allowClear: true,
+                        allowClear: false,
                         multiple: false,
                         dropdownParent: $('#binLocationSelectionModal'),
                         language: {
