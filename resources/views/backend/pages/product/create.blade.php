@@ -322,7 +322,8 @@
                                     <label for="binLocation">@lang('product.bin_location')</label>
                                     <select name="bin_location_id" id="binLocation" class="form-control">
                                         @foreach ($binLocationList as $location)
-                                            <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                                            <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -348,6 +349,21 @@
     <script>
         $(document).ready(function() {
             ClassicEditor.create(document.querySelector('#description'))
+                .then(editor => {
+                    editor.editing.view.change(writer => {
+                        writer.setStyle(
+                            'max-height',
+                            '200px',
+                            editor.editing.view.document.getRoot()
+                        );
+                        writer.setStyle(
+                            'overflow-y',
+                            'auto',
+                            editor.editing.view.document.getRoot()
+                        );
+                    });
+
+                })
                 .catch(error => {
                     console.error(error);
                 });

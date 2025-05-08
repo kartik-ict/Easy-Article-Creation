@@ -34,7 +34,7 @@
                 </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolProductDescription">{{ __('product.bolProductDescription') }}</label>
-                    <textarea class="form-control description-editor" id="bolProductDescription" name="bolProductDescription" rows="5"></textarea>
+                    <textarea class="form-control description-editor" id="bolProductDescription" name="bolProductDescription" rows="3"></textarea>
                 </div>
             </div>
             <div class="row">

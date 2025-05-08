@@ -104,7 +104,7 @@ return [
     'general_information'                           => 'Algemene productinformatie',
     'additional_information'                        => 'Aanvullende productinformatie',
     'enter_new_stock_alert'                         => 'Voer een nieuwe voorraad in',
-    'selectedGroup'                                 => 'Geselecteerde groep',
+    'new_stock_alert_not_negative'                  => 'Voorraad kan niet negatief zijn',
     'selectedPropertyGroup'                         => 'Geselecteerde eigenschapoptie',
     'weight'                                        => 'Gewicht',
     'PackagingWeight'                               => 'Verpakkingsgewicht',
