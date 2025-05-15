@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'title' => 'Beheerders - Beheerderspaneel',
-    'admins_list' => 'Lijst van beheerders',
-    'create_new_admin' => 'Nieuwe beheerder maken',
+    'title' => 'Gebruikers - Gebruikerspaneel',
+    'admins_list' => 'Lijst met gebruikers',
+    'create_new_admin' => 'Nieuwe gebruiker aanmaken',
     'dashboard' => 'Dashboard',
     'table' => [
         'sl' => 'Nr.',
@@ -15,16 +15,16 @@ return [
     'edit' => 'Bewerken',
     'delete' => 'Verwijderen',
 
-    'create_admin' => 'Beheerder Maken',
-    'create_new_admin' => 'Nieuwe Beheerder Maken',
-    'all_admins' => 'Alle Beheerders',
+    'create_admin' => 'Gebruiker aanmaken',
+    'create_new_admin' => 'Nieuwe gebruiker aanmaken',
+    'all_admins' => 'Alle gebruikers',
     'dashboard' => 'Dashboard',
     'form' => [
-        'name' => 'Naam Beheerder',
-        'email' => 'E-mail Beheerder',
+        'name' => 'Naam Gebruiker',
+        'email' => 'E-mail Gebruiker',
         'password' => 'Wachtwoord',
         'confirm_password' => 'Bevestig Wachtwoord',
-        'username' => 'Gebruikersnaam Beheerder',
+        'username' => 'Gebruikersnaam Gebruiker',
         'assign_roles' => 'Rollen Toewijzen',
         'ip_address' => 'IP-adres',
         'placeholder' => [
@@ -36,20 +36,20 @@ return [
             'ip_address' => 'Toegestaan IP-adres invoeren'
         ],
     ],
-    'save_admin' => 'Beheerder Opslaan',
-    'edit_admin' => 'Beheerder Bewerken',
-    'admin_panel' => 'Beheerderspaneel',
+    'save_admin' => 'Gebruiker Opslaan',
+    'edit_admin' => 'Gebruiker Bewerken',
+    'admin_panel' => 'gebruikerspaneel',
 
-    'super_admin_update_restriction' => 'Sorry !! Je bent niet bevoegd om deze beheerder bij te werken, dit is de Super Admin. Maak een nieuwe beheerder als je wilt testen!',
-    'super_admin_delete_restriction' => 'Sorry !! Je bent niet bevoegd om deze beheerder te verwijderen, dit is de Super Admin. Maak een nieuwe beheerder als je wilt testen!',
+    'super_admin_update_restriction' => 'Sorry !! Je bent niet bevoegd om deze gebruiker bij te werken, dit is de Super Admin. Maak een nieuwe gebruiker als je wilt testen!',
+    'super_admin_delete_restriction' => 'Sorry !! Je bent niet bevoegd om deze gebruiker te verwijderen, dit is de Super Admin. Maak een nieuwe gebruiker als je wilt testen!',
 
-    'admin_created' => 'Beheerder succesvol aangemaakt.',
-    'admin_updated' => 'Beheerder succesvol bijgewerkt.',
-    'admin_deleted' => 'Beheerder succesvol verwijderd.',
-    'unauthorized_view_admin' => 'Je bent niet bevoegd om de lijst van beheerders te bekijken.',
-    'unauthorized_create_admin' => 'Je bent niet bevoegd om een nieuwe beheerder aan te maken.',
-    'unauthorized_edit_admin' => 'Je bent niet bevoegd om deze beheerder te bewerken.',
-    'unauthorized_delete_admin' => 'Je bent niet bevoegd om deze beheerder te verwijderen.',
+    'admin_created' => 'gebruiker succesvol aangemaakt.',
+    'admin_updated' => 'gebruiker succesvol bijgewerkt.',
+    'admin_deleted' => 'gebruiker succesvol verwijderd.',
+    'unauthorized_view_admin' => 'Je bent niet bevoegd om de lijst van gebruikers te bekijken.',
+    'unauthorized_create_admin' => 'Je bent niet bevoegd om een nieuwe gebruiker aan te maken.',
+    'unauthorized_edit_admin' => 'Je bent niet bevoegd om deze gebruiker te bewerken.',
+    'unauthorized_delete_admin' => 'Je bent niet bevoegd om deze gebruiker te verwijderen.',
     'unauthorized_ip_address' => 'U kunt alleen inloggen vanaf uw geregistreerde IP-adres',
 
 

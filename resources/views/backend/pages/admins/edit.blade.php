@@ -1,7 +1,7 @@
 @extends('backend.layouts.master')
 
 @section('title')
-    {{ __('admins.edit') }} - {{ __('admin.admin_panel') }}
+    {{ __('admins.edit') }} - {{ __('admins.admin_panel') }}
 @endsection
 
 @section('styles')
