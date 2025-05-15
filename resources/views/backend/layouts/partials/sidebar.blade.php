@@ -68,11 +68,11 @@
                         </li>
                     @endif
 
-                    @if ($usr->can('manufacture.view'))
+                    {{-- @if ($usr->can('manufacture.view'))
                         <li class="{{ Route::is('admin.manufacturers.index')  ? 'active' : '' }}">
                             <a href="{{ route('admin.manufacturers.index') }}"><i class="fa fa-compass"></i><span>{{ trans('custom.manufacturers') }}</span></a>
                         </li>
-                    @endif
+                    @endif --}}
                 </ul>
             </nav>
         </div>
