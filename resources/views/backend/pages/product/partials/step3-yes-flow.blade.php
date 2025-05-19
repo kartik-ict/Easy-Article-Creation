@@ -110,6 +110,14 @@
                                 <input type="number" name="priceNet" id="priceNet" class="form-control" step="any"
                                     placeholder="{{ __('product.calculated_price_net') }}">
                             </div>
+                            <div class="form-group col-md-6 col-sm-12 px-2">
+                                <label for="purchase_price">
+                                    {{ __('product.purchase_price') }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" name="purchasePrice" id="purchasePrice"
+                                    class="form-control @error('purchasePrice') is-invalid @enderror" step="any"
+                                    required placeholder="{{ __('product.enter_purchase_price') }}">
+                            </div>
                         </div>
 
                         {{-- Product Marketplace Section --}}

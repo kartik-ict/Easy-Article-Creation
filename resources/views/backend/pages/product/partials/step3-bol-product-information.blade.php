@@ -34,7 +34,8 @@
                 </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolProductDescription">{{ __('product.bolProductDescription') }}</label>
-                    <textarea class="form-control description-editor" id="bolProductDescription" name="bolProductDescription" rows="3"></textarea>
+                    <textarea class="form-control description-editor" id="bolProductDescription" name="bolProductDescription"
+                        rows="3"></textarea>
                 </div>
             </div>
             <div class="row">
@@ -61,18 +62,26 @@
                 </div>
             </div>
             <div class="row">
+                <div class="form-group col-md-6 col-sm-12 px-2">
+                    <label for="purchase_price">
+                        {{ __('product.purchase_price') }} <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" name="purchasePrice" id="purchasePrice"
+                        class="form-control @error('purchasePrice') is-invalid @enderror" step="any" required
+                        placeholder="{{ __('product.enter_purchase_price') }}">
+                </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="salesChannel">@lang('product.sales_channel'):</label>
                     <select id="sales-channel-select" class="js-example-basic-single form-control"
                         name="salesChannelBol[]" multiple required>
                     </select>
                 </div>
+            </div>
+            <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolStock">{{ __('product.bolStock') }}</label>
                     <input type="text" name="bolStock" id="bolStock" class="form-control" required>
                 </div>
-            </div>
-            <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolProductManufacturer">@lang('product.bolProductManufacturer')
                         :</label>
@@ -207,8 +216,8 @@
                     <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
                     <input type="hidden" name="active_for_allBol" value="0">
                     <div class="form-check form-switch">
-                        <input type="checkbox" class="form-check-input" name="active_for_allBol"
-                            id="active_for_all" value="1" {{ old('active_for_all') ? 'checked' : '' }}>
+                        <input type="checkbox" class="form-check-input" name="active_for_allBol" id="active_for_all"
+                            value="1" {{ old('active_for_all') ? 'checked' : '' }}>
                     </div>
                 </div>
             </div>

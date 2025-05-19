@@ -131,5 +131,7 @@ return [
     'warehouse'                                     => 'magazijn',
     'bin_location'                                  => 'locaties van bakken',
     'select_bin_location'                           => 'Selecteer binlocatie',
-    'error_updating_stock'                          => 'Fout bij bijwerken voorraad'
+    'error_updating_stock'                          => 'Fout bij bijwerken voorraad',
+    'purchase_price'                                => 'Aankoopprijs',
+    'enter_purchase_price'                          => 'Voer de aankoopprijs in'
 ];
