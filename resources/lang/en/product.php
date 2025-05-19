@@ -135,4 +135,6 @@ return [
     'bin_location'                              => 'Bin Locations',
     'select_bin_location'                       => 'Select Bin Location',
     'error_updating_stock'                      => 'Error updating stock',
+    'purchase_price'                            => 'Purchase price',
+    'enter_purchase_price'                      => 'Enter purchase price'
 ];

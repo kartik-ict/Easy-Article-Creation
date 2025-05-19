@@ -136,13 +136,17 @@
 
                             <div class="row mb-2">
                                 <div class="form-group col-md-6 col-sm-12 px-2">
-                                    <input type="hidden" name="active_for_all" value="0">
-                                    <div class="form-check form-switch">
-                                        <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
-                                        <input type="checkbox" class="form-check-input" name="active_for_all"
-                                            id="active_for_all" value="1"
-                                            {{ old('active_for_all') ? 'checked' : '' }} checked>
-                                    </div>
+                                    <label for="purchase_price">
+                                        {{ __('product.purchase_price') }} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" name="purchasePrice" id="purchasePrice"
+                                        class="form-control @error('purchasePrice') is-invalid @enderror" step="any"
+                                        required placeholder="{{ __('product.enter_purchase_price') }}">
+                                    @error('purchasePrice')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                                 <div class="form-group col-md-6 col-sm-12 px-2">
                                     <label for="salesChannel">@lang('product.sales_channel') <span class="text-danger">*</span>
@@ -166,9 +170,19 @@
                                 </div>
                             </div>
                             <div class="row mb-2">
-                                <div class="col-md-12 form-group mb-3">
+                                <div class="col-md-6 form-group mb-3">
                                     <label for="bolProductShortDescription">@lang('product.shortDescription'):</label>
                                     <textarea class="form-control" id="shortDescription" name="bolProductShortDescription" rows="1"></textarea>
+                                </div>
+
+                                <div class="form-group col-md-6 col-sm-12 px-2">
+                                    <input type="hidden" name="active_for_all" value="0">
+                                    <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" name="active_for_all"
+                                            id="active_for_all" value="1"
+                                            {{ old('active_for_all') ? 'checked' : '' }} checked>
+                                    </div>
                                 </div>
                                 <div class="form-group col-md-12 col-sm-12 px-2">
                                     <label for="description">@lang('product.description'):</label>

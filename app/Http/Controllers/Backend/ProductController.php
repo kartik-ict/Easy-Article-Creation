@@ -308,6 +308,7 @@ class ProductController extends Controller
             'active_for_all' => 'nullable|boolean',
             'media_id' => 'nullable|string|regex:/^[0-9a-f]{32}$/',
 
+            'purchasePrice' => 'required|numeric',
             'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
@@ -536,6 +537,7 @@ class ProductController extends Controller
             'priceNet' => 'required|numeric',
             'productEanNumber' => 'string',
 
+            'purchasePrice' => 'required|numeric',
             'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
@@ -699,6 +701,7 @@ class ProductController extends Controller
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'active_for_allBol' => 'nullable|boolean',
 
+            'purchasePrice' => 'required|numeric',
             'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
@@ -1000,7 +1003,8 @@ class ProductController extends Controller
             "migration_DMG_product_proposition_4" => $validatedData['bolLetterboxPackageUp'] ? true : false,
             "migration_DMG_product_proposition_5" => $validatedData['bolPickUpOnly'] ? true : false,
             "migration_DMG_product_bol_be_delivery_code" => $validatedData['bolBEDeliveryTime'] ?? null,
-            "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null
+            "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null,
+            "purchase_price" => $validatedData['purchasePrice'] ?? 0
         ];
     }
 
