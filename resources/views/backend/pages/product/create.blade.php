@@ -117,24 +117,13 @@
                                             <strong>{{ $message }}</strong>
                                         </span>
                                     @enderror
+                                    <input type="hidden" name="priceNet" id="priceNet"
+                                        class="form-control @error('priceNet') is-invalid @enderror"
+                                        step="any"
+                                        required
+                                        placeholder="{{ __('product.calculated_price_net') }}"
+                                    />
                                 </div>
-
-                                <div class="form-group col-md-6 col-sm-12 px-2">
-                                    <label for="price_net">
-                                        {{ __('product.price_net') }} <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="number" name="priceNet" id="priceNet"
-                                        class="form-control @error('priceNet') is-invalid @enderror" step="any" required
-                                        placeholder="{{ __('product.calculated_price_net') }}">
-                                    @error('priceNet')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="row mb-2">
                                 <div class="form-group col-md-6 col-sm-12 px-2">
                                     <label for="purchase_price">
                                         {{ __('product.purchase_price') }} <span class="text-danger">*</span>
@@ -148,6 +137,14 @@
                                         </span>
                                     @enderror
                                 </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="form-group col-md-6 col-sm-12 px-2">
+                                    <label for="ean">@lang('product.ean'):</label>
+                                    <input type="text" id="ean" class="form-control" name="ean"
+                                        placeholder="@lang('product.enter_ean')">
+                                </div>
                                 <div class="form-group col-md-6 col-sm-12 px-2">
                                     <label for="salesChannel">@lang('product.sales_channel') <span class="text-danger">*</span>
                                         :</label>
@@ -158,12 +155,8 @@
                             </div>
 
                             <div class="row mb-2">
-                                <div class="form-group col-md-6 col-sm-12 px-2">
-                                    <label for="ean">@lang('product.ean'):</label>
-                                    <input type="text" id="ean" class="form-control" name="ean"
-                                        placeholder="@lang('product.enter_ean')">
-                                </div>
-                                <div class="form-group col-md-6 col-sm-12 px-2">
+
+                                <div class="form-group col-md-12 col-sm-12 px-2">
                                     <label for="mediaUrl">@lang('product.media_url'):</label>
                                     <input type="file" class="form-control" id="media" name="media">
                                     <span id="uploadStatus" class="text-info"></span>
@@ -279,7 +272,11 @@
                                         name="bolConditionDescription">
                                 </div>
                             </div>
-
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h5 class="my-3">{{ __('product.product_shipping_header') }}</h5>
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col-md-6 form-group mb-3">
                                     <div class="form-check">

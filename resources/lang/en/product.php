@@ -58,7 +58,7 @@ return [
     'productPrice'                              => 'Price (gross)',
     'price_net'                                 => 'Price (net)',
     'bolNetPrice'                               => 'Price (net)',
-    'bolListGrossPrice'                         => 'List price (gross)',
+    'bolListGrossPrice'                         => 'Selling price (incl. VAT)',
     'bolListNetPrice'                           => 'List price (net)',
     'enter_price_gross'                         => 'Enter the gross price',
     'calculated_price_net'                      => 'Calculated net price',
@@ -136,5 +136,8 @@ return [
     'select_bin_location'                       => 'Select Bin Location',
     'error_updating_stock'                      => 'Error updating stock',
     'purchase_price'                            => 'Purchase price',
-    'enter_purchase_price'                      => 'Enter purchase price'
+    'enter_purchase_price'                      => 'Enter purchase price',
+    'please_select_existing_category'           => 'Please select an existing category.',
+    'please_select_existing_manufacture'        => 'Please select an existing manufacturer.',
+    'product_shipping_header'                   => 'Shipping information DGM site',
 ];

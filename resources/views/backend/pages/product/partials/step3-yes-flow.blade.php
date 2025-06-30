@@ -104,10 +104,7 @@
                                 <label for="price_gross">{{ __('product.price_gross') }}</label>
                                 <input type="number" name="priceGross" id="priceGross" class="form-control"
                                     step="any" required placeholder="{{ __('product.enter_price_gross') }}">
-                            </div>
-                            <div class="col-md-6 form-group mb-3">
-                                <label for="price_net">{{ __('product.price_net') }}</label>
-                                <input type="number" name="priceNet" id="priceNet" class="form-control" step="any"
+                                <input type="hidden" name="priceNet" id="priceNet" class="form-control" step="any"
                                     placeholder="{{ __('product.calculated_price_net') }}">
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
@@ -191,7 +188,11 @@
                                     name="bolConditionDescription" required>
                             </div>
                         </div>
-
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="my-3">{{ __('product.product_shipping_header') }}</h5>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 form-group mb-3">
                                 <div class="form-check">

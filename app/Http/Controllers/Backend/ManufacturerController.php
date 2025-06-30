@@ -177,7 +177,8 @@ class ManufacturerController extends Controller
         if ($productManufacturer && count($productManufacturer['data']) > 0) {
             return response()->json(['productManufacturer' => $productManufacturer['data']], 200);
         } else {
-            return $this->saveData($request);
+            return response()->json(['productManufacturer' => null, 'message' =>  __('product.please_select_existing_manufacture')], 200);
+            // return $this->saveData($request);
         }
     }
 
@@ -201,33 +202,32 @@ class ManufacturerController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product-manufacturer', $data);
             // If the API call is successful
 
-//            if ($response['success'] === true) {
-                $request->validate([
-                    'productManufacturer' => 'required|string',
-                ]);
+            //            if ($response['success'] === true) {
+            $request->validate([
+                'productManufacturer' => 'required|string',
+            ]);
 
-                $productManufacturer = $request->input('productManufacturer');
-                $payload = [
-                    'filter' => [
-                        [
-                            'type' => 'equals',
-                            'field' => 'name',
-                            'value' => $productManufacturer,
-                        ]
-                    ],
-                    'inheritance' => true,
-                    'total-count-mode' => 1,
-                ];
+            $productManufacturer = $request->input('productManufacturer');
+            $payload = [
+                'filter' => [
+                    [
+                        'type' => 'equals',
+                        'field' => 'name',
+                        'value' => $productManufacturer,
+                    ]
+                ],
+                'inheritance' => true,
+                'total-count-mode' => 1,
+            ];
 
-                // Make API request using the common function
-                $productManufacturer = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product-manufacturer', $payload);
+            // Make API request using the common function
+            $productManufacturer = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product-manufacturer', $payload);
 
-                if ($productManufacturer) {
-                    return response()->json(['productManufacturer' => $productManufacturer['data']], 200);
-                }
-//            }
+            if ($productManufacturer) {
+                return response()->json(['productManufacturer' => $productManufacturer['data']], 200);
+            }
+            //            }
         } catch (\Exception $e) {
-
         }
     }
 }
