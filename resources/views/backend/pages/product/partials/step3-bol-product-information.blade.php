@@ -42,22 +42,13 @@
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolProductPrice">{{ __('product.productPrice') }}</label>
                     <input type="text" name="bolProductPrice" id="bolProductPrice" class="form-control" required>
+                    <input type="hidden" name="bolTotalPrice" id="bolTotalPrice" class="form-control" required>
                 </div>
-
-                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolTotalPrice">{{ __('product.bolNetPrice') }}</label>
-                    <input type="text" name="bolTotalPrice" id="bolTotalPrice" class="form-control" required>
-                </div>
-            </div>
-            <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolProductListPriceGross">{{ __('product.bolListGrossPrice') }}</label>
                     <input type="text" name="bolProductListPriceGross" id="bolProductListPriceGross"
                         class="form-control" required>
-                </div>
-                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolProductListPriceNet">{{ __('product.bolListNetPrice') }}</label>
-                    <input type="text" name="bolProductListPriceNet" id="bolProductListPriceNet" class="form-control"
+                    <input type="hidden" name="bolProductListPriceNet" id="bolProductListPriceNet" class="form-control"
                         required>
                 </div>
             </div>
@@ -162,7 +153,11 @@
                         name="bolConditionDescription" required>
                 </div>
             </div>
-
+            <div class="row">
+                <div class="col-md-12">
+                    <h5 class="my-3">{{ __('product.product_shipping_header') }}</h5>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-6 form-group mb-3">
                     <div class="form-check">

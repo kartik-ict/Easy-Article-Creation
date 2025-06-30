@@ -245,7 +245,7 @@
                                     </h3>`;
                             if (categories && categories.length != 0) {
                                 productCategories += `<h6 class="mb-2">{{ __('product.category_structure') }}:
-                                    <span class="p-1 fw-normal fs-6" id="bolCat">
+                                    <span class="p-1 fw-normal fs-6" id="categoryValue">
                                         ${categories.map(category => `${category}`).join(' > ')}
                                     </span>
                                     </h6>`;
@@ -258,6 +258,7 @@
                                 <span class="p-1 fw-normal fs-6" id="bolCat">{{ __('product.productCategoriesErrorMessage') }}</span></h5>
                             `;
                                 $('#productCategories').html(productCategories);
+                                $('#searchSwCategory').hide();
                             }
                             if (manufacturer) {
                                 let productManufacturer = `

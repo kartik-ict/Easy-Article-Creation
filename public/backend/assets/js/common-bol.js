@@ -128,7 +128,9 @@ $('#searchSwManufacturer').on('click', function () {
                 const newOption = new Option(manufacturerName, manufacturerId, true, true);
                 $('#full-page-preloader').hide();
                 $('#manufacturer-sw-search').append(newOption).trigger('change');
-
+            } else{
+                $('#full-page-preloader').hide();
+                alert(response.message);
             }
         },
         error: function (xhr, status, error) {
@@ -351,10 +353,10 @@ $('#sw-parent-category-select').on('select2:close', function () {
 /* Category button click */
 $('#searchSwCategory').on('click', function () {
     $('#full-page-preloader').show();
-    const productCategoriesElement = document.getElementById('bolCat');
+    const productCategoriesElement = document.getElementById('categoryValue');
     const productCategoriesText = productCategoriesElement.innerText;
-// Split the string by commas and trim whitespace
-    const categoriesArray = productCategoriesText.split(',').map(category => category.trim());
+    // Split the string by commas and trim whitespace
+    const categoriesArray = productCategoriesText.split('>').map(category => category.trim());
 
 // Get the last value
     const lastCategory = categoriesArray[categoriesArray.length - 1];
@@ -365,24 +367,20 @@ $('#searchSwCategory').on('click', function () {
         headers: {'X-CSRF-TOKEN': csrfToken},
         data: {lastCategory: lastCategory},
         success: function (response, status, xhr) {
-
-            if (response.message == "createNew") {
-                $("#bolCategorySelected").hide(); // Hide bolCategorySelected
-                $("#parentCategorySelect").show(); // Show parentCategorySelect
-            }
             // Check if response is actually empty
             if (!response) {
                 console.error('Empty response received from server');
                 return;
             }
-
-            // if (response.productCategory && Array.isArray(response.productCategory) && response.productCategory.length > 0) {
-            const categoryName = response.productCategory[0]?.attributes?.translated?.name;
-            const categoryId = response.productCategory[0]?.id;
-
-            if (categoryName && categoryId) {
-                const newOption = new Option(categoryName, categoryId, true, true);
-                $('#sw-category-select').append(newOption).trigger('change');
+            if (response.productCategory) {
+                const categoryName = response.productCategory[0]?.attributes?.translated?.name;
+                const categoryId = response.productCategory[0]?.id;
+                if (categoryName && categoryId) {
+                     const newOption = new Option(categoryName, categoryId, true, true);
+                    $('#sw-category-select').append(newOption).trigger('change');
+                }
+            } else{
+                alert(response.message);
             }
             $('#full-page-preloader').hide();
         },
@@ -400,7 +398,7 @@ $('#createSwCategory').on('click', function () {
     $('#full-page-preloader').show();
     const productCategoriesElement = document.getElementById('sw-parent-category-select');
     const parentCategoriesValue = productCategoriesElement.value; // Get the selected category ID
-    const productCategoriesElements = document.getElementById('bolCat');
+    const productCategoriesElements = document.getElementById('categoryValue');
     const productCategoriesText = productCategoriesElements.innerText;
     // Split the string by commas and trim whitespace
     const categoriesArray = productCategoriesText.split(',').map(category => category.trim());

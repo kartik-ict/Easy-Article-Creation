@@ -52,7 +52,7 @@ class ProductController extends Controller
             ];
         }
         $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', $filter);
-        $binLocationList = $response['data'];
+        $binLocationList = $response['data'] ?? [];
         return view('backend.pages.product.index', compact('admin', 'binLocationList'));
     }
 
@@ -138,8 +138,8 @@ class ProductController extends Controller
                     ]);
 
                     $productPrice = json_decode($responsePrice->getBody(), true);
-                    /*                Dayanamic product data*/
-
+                    /* Dayanamic product data */
+                    // $product['results']['0']['categories'] = ["Oordopjes1"]; // for testing
                     $productData = [
                         'name' => $product['results']['0']['title'],
                         'ean' => $product['results']['0']['ean'] ?? $ean,
@@ -869,7 +869,8 @@ class ProductController extends Controller
         $filePath = $uploadedFile->storeAs('public/media', $fileName);
 
         // Get public URL of the stored file
-        $imageUrl = asset("storage/media/{$fileName}");
+        $path = "storage/media/{$fileName}";
+        $imageUrl = asset($path);
 
         // Step 5: Create Media Entry in Shopware
         $data = [

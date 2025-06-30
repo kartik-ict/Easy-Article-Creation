@@ -60,8 +60,8 @@ class CategoryController extends Controller
         } else {
 
             return response()->json([
-                'productCategory' => [],
-                'message' => 'createNew'
+                'productCategory' => null,
+                'message' =>  __('product.please_select_existing_category')
             ], 200);
         }
     }
