@@ -864,8 +864,11 @@ class ProductController extends Controller
         // Step 3: Generate Unique Media ID
         $mediaId = str_replace('-', '', (string)  Str::uuid());
 
-        // Step 4: Store File in Public Storage
-        $fileName = time() . '_' . $uploadedFile->getClientOriginalName();
+        // Step 4: Clean and format the filename
+        $originalName = $uploadedFile->getClientOriginalName();
+        $cleanName = preg_replace('/[^a-zA-Z0-9.]/', '_', $originalName);
+        $fileName = time() . '_' . $cleanName;
+
         $filePath = $uploadedFile->storeAs('public/media', $fileName);
 
         // Get public URL of the stored file
