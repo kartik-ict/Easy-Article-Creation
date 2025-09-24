@@ -32,7 +32,7 @@
                     <h5 class="modal-title">{{ __('product.step4') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 85vh; overflow-y: auto; overflow-x: hidden;">
                     <form id="product-form" method="POST">
                         @csrf
                         <div class="row">
@@ -108,15 +108,28 @@
                                     placeholder="{{ __('product.calculated_price_net') }}">
                             </div>
                             <div class="form-group col-md-6 col-sm-12 px-2">
-                                <label for="purchase_price">
+                                <label for="sw_purchase_price">
                                     {{ __('product.purchase_price') }} <span class="text-danger">*</span>
                                 </label>
-                                <input type="number" name="purchasePrice" id="purchasePrice"
-                                    class="form-control @error('purchasePrice') is-invalid @enderror" step="any"
+                                <input type="number" name="purchasePriceNet" id="swPurchasePriceNet"
+                                    class="form-control @error('purchasePriceNet') is-invalid @enderror" step="any"
                                     required placeholder="{{ __('product.enter_purchase_price') }}">
+                                <input type="hidden" name="purchasePrice" id="swPurchasePrice"
+                                    class="form-control" step="any" required />
                             </div>
                         </div>
-
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label for="list_price">
+                                    {{ __('product.list_price') }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" name="listPriceGross" id="listPriceGross"
+                                    class="form-control @error('listPriceGross') is-invalid @enderror" step="any"
+                                    required placeholder="{{ __('product.enter_list_price') }}">
+                                <input type="hidden" name="listPriceNet" id="listPriceNet"
+                                    class="form-control" step="any" required />
+                            </div>
+                        </div>
                         {{-- Product Marketplace Section --}}
                         <div class="row">
                             <div class="col-md-12">
@@ -247,7 +260,8 @@
                             </div>
                             <div class="col-md-6 form-group">
                                 <label for="binLocation">@lang('product.bin_location')</label>
-                                <select name="bin_location_id" id="binLocation" class="form-control">
+                                <select name="bin_location_id" id="binLocation"
+                                    class="form-control bin-location-select">
                                     @foreach ($binLocationList as $location)
                                         <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}
                                         </option>

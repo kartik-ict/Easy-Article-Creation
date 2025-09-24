@@ -9,6 +9,8 @@ const csrfToken = $('meta[name="csrf-token"]').attr('content');
 let currentPageManufacturer = 1; // Start from the first page
 let isLoadingManufacturer = false;
 let isEndOfResultsManufacturer = false;
+ // names you want preselected
+const preselectSalesChannelNames = ['DGMoutlet.nl', 'Bol NL', 'Bol BE'];
 
 $('#manufacturer-sw-search').select2({
     placeholder: 'Fabrikant',
@@ -109,7 +111,6 @@ $('#manufacturer-sw-search').on('select2:close', function () {
 $('#searchSwManufacturer').on('click', function () {
     $('#full-page-preloader').show();
     const productManufacturer = $('#manufacturerValue').text();
-    console.log(productManufacturer);
     // Show loader while fetching product data
     // $('#productDetails').html('<div class="loader"></div>');
 
@@ -494,7 +495,7 @@ $('#nextBolBtn').on('click', function () {
             }
 
             if (product.specs && typeof product.specs["Verpakkingsgewicht"] === "string") {
-                $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"].match(/\d+/) ? parseInt(product.specs["Verpakkingsgewicht"].match(/\d+/)[0], 10) : 0);
+                $('#bolPackagingWeight').val(product.specs["Verpakkingsgewicht"].match(/\d+/) ? (parseInt(product.specs["Verpakkingsgewicht"].match(/\d+/)[0], 10) / 1000).toFixed(2) : 0);
             } else {
                 $('#bolPackagingWeight').val(0);
             }
@@ -677,5 +678,65 @@ $.ajax({
     }
 });
 
+// Fetch sales channels and set defaults (same approach as your tax example)
+$.ajax({
+    url: salesSearchUrl,
+    type: 'POST',
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    },
+    dataType: 'json',
+    data: {
+        page: 1,
+        limit: 100, // increase if you expect more than 100 channels
+        term: '', // no filter so we get many channels at once
+        'total-count-mode': 1
+    },
+    success: function(data) {
+        if (!data || !Array.isArray(data.salesChannels)) return;
 
+        // Map into id/text like the tax example
+        const salesChannels = data.salesChannels.map(function(sc) {
+            const name = (sc.attributes && sc.attributes.translated && sc.attributes
+                    .translated.name) ||
+                sc.attributes.name ||
+                '';
+            return {
+                id: sc.id,
+                text: name
+            };
+        });
 
+        // For each name we want preselected, find it and append as selected
+        preselectSalesChannelNames.forEach(function(wantedName) {
+            // find exact (case-insensitive) match first
+            let found = salesChannels.find(function(s) {
+                return s.text.trim().toLowerCase() === wantedName.trim()
+                    .toLowerCase();
+            });
+
+            // fallback: contains match (case-insensitive)
+            if (!found) {
+                found = salesChannels.find(function(s) {
+                    return s.text.toLowerCase().indexOf(wantedName.trim()
+                        .toLowerCase()) !== -1;
+                });
+            }
+
+            if (found) {
+                const newOption = new Option(found.text, found.id, true, true);
+                $('#sales-channel-select').append(newOption);
+            } else {
+                console.warn(
+                    'Sales channel not found in fetched page for preselect:',
+                    wantedName);
+            }
+        });
+
+        // let Select2 re-render with selected options
+        $('#sales-channel-select').trigger('change');
+    },
+    error: function(xhr, status, err) {
+        console.error('Failed to fetch sales channels for preselect:', status, err);
+    }
+});

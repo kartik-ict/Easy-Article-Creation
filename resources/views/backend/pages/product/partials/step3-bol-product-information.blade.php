@@ -57,9 +57,11 @@
                     <label for="purchase_price">
                         {{ __('product.purchase_price') }} <span class="text-danger">*</span>
                     </label>
-                    <input type="number" name="purchasePrice" id="purchasePrice"
-                        class="form-control @error('purchasePrice') is-invalid @enderror" step="any" required
+                    <input type="number" name="purchasePriceNet" id="purchasePriceNet"
+                        class="form-control @error('purchasePriceNet') is-invalid @enderror" step="any" required
                         placeholder="{{ __('product.enter_purchase_price') }}">
+                    <input type="hidden" name="purchasePrice" id="purchasePrice" class="form-control"
+                        step="any" required />
                 </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="salesChannel">@lang('product.sales_channel'):</label>
@@ -73,11 +75,19 @@
                     <label for="bolStock">{{ __('product.bolStock') }}</label>
                     <input type="text" name="bolStock" id="bolStock" class="form-control" required>
                 </div>
+                <div class="col-md-6 form-group">
+                    <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
+                    <input type="hidden" name="active_for_allBol" value="1">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" name="active_for_allBol" id="active_for_all"
+                            value="1" checked {{ old('active_for_all') ? 'checked' : '' }}>
+                    </div>
+                </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="bolProductManufacturer">@lang('product.bolProductManufacturer')
                         :</label>
-                    <input type="text" class="form-control" id="bolProductManufacturer" name="bolProductManufacturer"
-                        disabled required>
+                    <input type="text" class="form-control" id="bolProductManufacturer"
+                        name="bolProductManufacturer" disabled required>
                     <input type="hidden" id="bolProductManufacturerId" name="bolProductManufacturerId">
                 </div>
 
@@ -207,13 +217,14 @@
                             value="1" {{ old('bolPickUpOnly') ? 'checked' : '' }}>
                     </div>
                 </div>
+
                 <div class="col-md-6 form-group">
-                    <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
-                    <input type="hidden" name="active_for_allBol" value="0">
-                    <div class="form-check form-switch">
-                        <input type="checkbox" class="form-check-input" name="active_for_allBol" id="active_for_all"
-                            value="1" {{ old('active_for_all') ? 'checked' : '' }}>
-                    </div>
+                    <label for="binLocation">@lang('product.bin_location')<span class="text-danger">*</span></label>
+                    <select name="bin_location_id" id="binLocation" class="form-control bin-location-select">
+                        @foreach ($binLocationList as $location)
+                            <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -227,14 +238,6 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 form-group">
-                    <label for="binLocation">@lang('product.bin_location')</label>
-                    <select name="bin_location_id" id="binLocation" class="form-control">
-                        @foreach ($binLocationList as $location)
-                            <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
             </div>
             <input type="hidden" name="warehouse" value="{{ $admin->warehouse_id }}" />
             <input type="hidden" class="form-control" id="bolProductEanNumber" name="bolProductEanNumber" required>

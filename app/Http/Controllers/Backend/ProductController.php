@@ -294,7 +294,7 @@ class ProductController extends Controller
         // Validate the incoming data
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'stock' => 'required|integer',
+            'stock' => 'nullable|integer|min:0',
             'manufacturer' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'taxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'productNumber' => 'required|string|max:255',
@@ -309,6 +309,7 @@ class ProductController extends Controller
             'media_id' => 'nullable|string|regex:/^[0-9a-f]{32}$/',
 
             'purchasePrice' => 'required|numeric',
+            'purchasePriceNet' => 'nullable|numeric',
             'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
@@ -323,7 +324,7 @@ class ProductController extends Controller
             'bolPickUpOnly' => 'nullable|in:0,1',
             'bolBEDeliveryTime' => 'nullable|string',
             'bolNLDeliveryTime' => 'nullable|string',
-            'bin_location_id' => 'required|string',
+            'bin_location_id' => 'nullable|string',
         ]);
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -371,13 +372,22 @@ class ProductController extends Controller
             'height' => $height,
             'length' => $length,
             'coverId' => $productMediaId,
-            'markAsTopseller' => true, // to make on sale default true
+            'markAsTopseller' => false, // to make on sale default false
+            'isCloseout' => true, // clearance sales ON
             'price' => [
                 [
                     'currencyId' => $currencyId,
                     'gross' => floatval($validatedData['priceGross']),
                     'net' => floatval($validatedData['priceNet']),
                     'linked' => true
+                ]
+            ],
+            'purchasePrices' => [
+                [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['purchasePrice']),
+                    'net' => floatval($validatedData['purchasePriceNet']),
+                    'linked' => true,
                 ]
             ]
         ];
@@ -400,13 +410,14 @@ class ProductController extends Controller
 
                 // set custom fields data for created product
                 $this->patchProductCustomData($productId, $customFields);
-
-                // set stock to bin location
-                $stockData = [
-                    'product_id' => $productId,
-                    'stock' => intval($validatedData['stock'])
-                ];
-                $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                if (!empty($validatedData['bin_location_id'])) {
+                    // set stock to bin location
+                    $stockData = [
+                        'product_id' => $productId,
+                        'stock' => intval($validatedData['stock'] ?? 0)
+                    ];
+                    $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                }
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
                 return back()->withErrors(__('product.failed_to_create_product'));
@@ -536,8 +547,10 @@ class ProductController extends Controller
             'priceGross' => 'required|numeric',
             'priceNet' => 'required|numeric',
             'productEanNumber' => 'string',
-
+            'listPriceGross' => 'required|numeric',
+            'listPriceNet' => 'nullable|numeric',
             'purchasePrice' => 'required|numeric',
+            'purchasePriceNet' => 'nullable|numeric',
             'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
@@ -553,7 +566,6 @@ class ProductController extends Controller
             'bolBEDeliveryTime' => 'nullable|string',
             'bolNLDeliveryTime' => 'nullable|string',
             'bin_location_id' => 'required|string',
-
         ]);
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -627,13 +639,28 @@ class ProductController extends Controller
                     'height' => $height,
                     'ean' => $validatedData['productEanNumber'],
                     'length' => $length,
-                    'markAsTopseller' => true, // to make on sale default true
+                    'markAsTopseller' => false, // to make on sale default false
+                    'isCloseout' => true, // clearance sales ON
                     'price' => [
                         [
                             'currencyId' => $currencyId,
                             'gross' => floatval($validatedData['priceGross']),
                             'net' => floatval($validatedData['priceNet']),
-                            'linked' => true
+                            'linked' => true,
+                            'listPrice' => [
+                                'currencyId' => $currencyId,
+                                'gross' => floatval($validatedData['listPriceGross']),
+                                'net' =>  floatval($validatedData['listPriceNet']),
+                                'linked' => true,
+                            ]
+                        ]
+                    ],
+                    'purchasePrices' => [
+                        [
+                            'currencyId' => $currencyId,
+                            'gross' => floatval($validatedData['purchasePrice']),
+                            'net' => floatval($validatedData['purchasePriceNet']),
+                            'linked' => true,
                         ]
                     ],
                     'options' => $options,
@@ -702,6 +729,7 @@ class ProductController extends Controller
             'active_for_allBol' => 'nullable|boolean',
 
             'purchasePrice' => 'required|numeric',
+            'purchasePriceNet' => 'nullable|numeric',
             'bolProductShortDescription' => 'nullable|string',
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
@@ -796,7 +824,8 @@ class ProductController extends Controller
             'taxId' => $validatedData['bolTaxId'],
             'active' => boolval($validatedData['active_for_allBol']),
             'coverId' => $productMediaId,
-            'markAsTopseller' => true, // to make on sale default true
+            'markAsTopseller' => false, // to make on sale default false
+            'isCloseout' => true, // clearance sales ON
             'price' => [
                 [
                     'currencyId' => $currencyId,
@@ -810,6 +839,14 @@ class ProductController extends Controller
                         'linked' => true,
                     ]
                 ]
+            ],
+            'purchasePrices' => [
+                [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['purchasePrice']),
+                    'net' => floatval($validatedData['purchasePriceNet']),
+                    'linked' => true,
+                ]
             ]
         ];
         try {
@@ -820,14 +857,14 @@ class ProductController extends Controller
 
                 // set custom fields data for created product
                 $this->patchProductCustomData($uuid, $customFields);
-
-                // set stock to bin location
-                $stockData = [
-                    'product_id' => $uuid,
-                    'stock' => (int)$validatedData['bolStock']
-                ];
-                $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
-
+                if (intval($validatedData['bolStock'] ?? 0) > 0) {
+                    // set stock to bin location
+                    $stockData = [
+                        'product_id' => $uuid,
+                        'stock' => (int)$validatedData['bolStock']
+                    ];
+                    $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                }
                 $productMediaData = [
                     'id' => $productMediaId,
                     'productId' => $uuid,
@@ -997,15 +1034,16 @@ class ProductController extends Controller
             "custom_product_message_" => $validatedData['bolProductShortDescription'] ?? null,
             "migration_DMG_product_bol_price_be" => $validatedData['bolBePrice'] ?? null,
             "migration_DMG_product_bol_price_nl" => $validatedData['bolNlPrice'] ?? null,
-            "migration_DMG_product_bol_be_active" => $validatedData['bolBeActive'] ? true : false,
+            "migration_DMG_product_bol_be_active" => isset($validatedData['bolBeActive']) ? (bool)$validatedData['bolBeActive'] : false,
             "migration_DMG_product_bol_condition" => $validatedData['bolCondition'] ?? null,
             "migration_DMG_product_bol_condition_desc" => $validatedData['bolConditionDescription'] ?? null,
-            "migration_DMG_product_bol_nl_active" => $validatedData['bolNlActive'] ? true : false,
-            "migration_DMG_product_proposition_1" => $validatedData['bolOrderBeforeTomorrow'] ? true : false,
-            "migration_DMG_product_proposition_2" => $validatedData['bolOrderBefore'] ? true : false,
-            "migration_DMG_product_proposition_3" => $validatedData['bolLetterboxPackage'] ? true : false,
-            "migration_DMG_product_proposition_4" => $validatedData['bolLetterboxPackageUp'] ? true : false,
-            "migration_DMG_product_proposition_5" => $validatedData['bolPickUpOnly'] ? true : false,
+            // "migration_DMG_product_variant_description_long" => $validatedData['bolConditionDescription'] ?? null,
+            "migration_DMG_product_bol_nl_active" => isset($validatedData['bolNlActive']) ? (bool)$validatedData['bolNlActive'] : false,
+            "migration_DMG_product_proposition_1" => isset($validatedData['bolOrderBeforeTomorrow']) ? (bool)$validatedData['bolOrderBeforeTomorrow'] : false,
+            "migration_DMG_product_proposition_2" => isset($validatedData['bolOrderBefore']) ? (bool)$validatedData['bolOrderBefore'] : false,
+            "migration_DMG_product_proposition_3" => isset($validatedData['bolLetterboxPackage']) ? (bool)$validatedData['bolLetterboxPackage'] : false,
+            "migration_DMG_product_proposition_4" => isset($validatedData['bolLetterboxPackageUp']) ? (bool)$validatedData['bolLetterboxPackageUp'] : false,
+            "migration_DMG_product_proposition_5" => isset($validatedData['bolPickUpOnly']) ? (bool)$validatedData['bolPickUpOnly'] : false,
             "migration_DMG_product_bol_be_delivery_code" => $validatedData['bolBEDeliveryTime'] ?? null,
             "migration_DMG_product_bol_nl_delivery_code" => $validatedData['bolNLDeliveryTime'] ?? null,
             "purchase_price" => $validatedData['purchasePrice'] ?? 0

@@ -177,8 +177,8 @@ class ManufacturerController extends Controller
         if ($productManufacturer && count($productManufacturer['data']) > 0) {
             return response()->json(['productManufacturer' => $productManufacturer['data']], 200);
         } else {
-            return response()->json(['productManufacturer' => null, 'message' =>  __('product.please_select_existing_manufacture')], 200);
-            // return $this->saveData($request);
+            return $this->saveData($request);
+            // return response()->json(['productManufacturer' => null, 'message' =>  __('product.please_select_existing_manufacture')], 200);
         }
     }
 
