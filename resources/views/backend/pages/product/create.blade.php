@@ -50,8 +50,10 @@
                                 </div>
                                 <div class="form-group col-md-6 col-sm-12 px-2">
                                     <label for="stock">@lang('product.stock') <span class="text-danger">*</span>:</label>
-                                    <input type="number" class="form-control @error('stock') is-invalid @enderror"
-                                        id="stock" name="stock" value="{{ old('stock') }}" required>
+                                    <input type="hidden" class="form-control" id="stock" name="stock"
+                                        value="0" />
+                                    <label class="form-control text-muted bg-light" disabled id="stock"
+                                        name="stock">0</label>
                                     @error('stock')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -96,8 +98,7 @@
                                     <label for="productNumber">@lang('product.product_number') <span
                                             class="text-danger">*</span>:</label>
                                     <input type="text" class="form-control @error('productNumber') is-invalid @enderror"
-                                        id="productNumber" name="productNumber" value="{{ old('productNumber') }}"
-                                        required>
+                                        id="productNumber" name="productNumber" value="{{ old('productNumber') }}" required>
                                     @error('productNumber')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -118,24 +119,23 @@
                                         </span>
                                     @enderror
                                     <input type="hidden" name="priceNet" id="priceNet"
-                                        class="form-control @error('priceNet') is-invalid @enderror"
-                                        step="any"
-                                        required
-                                        placeholder="{{ __('product.calculated_price_net') }}"
-                                    />
+                                        class="form-control @error('priceNet') is-invalid @enderror" step="any" required
+                                        placeholder="{{ __('product.calculated_price_net') }}" />
                                 </div>
                                 <div class="form-group col-md-6 col-sm-12 px-2">
                                     <label for="purchase_price">
                                         {{ __('product.purchase_price') }} <span class="text-danger">*</span>
                                     </label>
-                                    <input type="number" name="purchasePrice" id="purchasePrice"
-                                        class="form-control @error('purchasePrice') is-invalid @enderror" step="any"
+                                    <input type="number" name="purchasePriceNet" id="purchasePriceNet"
+                                        class="form-control @error('purchasePriceNet') is-invalid @enderror" step="any"
                                         required placeholder="{{ __('product.enter_purchase_price') }}">
-                                    @error('purchasePrice')
+                                    @error('purchasePriceNet')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
                                     @enderror
+                                    <input type="hidden" name="purchasePrice" id="purchasePrice"
+                                        class="form-control" step="any" required/>
                                 </div>
                             </div>
 
@@ -190,7 +190,7 @@
                                 </div>
                             </div>
                             {{-- Product Marketplace Section --}}
-                            <div class="row">
+                            {{-- <div class="row">
                                 <div class="col-md-12">
                                     <h5 class="my-3">{{ __('product.product_marketplace_information') }}</h5>
                                 </div>
@@ -252,7 +252,6 @@
                                     </select>
                                 </div>
                             </div>
-
                             <div class="row">
                                 <div class="col-md-6 form-group mb-3">
                                     <label for="bolCondition"
@@ -271,7 +270,8 @@
                                     <input type="text" class="form-control" id="bolConditionDescription"
                                         name="bolConditionDescription">
                                 </div>
-                            </div>
+                            </div> --}}
+                            {{-- Shipping information DGM site --}}
                             <div class="row">
                                 <div class="col-md-12">
                                     <h5 class="my-3">{{ __('product.product_shipping_header') }}</h5>
@@ -289,23 +289,23 @@
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
                                     <div class="form-check">
-                                        <input type="hidden" name="bolOrderBefore" value="0">
-                                        <input type="checkbox" class="form-check-input bolOrderBefore"
-                                            id="bolOrderBefore" value="1" name="bolOrderBefore">
-                                        <label class="form-check-label bolOrderBefore"
-                                            for="bolOrderBefore">{{ $customFields['migration_DMG_product_proposition_2']['label'] }}</label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 form-group mb-3">
-                                    <div class="form-check">
                                         <input type="hidden" name="bolLetterboxPackage" value="0">
                                         <input type="checkbox" class="form-check-input bolLetterboxPackage"
                                             id="bolLetterboxPackage" value="1" name="bolLetterboxPackage">
                                         <label class="form-check-label bolLetterboxPackage"
                                             for="bolLetterboxPackage">{{ $customFields['migration_DMG_product_proposition_3']['label'] }}</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- <div class="row">
+                                <div class="col-md-6 form-group mb-3">
+                                    <div class="form-check">
+                                        <input type="hidden" name="bolOrderBefore" value="0">
+                                        <input type="checkbox" class="form-check-input bolOrderBefore"
+                                            id="bolOrderBefore" value="1" name="bolOrderBefore">
+                                        <label class="form-check-label bolOrderBefore"
+                                            for="bolOrderBefore">{{ $customFields['migration_DMG_product_proposition_2']['label'] }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6 form-group mb-3">
@@ -317,7 +317,7 @@
                                             for="bolLetterboxPackageUp">{{ $customFields['migration_DMG_product_proposition_4']['label'] }}</label>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class="row">
                                 <div class="col-md-6 form-group">
                                     <input type="hidden" name="bolPickUpOnly" value="0">
@@ -331,7 +331,8 @@
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label for="binLocation">@lang('product.bin_location')</label>
-                                    <select name="bin_location_id" id="binLocation" class="form-control">
+                                    <select name="bin_location_id" id="binLocation" class="form-control bin-location-select">
+                                        <option value=""></option>
                                         @foreach ($binLocationList as $location)
                                             <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}
                                             </option>
@@ -358,6 +359,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/23.0.0/classic/ckeditor.js"></script>
     <script>
+        // names you want preselected
+        const preselectSalesChannelNames = ['DGMoutlet.nl', 'Bol NL', 'Bol BE'];
+
         $(document).ready(function() {
             ClassicEditor.create(document.querySelector('#description'))
                 .then(editor => {
@@ -644,6 +648,74 @@
                 isSalesChannelEnd = false; // Reset end flag
             });
 
+            // Fetch sales channels and set defaults (same approach as your tax example)
+            $.ajax({
+                url: '{{ route('product.salesChannelSearch') }}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                data: {
+                    page: 1,
+                    limit: 100, // increase if you expect more than 100 channels
+                    term: '', // no filter so we get many channels at once
+                    'total-count-mode': 1
+                },
+                success: function(data) {
+                    if (!data || !Array.isArray(data.salesChannels)) return;
+
+                    // Map into id/text like the tax example
+                    const salesChannels = data.salesChannels.map(function(sc) {
+                        const name = (sc.attributes && sc.attributes.translated && sc.attributes
+                                .translated.name) ||
+                            sc.attributes.name ||
+                            '';
+                        return {
+                            id: sc.id,
+                            text: name
+                        };
+                    });
+
+                    // For each name we want preselected, find it and append as selected
+                    preselectSalesChannelNames.forEach(function(wantedName) {
+                        // find exact (case-insensitive) match first
+                        let found = salesChannels.find(function(s) {
+                            return s.text.trim().toLowerCase() === wantedName.trim()
+                                .toLowerCase();
+                        });
+
+                        // fallback: contains match (case-insensitive)
+                        if (!found) {
+                            found = salesChannels.find(function(s) {
+                                return s.text.toLowerCase().indexOf(wantedName.trim()
+                                    .toLowerCase()) !== -1;
+                            });
+                        }
+
+                        if (found) {
+                            const newOption = new Option(found.text, found.id, true, true);
+                            $('#sales-channel-select').append(newOption);
+                        } else {
+                            console.warn(
+                                'Sales channel not found in fetched page for preselect:',
+                                wantedName);
+                        }
+                    });
+
+                    // let Select2 re-render with selected options
+                    $('#sales-channel-select').trigger('change');
+                },
+                error: function(xhr, status, err) {
+                    console.error('Failed to fetch sales channels for preselect:', status, err);
+                }
+            });
+
+            $('#binLocation').select2({
+                placeholder: "{{ __('Select Bin Location') }}",
+                allowClear: true,
+                width: '100%' // ensures it stretches to Bootstrap column width
+            });
             // Category API
 
             let currentPageCategory = 1; // Current page for pagination
@@ -880,7 +952,9 @@
 
                         // Set tax rate and trigger calculation
                         $('#priceGross').data('taxRate', defaultTax.taxRate);
+                        $('#purchasePriceNet').data('taxRate', defaultTax.taxRate);
                         $('#priceGross').trigger('input');
+                        $('#purchasePriceNet').trigger('input');
                     }
                 }
             });
@@ -925,6 +999,16 @@
                         }
                     });
                 }
+            });
+
+            // Event listener for purchase price net input - calculate gross
+            $('#purchasePriceNet').on('input', function() {
+                const purchasePriceNet = parseFloat($(this).val()) || 0;
+                const taxRate = parseFloat($(this).data('taxRate')) || 21;
+
+                // Calculate gross price
+                const purchasePrice = purchasePriceNet * (1 + taxRate / 100);
+                $('#purchasePrice').val(purchasePrice.toFixed(2));
             });
         });
     </script>

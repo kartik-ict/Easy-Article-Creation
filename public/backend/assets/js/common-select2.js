@@ -379,8 +379,7 @@ $('#category-select-modal').on('select2:close', function () {
 // gross price to net price convert
 $('#priceGross').on('input', function () {
     const priceGross = parseFloat($(this).val()) || 0;
-    const taxRate = parseFloat($(this).data('taxRate')) || 0;
-
+    const taxRate = parseFloat($(this).data('taxRate')) || parseFloat($('#tax-provider-select').data('tax-rate')) || 21;
     // Calculate net price
     const priceNet = priceGross / (1 + taxRate / 100);
     $('#priceNet').val(priceNet.toFixed(2));
@@ -396,6 +395,42 @@ $('#priceNet').on('input', function () {
     $('#priceGross').val(priceGross.toFixed(2));
 });
 
+// net price to gross price convert for purchase price
+$(document).on('input', '#swPurchasePriceNet, #purchasePriceNet', function() {
+    const purchasePriceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || parseFloat($('#tax-provider-select').data('tax-rate')) || 21;
+    // Calculate gross price
+    const purchasePrice = purchasePriceNet * (1 + taxRate / 100);
+    $('#swPurchasePrice, #purchasePrice').val(purchasePrice.toFixed(2));
+});
+// gross price to net price convert
+$(document).on('input', '#swPurchasePrice, #purchasePrice', function() {
+    const purchasePrice = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($('#swPurchasePriceNet, #purchasePriceNet').data('taxRate')) || parseFloat($('#tax-provider-select').data('tax-rate')) || 21;
+
+    // Calculate net price
+    const purchasePriceNet = purchasePrice / (1 + taxRate / 100);
+    $('#swPurchasePriceNet, #purchasePriceNet').val(purchasePriceNet.toFixed(2));
+});
+
+// gross price to net price convert
+$('#listPriceGross').on('input', function () {
+    const listPriceGross = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || parseFloat($('#tax-provider-select').data('tax-rate')) || 21;
+    // Calculate net price
+    const listPriceNet = listPriceGross / (1 + taxRate / 100);
+    $('#listPriceNet').val(listPriceNet.toFixed(2));
+});
+
+// net price to gross price convert
+$('#listPriceNet').on('input', function () {
+    const listPriceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($('#listPriceGross').data('taxRate')) || 0;
+
+    // Calculate gross price
+    const listPriceGross = listPriceNet * (1 + taxRate / 100);
+    $('#listPriceGross').val(listPriceGross.toFixed(2));
+});
 // Tax Provider API
 
 // $('#tax-provider-select').select2({
@@ -502,9 +537,18 @@ $.ajax({
             }
         }).on('select2:select', function (e) {
             const selectedTaxRate = e.params.data.taxRate || 0;
-
+            // Set tax rate data attribute for both price fields
             $('#priceGross').data('taxRate', selectedTaxRate);
+            $('#listPriceGross').data('taxRate', selectedTaxRate);
+            $('#swPurchasePrice, #purchasePrice').data('taxRate', selectedTaxRate);
+
+            // Store tax rate in a data attribute on the select element for easier access
+            $(this).data('tax-rate', selectedTaxRate);
+
+            // Trigger calculations
             $('#priceGross').trigger('input');
+            $('#listPriceGross').trigger('input');
+            $('#swPurchasePrice, #purchasePrice').trigger('input');
         });
         // Step 2: Find 21% tax rate
         const selectedProvider = data.taxProviders.find(provider => provider.attributes.taxRate === 21);
@@ -519,8 +563,16 @@ $.ajax({
 
             // Step 3: Add and trigger change
             $('#tax-provider-select').append(option).trigger('change');
+
+            // Set tax rate data attributes
             $('#priceGross').data('taxRate', selectedProvider.attributes.taxRate);
+            $('#listPriceGross').data('taxRate', selectedProvider.attributes.taxRate);
+            $('#swPurchasePrice,#purchasePrice').data('taxRate', selectedProvider.attributes.taxRate);
+            $('#tax-provider-select').data('tax-rate', selectedProvider.attributes.taxRate);
+            // Trigger calculations
             $('#priceGross').trigger('input');
+            $('#listPriceGross').trigger('input');
+            $('#swPurchasePrice,#purchasePrice').trigger('input');
         }
 
     }

@@ -93,8 +93,7 @@
                     <h2 class="mb-4" id="step_1_title">{{ __('product.search_product_ean') }}</h2>
                     <div id="route-container" data-manufacturer-search="{{ route('product.manufacturerSearch') }}"></div>
 
-                    <div id="route-container-sw-manufacturer-search"
-                        data-sw-manufacturer-search="{{ route('sw.manufacturers.search') }}"></div>
+                    <div id="route-container-sw-manufacturer-search" data-sw-manufacturer-search="{{ route('sw.manufacturers.search') }}"></div>
 
                     <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"></div>
                     <div id="route-container-category" data-category-search="{{ route('product.categorySearch') }}"></div>
@@ -598,7 +597,10 @@
                 }
 
                 $("#binLocationSelectionModal").modal('show');
-                setTimeout(() => {
+            });
+
+            $('#binLocationSelectionModal').on('shown.bs.modal', function() {
+                if (!$("#modalBinLocation").hasClass('select2-hidden-accessible')) {
                     $("#modalBinLocation").select2({
                         minimumInputLength: 0,
                         allowClear: false,
@@ -616,7 +618,7 @@
                             }
                         }
                     });
-                }, 500);
+                }
             });
 
             $(document).on('click', '#updateBinLocation', function() {
@@ -711,6 +713,7 @@
                 // Handle Sales Channel
                 const salesChannelId = productData.attributes.salesChannelId;
                 const salesChannelData = findIncludedData(salesChannelId, "sales_channel");
+
                 if (salesChannelData) {
                     const salesChannelName = salesChannelData.attributes.translated.name;
                     const newSalesChannelOption = new Option(salesChannelName, salesChannelId, true, true);
@@ -824,6 +827,28 @@
             }
             $('#productEditModal').on('shown.bs.modal', function() {
                 setCustomFieldData(customFieldData);
+
+                // Initialize select2 for bin location selects inside modal only
+                $('#productEditModal .bin-location-select').each(function() {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).select2('destroy');
+                    }
+                    $(this).select2({
+                        placeholder: "{{ __('Select Bin Location') }}",
+                        allowClear: true,
+                        width: '100%',
+                        dropdownParent: $('#productEditModal')
+                    });
+                });
+            });
+
+            // Initialize select2 for bin location selects outside modals
+            $(document).ready(function() {
+                $('.bin-location-select').not('#productEditModal .bin-location-select').select2({
+                    placeholder: "{{ __('Select Bin Location') }}",
+                    allowClear: true,
+                    width: '100%'
+                });
             });
         });
     </script>
