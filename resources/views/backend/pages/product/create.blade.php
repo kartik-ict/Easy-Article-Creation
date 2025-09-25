@@ -93,6 +93,7 @@
                                     @error('taxId')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
+                                    <input type="hidden" name="taxRate" id="taxRate" value="21" />
                                 </div>
                                 <div class="form-group col-md-6 col-sm-12 px-2">
                                     <label for="productNumber">@lang('product.product_number') <span
@@ -922,9 +923,12 @@
             }).on('select2:select', function(e) {
                 const selectedTaxRate = e.params.data.taxRate || 0; // Get the selected tax rate
 
+                $('#taxRate').val(selectedTaxRate); // Set the hidden input value
                 // Update the tax rate for calculation
                 $('#priceGross').data('taxRate', selectedTaxRate);
+                $('#purchasePriceNet').data('taxRate', selectedTaxRate);
                 $('#priceGross').trigger('input');
+                $('#purchasePriceNet').trigger('input');
             });
 
             // Load tax rates and set default on page load
@@ -949,6 +953,7 @@
                         // Set default option
                         const newOption = new Option(defaultTax.text, defaultTax.id, true, true);
                         $('#tax-provider-select').append(newOption).trigger('change');
+                        $('#taxRate').val(defaultTax.taxRate);
 
                         // Set tax rate and trigger calculation
                         $('#priceGross').data('taxRate', defaultTax.taxRate);

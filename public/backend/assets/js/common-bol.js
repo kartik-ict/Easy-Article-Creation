@@ -641,10 +641,13 @@ $('#tax-provider-select-bol').select2({
     },
 }).on('select2:select', function (e) {
     const selectedTaxRate = e.params.data.taxRate || 0;
+    $('#taxRate, #swTaxRate').val(selectedTaxRate);
     $('#bolProductPrice').data('taxRate', selectedTaxRate);
     $('#bolProductListPriceGross').data('taxRate', selectedTaxRate);
+    $('#purchasePriceNet').data('taxRate', selectedTaxRate);
     $('#bolProductPrice').trigger('input');
     $('#bolProductListPriceGross').trigger('input');
+    $('#purchasePriceNet').trigger('input');
 });
 
 // Load tax rates and set default on page load
@@ -669,11 +672,13 @@ $.ajax({
             // Set default option
             const newOption = new Option(defaultTax.text, defaultTax.id, true, true);
             $('#tax-provider-select-bol').append(newOption).trigger('change');
-
+            $('#taxRate, #swTaxRate').val(defaultTax.taxRate);
             // Set tax rate and trigger calculation
             $('#bolProductPrice').data('taxRate', defaultTax.taxRate);
             $('#bolProductListPriceGross').data('taxRate', defaultTax.taxRate);
+            $('#purchasePriceNet').data('taxRate', defaultTax.taxRate);
             $('#bolProductPrice').trigger('input');
+            $('#purchasePriceNet').trigger('input');
         }
     }
 });
@@ -739,4 +744,13 @@ $.ajax({
     error: function(xhr, status, err) {
         console.error('Failed to fetch sales channels for preselect:', status, err);
     }
+});
+
+// Purchase price net to gross calculation for BOL form
+$('#purchasePriceNet').on('input', function() {
+    const purchasePriceNet = parseFloat($(this).val()) || 0;
+    const taxRate = parseFloat($(this).data('taxRate')) || 21;
+    // Calculate gross price
+    const purchasePrice = purchasePriceNet * (1 + taxRate / 100);
+    $('#purchasePrice').val(purchasePrice.toFixed(2));
 });

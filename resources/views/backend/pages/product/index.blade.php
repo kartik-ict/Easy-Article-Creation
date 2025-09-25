@@ -741,7 +741,7 @@
 
                     // For the tax provider, if you have the taxId:
                     $('#tax-provider-select').val(productData.attributes.taxId || '').trigger('change');
-
+                    $('#taxRate, #swTaxRate').val(productData.attributes.taxRate || '21');
                     // For the salesChannel, assuming it’s an array:
                     $('#sales-channel-select').val(productData.attributes.sales || []).trigger('change');
 

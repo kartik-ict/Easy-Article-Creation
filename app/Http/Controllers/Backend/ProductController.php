@@ -386,7 +386,7 @@ class ProductController extends Controller
                 [
                     'currencyId' => $currencyId,
                     'gross' => floatval($validatedData['purchasePrice']),
-                    'net' => floatval($validatedData['purchasePriceNet']),
+                    'net' => floatval($validatedData['purchasePriceNet'] ?? $validatedData['purchasePrice']),
                     'linked' => true,
                 ]
             ]
@@ -659,7 +659,7 @@ class ProductController extends Controller
                         [
                             'currencyId' => $currencyId,
                             'gross' => floatval($validatedData['purchasePrice']),
-                            'net' => floatval($validatedData['purchasePriceNet']),
+                            'net' => floatval($validatedData['purchasePriceNet'] ?? $validatedData['purchasePrice']),
                             'linked' => true,
                         ]
                     ],
@@ -844,7 +844,7 @@ class ProductController extends Controller
                 [
                     'currencyId' => $currencyId,
                     'gross' => floatval($validatedData['purchasePrice']),
-                    'net' => floatval($validatedData['purchasePriceNet']),
+                    'net' => floatval($validatedData['purchasePriceNet'] ?? $validatedData['purchasePrice']),
                     'linked' => true,
                 ]
             ]
