@@ -537,6 +537,7 @@ $.ajax({
             }
         }).on('select2:select', function (e) {
             const selectedTaxRate = e.params.data.taxRate || 0;
+            $('#taxRate, #swTaxRate').val(selectedTaxRate); // Set the hidden input value
             // Set tax rate data attribute for both price fields
             $('#priceGross').data('taxRate', selectedTaxRate);
             $('#listPriceGross').data('taxRate', selectedTaxRate);
@@ -563,7 +564,7 @@ $.ajax({
 
             // Step 3: Add and trigger change
             $('#tax-provider-select').append(option).trigger('change');
-
+            $('#taxRate, #swTaxRate').val(selectedProvider.attributes.taxRate); // Set the hidden input value
             // Set tax rate data attributes
             $('#priceGross').data('taxRate', selectedProvider.attributes.taxRate);
             $('#listPriceGross').data('taxRate', selectedProvider.attributes.taxRate);

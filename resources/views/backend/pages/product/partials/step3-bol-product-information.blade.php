@@ -25,6 +25,7 @@
                     <select id="tax-provider-select-bol" class="js-example-basic-single form-control" name="bolTaxId"
                         required>
                     </select>
+                    <input type="hidden" name="taxRate" id="taxRate" value="21" />
                 </div>
             </div>
             <div class="row">
@@ -53,7 +54,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-6 col-sm-12 px-2">
+                <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="purchase_price">
                         {{ __('product.purchase_price') }} <span class="text-danger">*</span>
                     </label>
@@ -72,12 +73,12 @@
             </div>
             <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolStock">{{ __('product.bolStock') }}</label>
-                    <input type="text" name="bolStock" id="bolStock" class="form-control" required>
+                    <label for="bolStock">{{ __('product.bolStock') }}<span class="text-danger">*</span></label>
+                    <input type="text" name="bolStock" id="bolStock" class="form-control" value="0" required>
                 </div>
                 <div class="col-md-6 form-group">
                     <label for="active_for_all">{{ __('product.active_for_all_label') }}</label>
-                    <input type="hidden" name="active_for_allBol" value="1">
+                    <input type="hidden" name="active_for_allBol" value="0">
                     <div class="form-check form-switch">
                         <input type="checkbox" class="form-check-input" name="active_for_allBol" id="active_for_all"
                             value="1" checked {{ old('active_for_all') ? 'checked' : '' }}>

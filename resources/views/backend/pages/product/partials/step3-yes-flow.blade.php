@@ -85,6 +85,7 @@
                                 <select id="tax-provider-select" class="js-example-basic-single form-control"
                                     name="taxId" required>
                                 </select>
+                                <input type="hidden" name="taxRate" id="swTaxRate" value="21" />
                             </div>
                             <div class="col-md-6 form-group mt-3">
                                 <div class="d-flex flex-column">
@@ -341,7 +342,7 @@
             <!-- Property Group Select -->
             <div class="col-md-6 mb-4">
                 <div class="card p-3">
-                    <label for="propertyGroupSelect" class="font-weight-bold">@lang('product.property_select_group')</label>
+                    <label for="propertyGroupSelect" class="font-weight-bold">@lang('product.property_select_group')<span class="text-danger">*</span></label>
                     <div class="d-flex align-items-center mt-2">
                         <select id="propertyGroupSelect" class="form-control me-3 w-75"></select>
                     </div>
@@ -351,7 +352,7 @@
             <!-- Property Group Option Select -->
             <div id="propertyGroupOptionWrapper" class="col-md-6 mb-4" style="display: none;">
                 <div class="card p-3">
-                    <label for="propertyGroupOptionSelect" class="font-weight-bold">@lang('product.property_select_group_option')</label>
+                    <label for="propertyGroupOptionSelect" class="font-weight-bold">@lang('product.property_select_group_option') <span class="text-danger">*</span></label>
                     <div class="d-flex align-items-center mt-2">
                         <select id="propertyGroupOptionSelect" class="form-control me-3 w-75"></select>
                     </div>
