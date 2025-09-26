@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Backend;
 
 use App\Services\ShopwareAuthService;
 use App\Http\Controllers\Controller;
-use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ManufacturerController extends Controller
 {
@@ -189,7 +189,7 @@ class ManufacturerController extends Controller
         ]);
 
         // Generate a UUID for the new product
-        $uuid = str_replace('-', '', (string)\Str::uuid());
+        $uuid = str_replace('-', '', (string)Str::uuid());
         $productManufacturer = $request->input('productManufacturer');
         // Prepare the data for the API request
         $data = [

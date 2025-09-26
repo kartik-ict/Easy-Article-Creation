@@ -728,8 +728,8 @@ $('#propertyGroupSelect').change(function () {
 });
 
 
-/*second*/
-
+/*second - COMMENTED OUT*/
+/*
 // Initialize Property Group Select
 $('#propertyGroupSelectSecond').select2({
     width: '50%',
@@ -861,11 +861,12 @@ $('#propertyGroupSelectSecond').change(function () {
         $('#addPropertyOptionWrapper').css('visibility', 'hidden');
     }
 });
-/*second*/
+*/
+/*second - COMMENTED OUT*/
 
 
-/*Third*/
-
+/*Third - COMMENTED OUT*/
+/*
 // Initialize Property Group Select
 $('#propertyGroupSelectThird').select2({
     width: '50%',
@@ -997,11 +998,12 @@ $('#propertyGroupSelectThird').change(function () {
         $('#addPropertyOptionWrapper').css('visibility', 'hidden');
     }
 });
-/*Third*/
+*/
+/*Third - COMMENTED OUT*/
 
 
-/*Four*/
-
+/*Four - COMMENTED OUT*/
+/*
 // Initialize Property Group Select
 $('#propertyGroupSelectFour').select2({
     width: '50%',
@@ -1133,11 +1135,12 @@ $('#propertyGroupSelectFour').change(function () {
         $('#addPropertyOptionWrapper').css('visibility', 'hidden');
     }
 });
-/*Four*/
+*/
+/*Four - COMMENTED OUT*/
 
 
-/*Five*/
-
+/*Five - COMMENTED OUT*/
+/*
 // Initialize Property Group Select
 $('#propertyGroupSelectFive').select2({
     width: '50%',
@@ -1269,7 +1272,8 @@ $('#propertyGroupSelectFive').change(function () {
         $('#addPropertyOptionWrapper').css('visibility', 'hidden');
     }
 });
-/*Five*/
+*/
+/*Five - COMMENTED OUT*/
 
 
 
@@ -1476,6 +1480,8 @@ $('#addPropertyOptionBtn').on('click', function () {
     const selectedGroupName = $('#propertyGroupSelect option:selected').text();
     const selectedPropertyOption = $('#propertyGroupOptionSelect option:selected').text();
 
+    // COMMENTED OUT - Fields 2-5 disabled
+    /*
     const selectedGroupIdSecond = $('#propertyGroupSelectSecond').val();
     const selectedGroupOptionSecond = $('#propertyGroupOptionSelectSecond').val();
     const selectedGroupNameSecond = $('#propertyGroupSelectSecond option:selected').text();
@@ -1495,6 +1501,28 @@ $('#addPropertyOptionBtn').on('click', function () {
     const selectedGroupOptionFive = $('#propertyGroupOptionSelectFive').val();
     const selectedGroupNameFive = $('#propertyGroupSelectFive option:selected').text();
     const selectedPropertyOptionFive = $('#propertyGroupOptionSelectFive option:selected').text();
+    */
+    
+    // Set disabled fields to null
+    const selectedGroupIdSecond = null;
+    const selectedGroupOptionSecond = null;
+    const selectedGroupNameSecond = '';
+    const selectedPropertyOptionSecond = '';
+    
+    const selectedGroupIdThird = null;
+    const selectedGroupOptionThird = null;
+    const selectedGroupNameThird = '';
+    const selectedPropertyOptionThird = '';
+    
+    const selectedGroupIdFour = null;
+    const selectedGroupOptionFour = null;
+    const selectedGroupNameFour = '';
+    const selectedPropertyOptionFour = '';
+    
+    const selectedGroupIdFive = null;
+    const selectedGroupOptionFive = null;
+    const selectedGroupNameFive = '';
+    const selectedPropertyOptionFive = '';
 
     // Validate: If a group is selected, its corresponding option must be selected
     const validationFailed = [
