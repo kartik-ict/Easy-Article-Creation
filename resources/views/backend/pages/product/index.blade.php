@@ -358,6 +358,22 @@
                                         propertyGroupNames = 'N/A';
                                     }
 
+                                    // Get price data
+                                    const dgmPrice = product.attributes.price?.[0]?.gross ? parseFloat(product.attributes.price[0].gross).toFixed(2).replace('.', ',') : '-';
+                                    
+                                    // Get BOL prices from variant or fallback to parent
+                                    let bolNlPrice = product.attributes.customFields?.migration_DMG_product_bol_price_nl;
+                                    let bolBePrice = product.attributes.customFields?.migration_DMG_product_bol_price_be;
+                                    
+                                    // If variant prices are null and parentData exists, get parent prices
+                                    if ((!bolNlPrice || !bolBePrice) && allProductData.parentData) {
+                                        bolNlPrice = bolNlPrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_nl;
+                                        bolBePrice = bolBePrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_be;
+                                    }
+                                    
+                                    bolNlPrice = bolNlPrice ? parseFloat(bolNlPrice).toFixed(2).replace('.', ',') : '-';
+                                    bolBePrice = bolBePrice ? parseFloat(bolBePrice).toFixed(2).replace('.', ',') : '-';
+
                                     // Create a new row for the table
                                     const productRow = `
                                         <tr data-product-id="${product.id}">
@@ -365,9 +381,11 @@
                                         <td class="d-none">${product.attributes.ean || '-'}</td>
                                         <td>${product.attributes.productNumber || '-'}</td>
                                         <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                                        <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}" min="0"></td>
+                                        <td>${dgmPrice !== '-' ? '€' + dgmPrice : '-'}</td>
+                                        <td>${bolNlPrice !== '-' ? '€' + bolNlPrice : '-'}</td>
+                                        <td>${bolBePrice !== '-' ? '€' + bolBePrice : '-'}</td>
                                         <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
-                                        {{-- <td><button class="btn btn-primary edit-details-btn" data-product-id="${product.id}">{{ __('product.edit') }}</button></td></tr> --}}
+                                        </tr>
                                         `;
                                     $('#productTable-update tbody').append(productRow);
                                 });
@@ -500,6 +518,22 @@
                                 propertyGroupNames = 'N/A';
                             }
 
+                            // Get price data
+                            const dgmPrice = product.attributes.price?.[0]?.gross ? parseFloat(product.attributes.price[0].gross).toFixed(2).replace('.', ',') : '-';
+                            
+                            // Get BOL prices from variant or fallback to parent
+                            let bolNlPrice = product.attributes.customFields?.migration_DMG_product_bol_price_nl;
+                            let bolBePrice = product.attributes.customFields?.migration_DMG_product_bol_price_be;
+                            
+                            // If variant prices are null and parentData exists, get parent prices
+                            if ((!bolNlPrice || !bolBePrice) && allProductData.parentData) {
+                                bolNlPrice = bolNlPrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_nl;
+                                bolBePrice = bolBePrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_be;
+                            }
+                            
+                            bolNlPrice = bolNlPrice ? parseFloat(bolNlPrice).toFixed(2).replace('.', ',') : '-';
+                            bolBePrice = bolBePrice ? parseFloat(bolBePrice).toFixed(2).replace('.', ',') : '-';
+
                             // Create a new row for the table
                             const productRow = `
                                 <tr data-product-id="${product.id}">
@@ -507,7 +541,9 @@
                                 <td class="d-none">${product.attributes.ean || '-'}</td>
                                 <td>${product.attributes.productNumber || '-'}</td>
                                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
-                                <td><input type="number" class="form-control new-stock" placeholder="{{ __('product.enter_new_stock') }}" min="0"></td>
+                                <td>${dgmPrice !== '-' ? '€' + dgmPrice : '-'}</td>
+                                <td>${bolNlPrice !== '-' ? '€' + bolNlPrice : '-'}</td>
+                                <td>${bolBePrice !== '-' ? '€' + bolBePrice : '-'}</td>
                                 <td><button type="button" class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
                                 `;
                             $('#productTable-update tbody').append(productRow);

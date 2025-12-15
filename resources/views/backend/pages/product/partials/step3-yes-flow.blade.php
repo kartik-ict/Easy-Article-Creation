@@ -13,7 +13,9 @@
                 <th class="d-none">{{ __('product.ean_number') }}</th>
                 <th>{{ __('product.product_number') }}</th>
                 <th>{{ __('product.current_stock') }}</th>
-                <th>{{ __('product.new_stock') }}</th>
+                <th>{{ __('product.dgm_price') }}</th>
+                <th>{{ __('product.bol_price_nl') }}</th>
+                <th>{{ __('product.bol_price_be') }}</th>
                 <th>{{ __('product.action') }}</th>
             </tr>
         </thead>

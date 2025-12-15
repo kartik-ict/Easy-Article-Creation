@@ -105,6 +105,9 @@ class ProductController extends Controller
                     ]
                 ],
             ],
+            'includes' => [
+                'product' => ['id', 'productNumber', 'ean', 'stock', 'translated', 'price', 'customFields', 'optionIds', 'parentId']
+            ],
             'inheritance' => true,
             'total-count-mode' => 1,
         ];
@@ -162,11 +165,20 @@ class ProductController extends Controller
         } else {
 
             $optionsIds = null;
+            $parentData = null;
+            
             if ($product['data'][0]['attributes']['parentId'] == null) {
                 $productId = $product['data'][0]['id'];
                 $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
                 if (isset($parentProduct['data']['0']['attributes']['optionIds'])) {
                     $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+                }
+            } else {
+                // If product has parentId, fetch parent data
+                $parentId = $product['data'][0]['attributes']['parentId'];
+                $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/$parentId");
+                if (isset($parentProduct['data'])) {
+                    $parentData = $parentProduct['data'];
                 }
             }
 
@@ -180,6 +192,7 @@ class ProductController extends Controller
                 'bol' => false,
                 'optionsIds' => $optionsIds,
                 'custom_fields' => $this->getCustomFieldData(),
+                'parentData' => $parentData,
             ];
             return response()->json(['product' => $productData], 200);
         }

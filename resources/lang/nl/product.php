@@ -141,5 +141,8 @@ return [
     'enter_purchase_price'                          => 'Voer de Inkoopprijs (excl. BTW) in',
     'please_select_existing_category'               => 'Selecteer een bestaande categorie.',
     'please_select_existing_manufacture'            => 'Selecteer een bestaande fabrikant.',
-    'product_shipping_header'                       => 'Verzendinformatie DGM site'
+    'product_shipping_header'                       => 'Verzendinformatie DGM site',
+    'dgm_price'                                     => 'DGM Prijs',
+    'bol_price_nl'                                  => 'BOL prijs NL',
+    'bol_price_be'                                  => 'BOL prijs BE',
 ];

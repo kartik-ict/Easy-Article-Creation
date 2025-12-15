@@ -142,4 +142,7 @@ return [
     'please_select_existing_category'           => 'Please select an existing category.',
     'please_select_existing_manufacture'        => 'Please select an existing manufacturer.',
     'product_shipping_header'                   => 'Shipping information DGM site',
+    'dgm_price'                                 => 'DGM Price',
+    'bol_price_nl'                              => 'BOL Price NL',
+    'bol_price_be'                              => 'BOL Price BE',
 ];
