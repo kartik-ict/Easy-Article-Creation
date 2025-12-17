@@ -384,7 +384,7 @@
                                         <td>${dgmPrice !== '-' ? '€' + dgmPrice : '-'}</td>
                                         <td>${bolNlPrice !== '-' ? '€' + bolNlPrice : '-'}</td>
                                         <td>${bolBePrice !== '-' ? '€' + bolBePrice : '-'}</td>
-                                        <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
+                                        <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_product') }}</button></td>
                                         </tr>
                                         `;
                                     $('#productTable-update tbody').append(productRow);
@@ -544,7 +544,7 @@
                                 <td>${dgmPrice !== '-' ? '€' + dgmPrice : '-'}</td>
                                 <td>${bolNlPrice !== '-' ? '€' + bolNlPrice : '-'}</td>
                                 <td>${bolBePrice !== '-' ? '€' + bolBePrice : '-'}</td>
-                                <td><button type="button" class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_stock') }}</button></td>
+                                <td><button type="button" class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_product') }}</button></td>
                                 `;
                             $('#productTable-update tbody').append(productRow);
                         });
@@ -614,34 +614,185 @@
             $(document).on('click', '.update-stock-btn', function() {
                 const row = $(this).closest('tr');
                 const productId = $(this).data('product-id');
-                const newStockInput = row.find('.new-stock');
-                const newStock = newStockInput.val();
-
-                // Store productId and newStock in data attributes on the modal
-                $('#binLocationSelectionModal').data('productId', productId);
-                $('#binLocationSelectionModal').data('newStock', newStock);
-
-                if (!newStock) {
-                    alert('{{ __('product.enter_new_stock_alert') }}');
-                    $('#full-page-preloader').hide();
-                    return;
+                
+                // Find product data
+                const productData = allProductData.productData.find(product => product.id === productId);
+                
+                if (productData) {
+                    // Get parent data for fallbacks
+                    const parentData = allProductData.parentData;
+                    
+                    // Populate the Step 3 modal with product data and parent fallbacks
+                    $('#updateProductId').val(productId);
+                    
+                    // Name with parent fallback
+                    let name = productData.attributes.translated?.name || '';
+                    if (!name && parentData) {
+                        name = parentData.attributes?.translated?.name || parentData.attributes?.name || '';
+                    }
+                    $('#updateName').val(name);
+                    
+                    $('#updateCurrentStock').val(productData.attributes.stock || 0);
+                    
+                    // EAN with parent fallback
+                    let ean = productData.attributes.ean || '';
+                    if (!ean && parentData) {
+                        ean = parentData.attributes?.ean || '';
+                    }
+                    $('#updateEanNumber').val(ean);
+                    
+                    // Product number with parent fallback
+                    let productNumber = productData.attributes.productNumber || '';
+                    if (!productNumber && parentData) {
+                        productNumber = parentData.attributes?.productNumber || '';
+                    }
+                    $('#updateProductNumber').val(productNumber);
+                    
+                    // Description with parent fallback
+                    let description = productData.attributes.translated?.description || productData.attributes.description || '';
+                    if (!description && parentData) {
+                        description = parentData.attributes?.translated?.description || parentData.attributes?.description || '';
+                    }
+                    
+                    if (window.ckEditors['updateDescription']) {
+                        window.ckEditors['updateDescription'].setData(description);
+                    } else {
+                        $('#updateDescription').val(description);
+                    }
+                    
+                    // Prices - no parent fallback (not inherited in Shopware 6)
+                    let priceGross = '', priceNet = '';
+                    if (productData.attributes.price && productData.attributes.price.length > 0) {
+                        priceGross = productData.attributes.price[0].gross || '';
+                        priceNet = productData.attributes.price[0].net || '';
+                    }
+                    $('#updatePriceGross').val(priceGross);
+                    $('#updatePriceNet').val(priceNet);
+                    
+                    // Purchase prices - no parent fallback (not inherited in Shopware 6)
+                    let purchasePriceGross = '', purchasePriceNet = '';
+                    if (productData.attributes.purchasePrices && productData.attributes.purchasePrices.length > 0) {
+                        purchasePriceGross = productData.attributes.purchasePrices[0].gross || '';
+                        purchasePriceNet = productData.attributes.purchasePrices[0].net || '';
+                    }
+                    $('#updatePurchasePrice').val(purchasePriceGross);
+                    $('#updatePurchasePriceGross').val(purchasePriceNet);
+                    
+                    // List prices with parent fallback
+                    let listPriceGross = '', listPriceNet = '';
+                    if (productData.attributes.price && productData.attributes.price[0]?.listPrice) {
+                        listPriceGross = productData.attributes.price[0].listPrice.gross || '';
+                        listPriceNet = productData.attributes.price[0].listPrice.net || '';
+                    } else if (parentData && parentData.attributes?.price && parentData.attributes.price[0]?.listPrice) {
+                        listPriceGross = parentData.attributes.price[0].listPrice.gross || '';
+                        listPriceNet = parentData.attributes.price[0].listPrice.net || '';
+                    }
+                    $('#updateListPrice').val(listPriceGross);
+                    $('#updateListPriceNet').val(listPriceNet);
+                    
+                    // BOL prices and settings with parent fallback
+                    let bolNlPrice = '', bolBePrice = '', bolNlActive = false, bolBeActive = false;
+                    if (productData.attributes.customFields) {
+                        bolNlPrice = productData.attributes.customFields.migration_DMG_product_bol_price_nl || '';
+                        bolBePrice = productData.attributes.customFields.migration_DMG_product_bol_price_be || '';
+                        bolNlActive = productData.attributes.customFields.migration_DMG_product_bol_nl_active || false;
+                        bolBeActive = productData.attributes.customFields.migration_DMG_product_bol_be_active || false;
+                    }
+                    
+                    // Fallback to parent BOL data if variant data is empty
+                    if ((!bolNlPrice || !bolBePrice) && parentData && parentData.attributes?.customFields) {
+                        bolNlPrice = bolNlPrice || parentData.attributes.customFields.migration_DMG_product_bol_price_nl || '';
+                        bolBePrice = bolBePrice || parentData.attributes.customFields.migration_DMG_product_bol_price_be || '';
+                        bolNlActive = bolNlActive || parentData.attributes.customFields.migration_DMG_product_bol_nl_active || false;
+                        bolBeActive = bolBeActive || parentData.attributes.customFields.migration_DMG_product_bol_be_active || false;
+                    }
+                    
+                    $('#updateBolNlPrice').val(bolNlPrice);
+                    $('#updateBolBePrice').val(bolBePrice);
+                    $('#updateBolNlActive').prop('checked', bolNlActive);
+                    $('#updateBolBeActive').prop('checked', bolBeActive);
+                    
+                    // Set shipping information fields with parent fallback
+                    let bolNLDeliveryTime = '', bolBEDeliveryTime = '', bolCondition = '', bolConditionDescription = '';
+                    let bolOrderBeforeTomorrow = false, bolOrderBefore = false, bolLetterboxPackage = false;
+                    let bolLetterboxPackageUp = false, bolPickUpOnly = false;
+                    
+                    if (productData.attributes.customFields) {
+                        bolNLDeliveryTime = productData.attributes.customFields.migration_DMG_product_bol_nl_delivery_code || '';
+                        bolBEDeliveryTime = productData.attributes.customFields.migration_DMG_product_bol_be_delivery_code || '';
+                        bolCondition = productData.attributes.customFields.migration_DMG_product_bol_condition || '';
+                        bolConditionDescription = productData.attributes.customFields.migration_DMG_product_bol_condition_desc || '';
+                        bolOrderBeforeTomorrow = productData.attributes.customFields.migration_DMG_product_proposition_1 || false;
+                        bolOrderBefore = productData.attributes.customFields.migration_DMG_product_proposition_2 || false;
+                        bolLetterboxPackage = productData.attributes.customFields.migration_DMG_product_proposition_3 || false;
+                        bolLetterboxPackageUp = productData.attributes.customFields.migration_DMG_product_proposition_4 || false;
+                        bolPickUpOnly = productData.attributes.customFields.migration_DMG_product_proposition_5 || false;
+                    }
+                    
+                    // Fallback to parent shipping data if variant data is empty
+                    if (parentData && parentData.attributes?.customFields) {
+                        bolNLDeliveryTime = bolNLDeliveryTime || parentData.attributes.customFields.migration_DMG_product_bol_nl_delivery_code || '';
+                        bolBEDeliveryTime = bolBEDeliveryTime || parentData.attributes.customFields.migration_DMG_product_bol_be_delivery_code || '';
+                        bolCondition = bolCondition || parentData.attributes.customFields.migration_DMG_product_bol_condition || '';
+                        bolConditionDescription = bolConditionDescription || parentData.attributes.customFields.migration_DMG_product_bol_condition_desc || '';
+                        bolOrderBeforeTomorrow = bolOrderBeforeTomorrow || parentData.attributes.customFields.migration_DMG_product_proposition_1 || false;
+                        bolOrderBefore = bolOrderBefore || parentData.attributes.customFields.migration_DMG_product_proposition_2 || false;
+                        bolLetterboxPackage = bolLetterboxPackage || parentData.attributes.customFields.migration_DMG_product_proposition_3 || false;
+                        bolLetterboxPackageUp = bolLetterboxPackageUp || parentData.attributes.customFields.migration_DMG_product_proposition_4 || false;
+                        bolPickUpOnly = bolPickUpOnly || parentData.attributes.customFields.migration_DMG_product_proposition_5 || false;
+                    }
+                    
+                    // Set shipping fields
+                    $('#updateBolConditionDescription').val(bolConditionDescription);
+                    $('#updateBolOrderBeforeTomorrow').prop('checked', bolOrderBeforeTomorrow);
+                    $('#updateBolOrderBefore').prop('checked', bolOrderBefore);
+                    $('#updateBolLetterboxPackage').prop('checked', bolLetterboxPackage);
+                    $('#updateBolLetterboxPackageUp').prop('checked', bolLetterboxPackageUp);
+                    $('#updateBolPickUpOnly').prop('checked', bolPickUpOnly);
+                    
+                    // Store values for dropdown initialization
+                    $('#updateBolNLDeliveryTime').data('preselect-value', bolNLDeliveryTime);
+                    $('#updateBolBEDeliveryTime').data('preselect-value', bolBEDeliveryTime);
+                    $('#updateBolCondition').data('preselect-value', bolCondition);
+                    
+                    // Show the Step 3 modal
+                    $('#productUpdateModal').modal('show');
+                } else {
+                    alert('Product data not found.');
                 }
-                if (newStock < 0) {
-                    alert('{{ __('product.new_stock_alert_not_negative') }}');
-                    $('#full-page-preloader').hide();
-                    return;
-                }
-
-                $("#binLocationSelectionModal").modal('show');
+            });
+            
+            // Add price calculation for Step 3 modal (same as Step 4)
+            $(document).on('input', '#updatePriceGross', function() {
+                const priceGross = parseFloat($(this).val()) || 0;
+                const taxRate = parseFloat($(this).data('taxRate')) || 21;
+                const priceNet = priceGross / (1 + taxRate / 100);
+                $('#updatePriceNet').val(priceNet.toFixed(2));
+            });
+            
+            $(document).on('input', '#updatePurchasePrice', function() {
+                const purchasePriceGross = parseFloat($(this).val()) || 0;
+                const taxRate = parseFloat($(this).data('taxRate')) || 21;
+                const purchasePriceNet = purchasePriceGross / (1 + taxRate / 100);
+                $('#updatePurchasePriceGross').val(purchasePriceNet.toFixed(2));
+            });
+            
+            $(document).on('input', '#updateListPrice', function() {
+                const listPriceGross = parseFloat($(this).val()) || 0;
+                const taxRate = parseFloat($(this).data('taxRate')) || 21;
+                const listPriceNet = listPriceGross / (1 + taxRate / 100);
+                $('#updateListPriceNet').val(listPriceNet.toFixed(2));
             });
 
-            $('#binLocationSelectionModal').on('shown.bs.modal', function() {
-                if (!$("#modalBinLocation").hasClass('select2-hidden-accessible')) {
-                    $("#modalBinLocation").select2({
+            // Initialize select2 for the new Step 3 modal bin location select and CKEditor
+            $('#productUpdateModal').on('shown.bs.modal', function() {
+                if (!$('.bin-location-select-update').hasClass('select2-hidden-accessible')) {
+                    $('.bin-location-select-update').select2({
+                        placeholder: "locaties van bakken",
                         minimumInputLength: 0,
-                        allowClear: false,
+                        allowClear: true,
                         multiple: false,
-                        dropdownParent: $('#binLocationSelectionModal'),
+                        dropdownParent: $('#productUpdateModal'),
                         language: {
                             searching: function() {
                                 return "Zoeken, even geduld...";
@@ -655,39 +806,98 @@
                         }
                     });
                 }
+                
+                // Initialize CKEditor for description field if not already initialized
+                if (!window.ckEditors['updateDescription']) {
+                    const descriptionElement = document.getElementById('updateDescription');
+                    if (descriptionElement) {
+                        ClassicEditor.create(descriptionElement)
+                            .then(editor => {
+                                editor.editing.view.change(writer => {
+                                    writer.setStyle(
+                                        'max-height',
+                                        '200px',
+                                        editor.editing.view.document.getRoot()
+                                    );
+                                    writer.setStyle(
+                                        'overflow-y',
+                                        'auto',
+                                        editor.editing.view.document.getRoot()
+                                    );
+                                });
+                                window.ckEditors['updateDescription'] = editor;
+                            })
+                            .catch(error => {
+                                console.error(error);
+                            });
+                    }
+                }
+                
+                // Set tax rate data attributes for price calculations (default 21%)
+                const defaultTaxRate = 21;
+                $('#updatePriceGross').data('taxRate', defaultTaxRate);
+                $('#updatePurchasePrice').data('taxRate', defaultTaxRate);
+                $('#updateListPrice').data('taxRate', defaultTaxRate);
+                
+                // Initialize custom field dropdowns for Step 3 modal
+                if (customFieldData && customFieldData.length > 0) {
+                    setCustomFieldData(customFieldData);
+                    
+                    // Set selected values for BOL delivery time and condition dropdowns after initialization
+                    setTimeout(() => {
+                        const nlDeliveryValue = $('#updateBolNLDeliveryTime').data('preselect-value');
+                        const beDeliveryValue = $('#updateBolBEDeliveryTime').data('preselect-value');
+                        const conditionValue = $('#updateBolCondition').data('preselect-value');
+                        
+                        if (nlDeliveryValue) {
+                            $('#updateBolNLDeliveryTime').val(nlDeliveryValue).trigger('change');
+                        }
+                        if (beDeliveryValue) {
+                            $('#updateBolBEDeliveryTime').val(beDeliveryValue).trigger('change');
+                        }
+                        if (conditionValue) {
+                            $('#updateBolCondition').val(conditionValue).trigger('change');
+                        }
+                    }, 500);
+                }
+                
+                // Trigger initial calculations if values exist
+                if ($('#updatePriceGross').val()) $('#updatePriceGross').trigger('input');
+                if ($('#updatePurchasePrice').val()) $('#updatePurchasePrice').trigger('input');
+                if ($('#updateListPrice').val()) $('#updateListPrice').trigger('input');
             });
 
-            $(document).on('click', '#updateBinLocation', function() {
+            // Handle Step 3 product update form submission
+            $(document).on('submit', '#product-update-form', function(e) {
+                e.preventDefault();
                 $('#full-page-preloader').show();
-                // Get stored values from modal data attributes
-                const productId = $('#binLocationSelectionModal').data('productId');
-                const newStock = $('#binLocationSelectionModal').data('newStock');
-                const binLocationId = $('#modalBinLocation').val();
-
+                
+                const formData = new FormData(this);
+                
                 $.ajax({
-                    url: "{{ route('product.update_stock') }}",
+                    url: "{{ route('product.updateProduct') }}",
                     method: 'POST',
-                    data: {
-                        product_id: productId,
-                        new_stock: newStock,
-                        bin_location_id: binLocationId,
-                        _token: "{{ csrf_token() }}"
-                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function(response) {
-                        $("#binLocationSelectionModal").modal('hide');
-                        alert('{{ __('product.stock_updated') }}');
+                        $('#productUpdateModal').modal('hide');
+                        $('#full-page-preloader').hide();
+                        alert('{{ __('product.product_updated_successfully') }}');
                         location.reload();
-                        // $('#step3').hide();
-                        // $('#step1').show();
-                        // $('#step_1_title').show();
-                        $('#full-page-preloader').hide();
                     },
-                    error: function() {
+                    error: function(xhr) {
                         $('#full-page-preloader').hide();
-                        alert('{{ __('product.error_updating_stock') }}');
+                        let errorMessage = '{{ __('product.failed_to_update_product') }}';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
                     }
                 });
             });
+            
+            // Old bin location update code removed - now using Step 3 modal
 
             // Handle the Yes Flow
             $(document).on('click', '.edit-details-btn', function() {

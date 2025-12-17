@@ -106,7 +106,7 @@ class ProductController extends Controller
                 ],
             ],
             'includes' => [
-                'product' => ['id', 'productNumber', 'ean', 'stock', 'translated', 'price', 'customFields', 'optionIds', 'parentId']
+                'product' => ['id', 'productNumber', 'ean', 'stock', 'translated', 'price', 'purchasePrices', 'customFields', 'optionIds', 'parentId']
             ],
             'inheritance' => true,
             'total-count-mode' => 1,
@@ -1156,6 +1156,121 @@ class ProductController extends Controller
             return isset($response['success']);
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    public function updateProduct(Request $request)
+    {
+        $currencyId = $this->currencyId->getCurrencyId();
+
+        $validatedData = $request->validate([
+            'product_id' => 'required|string',
+            'name' => 'required|string',
+            'new_stock' => 'nullable|integer|min:0',
+            'bin_location_id' => 'nullable|string',
+            'productEanNumber' => 'nullable|string',
+            'productNumber' => 'nullable|string',
+            'description' => 'nullable|string',
+            'priceGross' => 'nullable|numeric',
+            'priceNet' => 'nullable|numeric',
+            'purchasePriceNet' => 'nullable|numeric',
+            'purchasePrice' => 'nullable|numeric',
+            'listPriceGross' => 'nullable|numeric',
+            'listPriceNet' => 'nullable|numeric',
+            'bolNlPrice' => 'nullable|numeric',
+            'bolBePrice' => 'nullable|numeric',
+            'bolNlActive' => 'nullable|in:0,1',
+            'bolBeActive' => 'nullable|in:0,1',
+            'bolNLDeliveryTime' => 'nullable|string',
+            'bolBEDeliveryTime' => 'nullable|string',
+            'bolCondition' => 'nullable|string',
+            'bolConditionDescription' => 'nullable|string',
+            'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
+            'bolOrderBefore' => 'nullable|in:0,1',
+            'bolLetterboxPackage' => 'nullable|in:0,1',
+            'bolLetterboxPackageUp' => 'nullable|in:0,1',
+            'bolPickUpOnly' => 'nullable|in:0,1',
+        ]);
+
+        $customFields = $this->setCustomFieldd($validatedData);
+
+        // Prepare update data similar to SaveData function
+        $updateData = [];
+        
+        if (!empty($validatedData['name'])) {
+            $updateData['name'] = $validatedData['name'];
+        }
+        
+        if (!empty($validatedData['productEanNumber'])) {
+            $updateData['ean'] = $validatedData['productEanNumber'];
+        }
+        
+        if (!empty($validatedData['productNumber'])) {
+            $updateData['productNumber'] = $validatedData['productNumber'];
+        }
+        
+        if (!empty($validatedData['description'])) {
+            $updateData['description'] = $validatedData['description'];
+        }
+        
+        if (!empty($validatedData['priceGross'])) {
+            $priceData = [
+                'currencyId' => $currencyId,
+                'gross' => floatval($validatedData['priceGross']),
+                'net' => floatval($validatedData['priceNet'] ?? $validatedData['priceGross'] / 1.21),
+                'linked' => true
+            ];
+            
+            // Add list price if provided
+            if (!empty($validatedData['listPriceGross'])) {
+                $priceData['listPrice'] = [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['listPriceGross']),
+                    'net' => floatval($validatedData['listPriceNet'] ?? $validatedData['listPriceGross'] / 1.21),
+                    'linked' => true,
+                ];
+            }
+            
+            $updateData['price'] = [$priceData];
+        }
+        
+        if (!empty($validatedData['purchasePriceNet'])) {
+            $updateData['purchasePrices'] = [
+                [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['purchasePriceNet']) * 1.21, // Calculate gross from net
+                    'net' => floatval($validatedData['purchasePriceNet']),
+                    'linked' => true,
+                ]
+            ];
+        }
+        
+        if (!empty($customFields)) {
+            $updateData['customFields'] = $customFields;
+        }
+
+        try {
+            // Update product via Shopware API
+            if (!empty($updateData)) {
+                $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $validatedData['product_id'], $updateData);
+                
+                if (!isset($response['success'])) {
+                    return back()->withErrors(__('product.failed_to_update_product'));
+                }
+            }
+
+            // Update stock if provided
+            if (!empty($validatedData['new_stock']) && !empty($validatedData['bin_location_id'])) {
+                $stockData = [
+                    'product_id' => $validatedData['product_id'],
+                    'stock' => intval($validatedData['new_stock'])
+                ];
+                $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+            }
+
+            return response()->json(['success' => true, 'message' => __('product.product_updated_successfully')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => __('product.failed_to_update_product')], 500);
         }
     }
 }

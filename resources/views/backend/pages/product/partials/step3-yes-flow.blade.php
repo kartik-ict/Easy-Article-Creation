@@ -461,6 +461,9 @@
     </div>
 </div>
 
+{{-- Include Step 3 Product Update Modal --}}
+@include('backend.pages.product.partials.step3-product-update')
+
 <!-- Modal for creating new Property Group Option -->
 <div class="modal fade" id="createPropertyGroupOptionModal" tabindex="-1"
     aria-labelledby="createPropertyGroupOptionModalLabel" aria-hidden="true">

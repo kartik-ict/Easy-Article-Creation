@@ -1557,7 +1557,9 @@ $('#addPropertyOptionBtn').on('click', function () {
             $('#productPackagingLength').val(product.attributes.length);
             $('#productPackagingWeight').val(product.attributes.weight);
             $('#productPackagingWidth').val(product.attributes.width);
-            $('#manufacturer').val(product.attributes.manufacturerId);
+            // Set manufacturer ID from parent product if variant doesn't have one
+            const manufacturerId = product.attributes.manufacturerId || (allProductData.parentData ? allProductData.parentData.attributes?.manufacturerId : '');
+            $('#manufacturer').val(manufacturerId);
 
         });
         $('#productConfiguratorSettingsIds').val(allProductData.optionsIds);
