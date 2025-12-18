@@ -105,9 +105,9 @@ class ProductController extends Controller
                     ]
                 ],
             ],
-            'includes' => [
-                'product' => ['id', 'productNumber', 'ean', 'stock', 'translated', 'price', 'purchasePrices', 'customFields', 'optionIds', 'parentId']
-            ],
+            // 'includes' => [
+            //     'product' => ['id', 'productNumber', 'ean', 'stock', 'translated', 'price', 'purchasePrices', 'customFields', 'optionIds', 'parentId']
+            // ],
             'inheritance' => true,
             'total-count-mode' => 1,
         ];
@@ -545,12 +545,15 @@ class ProductController extends Controller
     {
 
         $currencyId = $this->currencyId->getCurrencyId();
-
+        // Get parent product data to inherit manufacturer if needed
+        $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/{$request->parentId}");
+        $parentManufacturerId = $parentProduct['data']['attributes']['manufacturerId'] ?? null;
+        
         // Validate the incoming data
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'stock' => 'required|integer',
-            'manufacturer' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'manufacturer' => 'nullable|string|regex:/^[0-9a-f]{32}$/',
             'taxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'productNumber' => 'required|string|max:255',
             'parentId' => 'required|string|regex:/^[0-9a-f]{32}$/',
@@ -642,7 +645,7 @@ class ProductController extends Controller
                     'id' => $productVariantId,
                     'name' => $validatedData['name'],
                     'stock' => 0,
-                    'manufacturerId' => $validatedData['manufacturer'],
+                    'manufacturerId' => $validatedData['manufacturer'] ?: $parentManufacturerId,
                     'taxId' => $validatedData['taxId'],
                     'parentId' => $validatedData['parentId'],
                     'productNumber' => $validatedData['productNumber'],

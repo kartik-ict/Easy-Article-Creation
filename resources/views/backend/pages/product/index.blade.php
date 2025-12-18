@@ -1086,6 +1086,57 @@
                         dropdownParent: $('#productEditModal')
                     });
                 });
+                
+                // Prefill all fields from stored product data
+                const product = $(this).data('product-data');
+                if (product) {
+                    // Prefill prices
+                    if (product.attributes?.price && product.attributes.price.length > 0) {
+                        $('#priceGross').val(product.attributes.price[0].gross || '');
+                        $('#priceNet').val(product.attributes.price[0].net || '');
+                        if (product.attributes.price[0].listPrice) {
+                            $('#listPriceGross').val(product.attributes.price[0].listPrice.gross || '');
+                            $('#listPriceNet').val(product.attributes.price[0].listPrice.net || '');
+                        }
+                    }
+                    if (product.attributes?.purchasePrices && product.attributes.purchasePrices.length > 0) {
+                        $('#swPurchasePriceNet').val(product.attributes.purchasePrices[0].net || '');
+                        $('#swPurchasePrice').val(product.attributes.purchasePrices[0].gross || '');
+                    }
+                    
+                    // Prefill custom fields
+                    if (product.attributes?.customFields) {
+                        const productFields = product.attributes.customFields;
+                        
+                        // Marketplace fields
+                        $('#bolNlActive').prop('checked', !!productFields.migration_DMG_product_bol_nl_active);
+                        $('#bolBeActive').prop('checked', !!productFields.migration_DMG_product_bol_be_active);
+                        $('#bolNlPrice').val(productFields.migration_DMG_product_bol_price_nl || '');
+                        $('#bolBePrice').val(productFields.migration_DMG_product_bol_price_be || '');
+                        $('#shortDescription').val(productFields.custom_product_message_ || '');
+                        
+                        // Shipping information fields
+                        $('#bolConditionDescription').val(productFields.migration_DMG_product_bol_condition_desc || '');
+                        $('#bolOrderBeforeTomorrow').prop('checked', !!productFields.migration_DMG_product_proposition_1);
+                        $('#bolOrderBefore').prop('checked', !!productFields.migration_DMG_product_proposition_2);
+                        $('#bolLetterboxPackage').prop('checked', !!productFields.migration_DMG_product_proposition_3);
+                        $('#bolLetterboxPackageUp').prop('checked', !!productFields.migration_DMG_product_proposition_4);
+                        $('#bolPickUpOnly').prop('checked', !!productFields.migration_DMG_product_proposition_5);
+                        
+                        // Set dropdown values after custom fields are initialized
+                        setTimeout(() => {
+                            if (productFields.migration_DMG_product_bol_nl_delivery_code) {
+                                $('#bolNLDeliveryTime').val(productFields.migration_DMG_product_bol_nl_delivery_code).trigger('change');
+                            }
+                            if (productFields.migration_DMG_product_bol_be_delivery_code) {
+                                $('#bolBEDeliveryTime').val(productFields.migration_DMG_product_bol_be_delivery_code).trigger('change');
+                            }
+                            if (productFields.migration_DMG_product_bol_condition) {
+                                $('#bolCondition').val(productFields.migration_DMG_product_bol_condition).trigger('change');
+                            }
+                        }, 500);
+                    }
+                }
             });
 
             // Initialize select2 for bin location selects outside modals

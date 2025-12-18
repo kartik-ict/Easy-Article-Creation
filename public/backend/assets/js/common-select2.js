@@ -1560,6 +1560,23 @@ $('#addPropertyOptionBtn').on('click', function () {
             // Set manufacturer ID from parent product if variant doesn't have one
             const manufacturerId = product.attributes.manufacturerId || (allProductData.parentData ? allProductData.parentData.attributes?.manufacturerId : '');
             $('#manufacturer').val(manufacturerId);
+            
+            // Prefill marketplace and shipping data from main product
+            // Prefill prices from main product
+            if (product.attributes?.price && product.attributes.price.length > 0) {
+                $('#priceGross').val(product.attributes.price[0].gross || '');
+                $('#priceNet').val(product.attributes.price[0].net || '');
+                if (product.attributes.price[0].listPrice) {
+                    $('#listPriceGross').val(product.attributes.price[0].listPrice.gross || '');
+                    $('#listPriceNet').val(product.attributes.price[0].listPrice.net || '');
+                }
+            }
+            if (product.attributes?.purchasePrices && product.attributes.purchasePrices.length > 0) {
+                $('#swPurchasePriceNet').val(product.attributes.purchasePrices[0].net || '');
+                $('#swPurchasePrice').val(product.attributes.purchasePrices[0].gross || '');
+            }
+            
+            // Product data is available in global allProductData
 
         });
         $('#productConfiguratorSettingsIds').val(allProductData.optionsIds);
@@ -1631,6 +1648,145 @@ function createHiddenFields(parentId, selectedGroupOption, selectedGroupOptionSe
 }
 
 
+// Function to set custom field data for dropdowns (used by both Step 3 and Step 4)
+function setCustomFieldData(customFieldData) {
+    customFieldData.forEach(item => {
+        if (item.is_select_type && Array.isArray(item.options)) {
+            let selectClass = '';
+            if (item.name === 'migration_DMG_product_bol_nl_delivery_code') {
+                selectClass = '.bolNLDeliveryTimeSelect';
+            } else if (item.name === 'migration_DMG_product_bol_be_delivery_code') {
+                selectClass = '.bolBEDeliveryTimeSelect';
+            } else if (item.name === 'migration_DMG_product_bol_condition') {
+                selectClass = '.bolConditionSelect';
+            }
+            
+            if (selectClass) {
+                const $select = $(selectClass);
+                
+                if ($select.length) {
+                    $select.each(function() {
+                        const $currentSelect = $(this);
+                        $currentSelect.empty();
+                        
+                        item.options.forEach(opt => {
+                            $currentSelect.append(`<option value="${opt.value}">${opt.label}</option>`);
+                        });
+                        
+                        // Initialize select2 if not already initialized
+                        if (!$currentSelect.hasClass('select2-hidden-accessible')) {
+                            let dropdownParent = $('#productEditModal');
+                            if ($currentSelect.closest('#productUpdateModal').length) {
+                                dropdownParent = $('#productUpdateModal');
+                            }
+                            
+                            $currentSelect.select2({
+                                placeholder: item.label,
+                                minimumInputLength: 0,
+                                allowClear: true,
+                                multiple: false,
+                                dropdownParent: dropdownParent,
+                                language: {
+                                    searching: function() {
+                                        return "Zoeken, even geduld...";
+                                    },
+                                    loadingMore: function() {
+                                        return "Meer resultaten laden...";
+                                    },
+                                    noResults: function() {
+                                        return "Geen resultaten gevonden.";
+                                    }
+                                }
+                            });
+                        }
+                        
+                        $currentSelect.val('').trigger('change');
+                    });
+                }
+            }
+        }
+    });
+}
+
+// Step 4 modal prefilling
+$('#productEditModal').on('shown.bs.modal', function() {
+    if (customFieldData && customFieldData.length > 0) {
+        setCustomFieldData(customFieldData);
+    }
+    
+    if (allProductData && allProductData.productData && allProductData.productData.length > 0) {
+        const product = allProductData.productData[0];
+        const productFields = product.attributes?.customFields || {};
+        
+        // Get manufacturer ID from included data or product relationships
+        let manufacturerId = null;
+        
+        // Check if manufacturer is in the included data
+        if (allProductData.included) {
+            const manufacturerData = allProductData.included.find(item => item.type === 'product_manufacturer');
+            if (manufacturerData) {
+                manufacturerId = manufacturerData.id;
+            }
+        }
+        
+        // If no manufacturer found in included data, check product relationships
+        if (!manufacturerId && product.relationships && product.relationships.manufacturer) {
+            manufacturerId = product.relationships.manufacturer.data?.id;
+        }
+        
+        // Set manufacturer ID if found
+        if (manufacturerId) {
+            $('#manufacturer').val(manufacturerId);
+        }
+        
+        // Set tax ID - use product's tax or fallback to parent
+        let taxId = product.attributes?.taxId;
+        if (!taxId && allProductData.parentData) {
+            taxId = allProductData.parentData.attributes?.taxId;
+        }
+        if (taxId) {
+            $('#swTaxRate').data('taxId', taxId);
+        }
+        
+        // Set packaging dimensions from parent data
+        if (allProductData.parentData) {
+            const parentAttrs = allProductData.parentData.attributes;
+            $('#productPackagingWidth').val(parentAttrs?.width || 0);
+            $('#productPackagingHeight').val(parentAttrs?.height || 0);
+            $('#productPackagingLength').val(parentAttrs?.length || 0);
+            $('#productPackagingWeight').val(parentAttrs?.weight || 0);
+        }
+        
+        // Marketplace fields
+        $('#productEditModal #bolNlActive').prop('checked', !!productFields.migration_DMG_product_bol_nl_active);
+        $('#productEditModal #bolBeActive').prop('checked', !!productFields.migration_DMG_product_bol_be_active);
+        $('#productEditModal #bolNlPrice').val(productFields.migration_DMG_product_bol_price_nl || '');
+        $('#productEditModal #bolBePrice').val(productFields.migration_DMG_product_bol_price_be || '');
+        $('#productEditModal #shortDescription').val(productFields.custom_product_message_ || '');
+        
+        // Shipping information fields
+        $('#productEditModal #bolConditionDescription').val(productFields.migration_DMG_product_bol_condition_desc || '');
+        $('#productEditModal #bolOrderBeforeTomorrow').prop('checked', !!productFields.migration_DMG_product_proposition_1);
+        $('#productEditModal #bolOrderBefore').prop('checked', !!productFields.migration_DMG_product_proposition_2);
+        $('#productEditModal #bolLetterboxPackage').prop('checked', !!productFields.migration_DMG_product_proposition_3);
+        $('#productEditModal #bolLetterboxPackageUp').prop('checked', !!productFields.migration_DMG_product_proposition_4);
+        $('#productEditModal #bolPickUpOnly').prop('checked', !!productFields.migration_DMG_product_proposition_5);
+        
+        // Set dropdown values
+        setTimeout(() => {
+            if (productFields.migration_DMG_product_bol_nl_delivery_code) {
+                $('#bolNLDeliveryTime').val(productFields.migration_DMG_product_bol_nl_delivery_code).trigger('change');
+            }
+            if (productFields.migration_DMG_product_bol_be_delivery_code) {
+                $('#bolBEDeliveryTime').val(productFields.migration_DMG_product_bol_be_delivery_code).trigger('change');
+            }
+            if (productFields.migration_DMG_product_bol_condition) {
+                $('#bolCondition').val(productFields.migration_DMG_product_bol_condition).trigger('change');
+            }
+        }, 1000);
+    }
+});
+
 $('#saveVariant').on('click', function (e) {
     $('#full-page-preloader').show();
     e.preventDefault(); // Prevent the default form submission (if any)
@@ -1638,6 +1794,15 @@ $('#saveVariant').on('click', function (e) {
     if (ckEditors['description']) {
         $('#description').val(ckEditors['description'].getData());
     }
+    
+    // Ensure taxId is set from the stored value
+    const taxId = $('#swTaxRate').data('taxId');
+    if (taxId && !$('#product-form input[name="taxId"]').length) {
+        $('#product-form').append(`<input type="hidden" name="taxId" value="${taxId}" />`);
+    }
+    
+
+    
     const formData = $('#product-form').serialize(); // Serialize the entire form data
     const button = $(this);
     const originalButtonText = button.text(); // Save original button text
