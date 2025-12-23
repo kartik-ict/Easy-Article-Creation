@@ -5,6 +5,8 @@ const categorySearchUrlbol = $('#route-container-category').data('category-searc
 const categoryCreateUrlbol = $('#route-container-sw-create-category').data('sw-create-category');
 const swCategorySearchUrl = $('#route-container-sw-category-search').data('sw-category-search');
 const saveBolData = $('#route-container-save-bol-data').data('save-bol-data');
+const taxSearchUrlBol = $('#route-container-tax').data('tax-search');
+const salesSearchUrlBol = $('#route-container-sales').data('sales-search');
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
 let currentPageManufacturer = 1; // Start from the first page
 let isLoadingManufacturer = false;
@@ -471,9 +473,9 @@ $('#nextBolBtn').on('click', function () {
             $('#bolProductManufacturerId').val(selectedManufacturer);
             $('#bolProductCategories').val(selectedCategoryName);
             $('#bolProductCategoriesId').val(selectedCategory);
-            if (ckEditors['bolProductDescription']) {
+            if ($('#bolProductDescription').length) {
                 const desc = product?.description || '';
-                ckEditors['bolProductDescription'].setData(desc);
+                $('#bolProductDescription').summernote('code', desc);
             }
 
             if (product.specs && typeof product.specs["Verpakking breedte"] === "string") {
@@ -528,9 +530,9 @@ $('#saveBolProductData').on('click', function (e) {
     $('#full-page-preloader').show();
     e.preventDefault(); // Prevent default form submission
 
-    if (ckEditors['bolProductDescription']) {
-        $('#bolProductDescription').val(ckEditors['bolProductDescription'].getData());
-    }
+    // Get Summernote content
+    const bolProductDescriptionValue = $('#bolProductDescription').summernote('code');
+    $('#bolProductDescription').val(bolProductDescriptionValue);
 
     const thumbnailUrl = $('#bolProductThumbnail').attr('src'); // Assuming this is the correct image URL
     const formData = $('#bol-product-form').serialize() + '&bolProductThumbnail=' + encodeURIComponent(thumbnailUrl);
@@ -602,7 +604,7 @@ $('#bolProductListPriceNet').on('input', function() {
 // Tax Provider API
 $('#tax-provider-select-bol').select2({
     ajax: {
-        url: taxSearchUrl,
+        url: taxSearchUrlBol,
         type: 'POST',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -652,7 +654,7 @@ $('#tax-provider-select-bol').select2({
 
 // Load tax rates and set default on page load
 $.ajax({
-    url: taxSearchUrl,
+    url: taxSearchUrlBol,
     type: 'POST',
     headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -685,7 +687,7 @@ $.ajax({
 
 // Fetch sales channels and set defaults (same approach as your tax example)
 $.ajax({
-    url: salesSearchUrl,
+    url: salesSearchUrlBol,
     type: 'POST',
     headers: {
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

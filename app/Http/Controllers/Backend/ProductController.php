@@ -7,6 +7,7 @@ use App\Services\CurrencyService;
 use App\Http\Controllers\Controller;
 use App\Services\TaxDetailService;
 use App\Services\TaxService;
+use App\Models\ProductLog;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Services\ShopwareProductService;
@@ -105,6 +106,9 @@ class ProductController extends Controller
                     ]
                 ],
             ],
+            // 'includes' => [
+            //     'product' => ['id', 'productNumber', 'ean', 'stock', 'translated', 'price', 'purchasePrices', 'customFields', 'optionIds', 'parentId']
+            // ],
             'inheritance' => true,
             'total-count-mode' => 1,
         ];
@@ -162,11 +166,20 @@ class ProductController extends Controller
         } else {
 
             $optionsIds = null;
+            $parentData = null;
+            
             if ($product['data'][0]['attributes']['parentId'] == null) {
                 $productId = $product['data'][0]['id'];
                 $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
                 if (isset($parentProduct['data']['0']['attributes']['optionIds'])) {
                     $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+                }
+            } else {
+                // If product has parentId, fetch parent data
+                $parentId = $product['data'][0]['attributes']['parentId'];
+                $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/$parentId");
+                if (isset($parentProduct['data'])) {
+                    $parentData = $parentProduct['data'];
                 }
             }
 
@@ -180,6 +193,7 @@ class ProductController extends Controller
                 'bol' => false,
                 'optionsIds' => $optionsIds,
                 'custom_fields' => $this->getCustomFieldData(),
+                'parentData' => $parentData,
             ];
             return response()->json(['product' => $productData], 200);
         }
@@ -417,6 +431,22 @@ class ProductController extends Controller
                         'stock' => intval($validatedData['stock'] ?? 0)
                     ];
                     $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                    
+                    // Log stock if stock > 0
+                    if (intval($validatedData['stock'] ?? 0) > 0) {
+                        $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $validatedData['bin_location_id']);
+                        $binLocationName = $binLocationResponse['data']['attributes']['code'] ?? 'Unknown';
+                        
+                        ProductLog::logProductChange($productId, 'Stock', 
+                            ['stock' => 0], 
+                            [
+                                'stock' => intval($validatedData['stock'] ?? 0),
+                                'bin_location_name' => $binLocationName,
+                                'type' => 'product_created'
+                            ],
+                            "0 → {$validatedData['stock']} → {$binLocationName}"
+                        );
+                    }
                 }
                 return redirect()->route('admin.product.index')->with('success', __('product.product_created_successfully'));
             } else {
@@ -437,20 +467,33 @@ class ProductController extends Controller
             'bin_location_id' => 'required|string',
         ]);
 
+        // Get current product data to capture old stock value
+        $currentProduct = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $request->product_id);
+        $oldStock = $currentProduct['data']['attributes']['stock'] ?? 0;
+        
+        // Get bin location name
+        $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $request->bin_location_id);
+        $binLocationName = $binLocationResponse['data']['attributes']['code'] ?? 'Unknown';
+
         $stockData = [
             'product_id' => $request->product_id,
             'stock' => intval($request->new_stock)
         ];
-        // Using common API call function
+        
         try {
             //set the stock to select bin location
             $this->setBinLocationStock($stockData, $request->bin_location_id);
-
-            // $response = $this->shopwareApiService->makeApiRequest(
-            //     'PATCH',
-            //     '/api/product/' . $request->product_id,
-            //     $data
-            // );
+            
+            // Log ONLY stock change
+            ProductLog::logProductChange($request->product_id, 'Stock', 
+                ['stock' => $oldStock], 
+                [
+                    'stock' => $request->new_stock,
+                    'bin_location_name' => $binLocationName,
+                    'type' => 'update'
+                ],
+                "{$oldStock} → {$request->new_stock} → {$binLocationName}"
+            );
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -532,12 +575,15 @@ class ProductController extends Controller
     {
 
         $currencyId = $this->currencyId->getCurrencyId();
-
+        // Get parent product data to inherit manufacturer if needed
+        $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/{$request->parentId}");
+        $parentManufacturerId = $parentProduct['data']['attributes']['manufacturerId'] ?? null;
+        
         // Validate the incoming data
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'stock' => 'required|integer',
-            'manufacturer' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'manufacturer' => 'nullable|string|regex:/^[0-9a-f]{32}$/',
             'taxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'productNumber' => 'required|string|max:255',
             'parentId' => 'required|string|regex:/^[0-9a-f]{32}$/',
@@ -629,7 +675,7 @@ class ProductController extends Controller
                     'id' => $productVariantId,
                     'name' => $validatedData['name'],
                     'stock' => 0,
-                    'manufacturerId' => $validatedData['manufacturer'],
+                    'manufacturerId' => $validatedData['manufacturer'] ?: $parentManufacturerId,
                     'taxId' => $validatedData['taxId'],
                     'parentId' => $validatedData['parentId'],
                     'productNumber' => $validatedData['productNumber'],
@@ -674,8 +720,14 @@ class ProductController extends Controller
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
 
                 if (isset($response['success'])) {
+                    // Parse properties data if provided
+                    $properties = null;
+                    if ($request->has('properties') && !empty($request->properties)) {
+                        $properties = json_decode($request->properties, true);
+                    }
+                    
                     // set custom fields data for created product
-                    $this->patchProductCustomData($productVariantId, $customFields);
+                    $this->patchProductCustomData($productVariantId, $customFields, $properties);
 
                     // set stock to bin location
                     $stockData = [
@@ -683,6 +735,22 @@ class ProductController extends Controller
                         'stock' => intval($validatedData['stock'])
                     ];
                     $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                    
+                    // Log stock if stock > 0
+                    if (intval($validatedData['stock']) > 0) {
+                        $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $validatedData['bin_location_id']);
+                        $binLocationName = $binLocationResponse['data']['attributes']['code'] ?? 'Unknown';
+                        
+                        ProductLog::logProductChange($productVariantId, 'Stock', 
+                            ['stock' => 0], 
+                            [
+                                'stock' => intval($validatedData['stock']),
+                                'bin_location_name' => $binLocationName,
+                                'type' => 'new_variant'
+                            ],
+                            "0 → {$validatedData['stock']} → {$binLocationName}"
+                        );
+                    }
                     return response()->json([
                         'message' => __('product.product_created_successfully')
                     ]);
@@ -864,6 +932,20 @@ class ProductController extends Controller
                         'stock' => (int)$validatedData['bolStock']
                     ];
                     $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                    
+                    // Log stock
+                    $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $validatedData['bin_location_id']);
+                    $binLocationName = $binLocationResponse['data']['attributes']['code'] ?? 'Unknown';
+                    
+                    ProductLog::logProductChange($uuid, 'Stock', 
+                        ['stock' => 0], 
+                        [
+                            'stock' => (int)$validatedData['bolStock'],
+                            'bin_location_name' => $binLocationName,
+                            'type' => 'product_created_from_bol'
+                        ],
+                        "0 → {$validatedData['bolStock']} → {$binLocationName}"
+                    );
                 }
                 $productMediaData = [
                     'id' => $productMediaId,
@@ -1014,12 +1096,17 @@ class ProductController extends Controller
         }, $customFieldData['data'] ?? []);
     }
 
-    public function patchProductCustomData($productVariantId, $customFields)
+    public function patchProductCustomData($productVariantId, $customFields, $properties = null)
     {
         $data = [
             'id' => $productVariantId,
             'customFields' => $customFields
         ];
+        
+        if ($properties !== null) {
+            $data['properties'] = $properties;
+        }
+        
         $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $productVariantId, $data);
         if (isset($response['success'])) {
             return true;
@@ -1143,6 +1230,226 @@ class ProductController extends Controller
             return isset($response['success']);
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    public function updateProduct(Request $request)
+    {
+        $currencyId = $this->currencyId->getCurrencyId();
+
+        $validatedData = $request->validate([
+            'product_id' => 'required|string',
+            'name' => 'required|string',
+            'new_stock' => 'nullable|integer|min:0',
+            'bin_location_id' => 'nullable|string',
+            'productEanNumber' => 'nullable|string',
+            'productNumber' => 'nullable|string',
+            'description' => 'nullable|string',
+            'priceGross' => 'nullable|numeric',
+            'priceNet' => 'nullable|numeric',
+            'purchasePriceNet' => 'nullable|numeric',
+            'purchasePrice' => 'nullable|numeric',
+            'listPriceGross' => 'nullable|numeric',
+            'listPriceNet' => 'nullable|numeric',
+            'bolNlPrice' => 'nullable|numeric',
+            'bolBePrice' => 'nullable|numeric',
+            'bolNlActive' => 'nullable|in:0,1',
+            'bolBeActive' => 'nullable|in:0,1',
+            'bolNLDeliveryTime' => 'nullable|string',
+            'bolBEDeliveryTime' => 'nullable|string',
+            'bolCondition' => 'nullable|string',
+            'bolConditionDescription' => 'nullable|string',
+            'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
+            'bolOrderBefore' => 'nullable|in:0,1',
+            'bolLetterboxPackage' => 'nullable|in:0,1',
+            'bolLetterboxPackageUp' => 'nullable|in:0,1',
+            'bolPickUpOnly' => 'nullable|in:0,1',
+        ]);
+
+        $customFields = $this->setCustomFieldd($validatedData);
+
+        // Prepare update data similar to SaveData function
+        $updateData = [];
+        
+        if (!empty($validatedData['name'])) {
+            $updateData['name'] = $validatedData['name'];
+        }
+        
+        if (!empty($validatedData['productEanNumber'])) {
+            $updateData['ean'] = $validatedData['productEanNumber'];
+        }
+        
+        if (!empty($validatedData['productNumber'])) {
+            $updateData['productNumber'] = $validatedData['productNumber'];
+        }
+        
+        if (!empty($validatedData['description'])) {
+            $updateData['description'] = $validatedData['description'];
+        }
+        
+        if (!empty($validatedData['priceGross'])) {
+            $priceData = [
+                'currencyId' => $currencyId,
+                'gross' => floatval($validatedData['priceGross']),
+                'net' => floatval($validatedData['priceNet'] ?? $validatedData['priceGross'] / 1.21),
+                'linked' => true
+            ];
+            
+            // Add list price if provided
+            if (!empty($validatedData['listPriceGross'])) {
+                $priceData['listPrice'] = [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['listPriceGross']),
+                    'net' => floatval($validatedData['listPriceNet'] ?? $validatedData['listPriceGross'] / 1.21),
+                    'linked' => true,
+                ];
+            }
+            
+            $updateData['price'] = [$priceData];
+        }
+        
+        if (!empty($validatedData['purchasePriceNet'])) {
+            $updateData['purchasePrices'] = [
+                [
+                    'currencyId' => $currencyId,
+                    'gross' => floatval($validatedData['purchasePriceNet']) * 1.21, // Calculate gross from net
+                    'net' => floatval($validatedData['purchasePriceNet']),
+                    'linked' => true,
+                ]
+            ];
+        }
+        
+        if (!empty($customFields)) {
+            $updateData['customFields'] = $customFields;
+        }
+
+        try {
+            // Get current product data before updating
+            $currentProduct = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
+            $oldValues = [];
+            
+            if (isset($currentProduct['data']['attributes'])) {
+                $attrs = $currentProduct['data']['attributes'];
+                $oldValues = [
+                    'product_number' => $attrs['productNumber'] ?? null,
+                    'name' => $attrs['name'] ?? null,
+                    'stock' => $attrs['stock'] ?? null,
+                    'price_gross' => isset($attrs['price'][0]) ? $attrs['price'][0]['gross'] : null,
+                    'price_net' => isset($attrs['price'][0]) ? $attrs['price'][0]['net'] : null,
+                    'list_price_gross' => isset($attrs['price'][0]['listPrice']) ? $attrs['price'][0]['listPrice']['gross'] : null,
+                    'purchase_price_net' => isset($attrs['purchasePrices'][0]) ? $attrs['purchasePrices'][0]['net'] : null,
+                    'ean' => $attrs['ean'] ?? null,
+                    'description' => $attrs['description'] ?? null
+                ];
+            }
+            
+            // Get bin location name if provided
+            $binLocationName = null;
+            if (!empty($validatedData['bin_location_id'])) {
+                $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $validatedData['bin_location_id']);
+                if (isset($binLocationResponse['data']['attributes']['code'])) {
+                    $binLocationName = $binLocationResponse['data']['attributes']['code'];
+                }
+            }
+            
+            // Get filtered values to build message
+            $newValuesForLog = [
+                'product_number' => $oldValues['product_number'] ?? $validatedData['productNumber'] ?? null,
+                'name' => $validatedData['name'] ?? null,
+                'ean' => $validatedData['productEanNumber'] ?? null,
+                'description' => $validatedData['description'] ?? null,
+                'price_gross' => $validatedData['priceGross'] ?? null,
+                'price_net' => $validatedData['priceNet'] ?? null,
+                'list_price_gross' => $validatedData['listPriceGross'] ?? null,
+                'purchase_price_net' => $validatedData['purchasePriceNet'] ?? null,
+                'stock' => $validatedData['new_stock'] ?? null,
+                'bin_location_name' => $binLocationName
+            ];
+            
+            // Filter only changed values
+            $filteredOldValues = [];
+            $filteredNewValues = [];
+            foreach ($newValuesForLog as $key => $newValue) {
+                if (isset($oldValues[$key]) && $oldValues[$key] != $newValue) {
+                    $filteredOldValues[$key] = $oldValues[$key];
+                    $filteredNewValues[$key] = $newValue;
+                }
+            }
+            
+            // Handle properties update/removal
+            if ($request->has('properties')) {
+                $newProperties = [];
+                $propertiesJson = $request->input('properties');
+                if (!empty($propertiesJson)) {
+                    $newProperties = json_decode($propertiesJson, true);
+                }
+                
+                // Get current product properties
+                $currentProduct = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id'] . '?associations[properties][]');
+                $currentProperties = $currentProduct['data']['relationships']['properties']['data'] ?? [];
+                
+                // Remove properties that are no longer needed
+                foreach ($currentProperties as $currentProp) {
+                    $found = false;
+                    foreach ($newProperties as $newProp) {
+                        if ($currentProp['id'] === $newProp['id']) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        // Remove this property
+                        $this->shopwareApiService->makeApiRequest('DELETE', '/api/product/' . $validatedData['product_id'] . '/properties/' . $currentProp['id']);
+                    }
+                }
+                
+                // Add new properties
+                foreach ($newProperties as $newProp) {
+                    $found = false;
+                    foreach ($currentProperties as $currentProp) {
+                        if ($currentProp['id'] === $newProp['id']) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        // Add this property
+                        $this->shopwareApiService->makeApiRequest('POST', '/api/product/' . $validatedData['product_id'] . '/properties', ['id' => $newProp['id']]);
+                    }
+                }
+            }
+            
+            // Update stock if provided
+            if (!empty($validatedData['new_stock']) && !empty($validatedData['bin_location_id'])) {
+                // Get current stock for logging
+                $currentProduct = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
+                $oldStock = $currentProduct['data']['attributes']['stock'] ?? 0;
+                
+                // Get bin location name
+                $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $validatedData['bin_location_id']);
+                $binLocationName = $binLocationResponse['data']['attributes']['code'] ?? 'Unknown';
+                
+                $stockData = [
+                    'product_id' => $validatedData['product_id'],
+                    'stock' => intval($validatedData['new_stock'])
+                ];
+                $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                
+                // Log ONLY stock change
+                ProductLog::logProductChange($validatedData['product_id'], 'Stock', 
+                    ['stock' => $oldStock], 
+                    [
+                        'stock' => $validatedData['new_stock'],
+                        'bin_location_name' => $binLocationName,
+                        'type' => 'update'
+                    ],
+                    "{$oldStock} → {$validatedData['new_stock']} → {$binLocationName}"
+                );
+            }
+
+            return response()->json(['success' => true, 'message' => __('product.product_updated_successfully')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => __('product.failed_to_update_product')], 500);
         }
     }
 }
