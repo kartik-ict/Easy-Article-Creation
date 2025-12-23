@@ -358,31 +358,34 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/23.0.0/classic/ckeditor.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
     <script>
         // names you want preselected
         const preselectSalesChannelNames = ['DGMoutlet.nl', 'Bol NL', 'Bol BE'];
 
         $(document).ready(function() {
-            ClassicEditor.create(document.querySelector('#description'))
-                .then(editor => {
-                    editor.editing.view.change(writer => {
-                        writer.setStyle(
-                            'max-height',
-                            '200px',
-                            editor.editing.view.document.getRoot()
-                        );
-                        writer.setStyle(
-                            'overflow-y',
-                            'auto',
-                            editor.editing.view.document.getRoot()
-                        );
-                    });
-
-                })
-                .catch(error => {
-                    console.error(error);
-                });
+            $('#description').summernote({
+                height: 200,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', [
+                        'fontname',
+                        'fontsize',
+                        'forecolor',
+                        'backcolor',
+                        'bold',
+                        'italic',
+                        'underline',
+                        'clear'
+                    ]],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['picture']],
+                    ['view', ['undo', 'redo', 'codeview']]
+                ],
+                fontSizes: ['10', '12', '14', '16', '18', '20', '24', '28', '32']
+            });
 
             // Initialize select2 for all delivery and condition dropdowns
             const selectFields = ['#bolNLDeliveryTime', '#bolBEDeliveryTime', '#bolCondition'];

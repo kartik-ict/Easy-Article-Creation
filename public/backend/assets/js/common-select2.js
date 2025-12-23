@@ -1548,7 +1548,7 @@ $('#addPropertyOptionBtn').on('click', function () {
             $('#name').val(product.attributes.translated.name);
             if (ckEditors['description']) {
                 const desc = product.attributes?.translated?.description || '';
-                ckEditors['description'].setData(desc);
+                ckEditors['description'].summernote('code', desc);
             }
             $('#stock').val(product.attributes.stock || 1);
             $('#productEanNumber').val(product.attributes.ean);
@@ -1792,7 +1792,7 @@ $('#saveVariant').on('click', function (e) {
     e.preventDefault(); // Prevent the default form submission (if any)
 
     if (ckEditors['description']) {
-        $('#description').val(ckEditors['description'].getData());
+        $('#description').val(ckEditors['description'].summernote('code'));
     }
     
     // Ensure taxId is set from the stored value
@@ -1801,8 +1801,20 @@ $('#saveVariant').on('click', function (e) {
         $('#product-form').append(`<input type="hidden" name="taxId" value="${taxId}" />`);
     }
     
-
+    // Collect properties data
+    const properties = [];
+    $('.property-group-row').each(function() {
+        const optionId = $(this).find('.property-option-select').val();
+        if (optionId) {
+            properties.push({ "id": optionId });
+        }
+    });
     
+    // Add properties to form data
+    if (properties.length > 0) {
+        $('#product-form').append(`<input type="hidden" name="properties" value='${JSON.stringify(properties)}' />`);
+    }
+
     const formData = $('#product-form').serialize(); // Serialize the entire form data
     const button = $(this);
     const originalButtonText = button.text(); // Save original button text
@@ -1853,3 +1865,521 @@ function showValidationErrors(errors) {
     });
 }
 
+
+// Dynamic Property Groups for Step 4 Modal
+let propertyGroupCounter = 0;
+
+// Reset properties when modal is hidden
+$('#productEditModal').on('hidden.bs.modal', function() {
+    resetPropertyGroups();
+});
+
+// Initialize property dropdowns when modal is shown
+$('#productEditModal').on('shown.bs.modal', function() {
+    initializePropertyDropdowns();
+});
+
+function resetPropertyGroups() {
+    // Remove all property rows except the first one
+    $('.property-group-row:not(:first)').remove();
+    
+    // Reset the first row
+    const firstRow = $('.property-group-row:first');
+    firstRow.find('.property-group-select').val('').trigger('change');
+    firstRow.find('.property-option-select').val('').prop('disabled', true);
+    
+    // Reset counter
+    propertyGroupCounter = 0;
+    
+    // Hide remove button on first row
+    firstRow.find('.remove-property-btn').hide();
+}
+
+function initializePropertyDropdowns() {
+    // Initialize existing property group dropdowns
+    $('.property-group-select').each(function() {
+        const index = $(this).data('index');
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+            initPropertyGroupSelect(index);
+        }
+    });
+}
+
+function initPropertyGroupSelect(index) {
+    $(`select[data-index="${index}"].property-group-select`).select2({
+        placeholder: 'Selecteer eigenschappengroep',
+        ajax: {
+            url: propertySearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken_common
+            },
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    page: 1,
+                    limit: 25,
+                    term: params.term || '',
+                    'total-count-mode': 1
+                };
+            },
+            processResults: function(data) {
+                const results = data.propertyGroups.map(group => ({
+                    id: group.id,
+                    text: group.attributes.translated.name
+                }));
+                return { results: results };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        dropdownParent: $('#productEditModal'),
+        language: {
+            searching: () => 'Zoeken...',
+            noResults: () => 'Geen resultaten gevonden.'
+        }
+    });
+}
+
+function initPropertyOptionSelect(index, groupId) {
+    $(`select[data-index="${index}"].property-option-select`).select2({
+        placeholder: 'Selecteer eigenschapoptie',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken_common
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function(params) {
+                return JSON.stringify({
+                    page: 1,
+                    groupId: groupId,
+                    limit: 25,
+                    searchTerm: params.term
+                });
+            },
+            processResults: function(data) {
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+                return { results: results };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        dropdownParent: $('#productEditModal'),
+        language: {
+            noResults: () => 'Geen opties gevonden.'
+        }
+    });
+}
+
+// Handle property group selection
+$(document).on('change', '.property-group-select', function() {
+    const index = $(this).data('index');
+    const groupId = $(this).val();
+    const optionSelect = $(`.property-option-select[data-index="${index}"]`);
+    
+    // Reset and enable/disable option select
+    if (optionSelect.hasClass('select2-hidden-accessible')) {
+        optionSelect.select2('destroy');
+    }
+    
+    optionSelect.empty().prop('disabled', !groupId);
+    
+    if (groupId) {
+        initPropertyOptionSelect(index, groupId);
+    } else {
+        optionSelect.select2({
+            placeholder: 'Selecteer eerst een eigenschappengroep',
+            dropdownParent: $('#productEditModal')
+        });
+    }
+});
+
+// Add new property group row
+$(document).on('click', '.add-property-btn', function() {
+    propertyGroupCounter++;
+    const newRow = `
+        <div class="property-group-row" data-index="${propertyGroupCounter}">
+            <div class="row align-items-end mb-3">
+                <div class="col-md-5">
+                    <label class="form-label">Selecteer eigenschappengroep</label>
+                    <select class="form-control property-group-select" name="propertyGroups[${propertyGroupCounter}][groupId]" data-index="${propertyGroupCounter}">
+                        <option value="">Selecteer eigenschappengroep</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Selecteer eigenschapoptie</label>
+                    <select class="form-control property-option-select" name="propertyGroups[${propertyGroupCounter}][optionId]" data-index="${propertyGroupCounter}" disabled>
+                        <option value="">Selecteer eerst een optie</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-success add-property-btn" title="Add Property">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger remove-property-btn" title="Remove Property">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#propertiesContainer').append(newRow);
+    initPropertyGroupSelect(propertyGroupCounter);
+    
+    // Show remove button for all rows except the first one
+    updateRemoveButtons();
+});
+
+// Remove property group row
+$(document).on('click', '.remove-property-btn', function() {
+    $(this).closest('.property-group-row').remove();
+    updateRemoveButtons();
+});
+
+function updateRemoveButtons() {
+    const rows = $('.property-group-row');
+    rows.each(function(index) {
+        const removeBtn = $(this).find('.remove-property-btn');
+        if (rows.length > 1 && index > 0) {
+            removeBtn.show();
+        } else {
+            removeBtn.hide();
+        }
+    });
+}
+// Step 3 Property Groups functionality
+let updatePropertyGroupCounter = 0;
+
+// Reset properties when Step 3 modal is hidden
+$('#productUpdateModal').on('hidden.bs.modal', function() {
+    resetUpdatePropertyGroups();
+});
+
+function resetUpdatePropertyGroups() {
+    // Remove all property rows except the first one
+    $('.property-group-row-update:not(:first)').remove();
+    
+    // Reset the first row
+    const firstRow = $('.property-group-row-update:first');
+    firstRow.find('.property-group-select-update').val('').trigger('change');
+    firstRow.find('.property-option-select-update').val('').prop('disabled', true);
+    
+    // Reset counter
+    updatePropertyGroupCounter = 0;
+    
+    // Hide remove button on first row
+    firstRow.find('.remove-property-btn-update').hide();
+}
+
+function initUpdatePropertyDropdowns() {
+    // Initialize existing property group dropdowns
+    $('.property-group-select-update').each(function() {
+        const index = $(this).data('index');
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+            initUpdatePropertyGroupSelect(index);
+        }
+    });
+}
+
+function initUpdatePropertyGroupSelect(index) {
+    $(`select[data-index="${index}"].property-group-select-update`).select2({
+        placeholder: 'Selecteer eigenschappengroep',
+        ajax: {
+            url: propertySearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken_common
+            },
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    page: 1,
+                    limit: 25,
+                    term: params.term || '',
+                    'total-count-mode': 1
+                };
+            },
+            processResults: function(data) {
+                const results = data.propertyGroups.map(group => ({
+                    id: group.id,
+                    text: group.attributes.translated.name
+                }));
+                return { results: results };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        dropdownParent: $('#productUpdateModal'),
+        language: {
+            searching: () => 'Zoeken...',
+            noResults: () => 'Geen resultaten gevonden.'
+        }
+    });
+}
+
+function initUpdatePropertyOptionSelect(index, groupId) {
+    $(`select[data-index="${index}"].property-option-select-update`).select2({
+        placeholder: 'Selecteer eigenschapoptie',
+        ajax: {
+            url: propertyOptionSearchUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken_common
+            },
+            dataType: 'json',
+            contentType: 'application/json',
+            delay: 250,
+            data: function(params) {
+                return JSON.stringify({
+                    page: 1,
+                    groupId: groupId,
+                    limit: 25,
+                    searchTerm: params.term
+                });
+            },
+            processResults: function(data) {
+                const results = data.propertyGroups.map(option => ({
+                    id: option.id,
+                    text: option.attributes.translated.name
+                }));
+                return { results: results };
+            },
+            cache: true
+        },
+        minimumInputLength: 0,
+        allowClear: true,
+        dropdownParent: $('#productUpdateModal'),
+        language: {
+            noResults: () => 'Geen opties gevonden.'
+        }
+    });
+}
+
+// Handle property group selection for Step 3
+$(document).on('change', '.property-group-select-update', function() {
+    const index = $(this).data('index');
+    const groupId = $(this).val();
+    const optionSelect = $(`.property-option-select-update[data-index="${index}"]`);
+    
+    // Reset and enable/disable option select
+    if (optionSelect.hasClass('select2-hidden-accessible')) {
+        optionSelect.select2('destroy');
+    }
+    
+    optionSelect.empty().prop('disabled', !groupId);
+    
+    if (groupId) {
+        initUpdatePropertyOptionSelect(index, groupId);
+    } else {
+        optionSelect.select2({
+            placeholder: 'Selecteer eerst een eigenschappengroep',
+            dropdownParent: $('#productUpdateModal')
+        });
+    }
+});
+
+// Add new property group row for Step 3
+$(document).on('click', '.add-property-btn-update', function() {
+    updatePropertyGroupCounter++;
+    const newRow = `
+        <div class="property-group-row-update" data-index="${updatePropertyGroupCounter}">
+            <div class="row align-items-end mb-3">
+                <div class="col-md-5">
+                    <label class="form-label">Selecteer eigenschappengroep</label>
+                    <select class="form-control property-group-select-update" name="propertyGroups[${updatePropertyGroupCounter}][groupId]" data-index="${updatePropertyGroupCounter}">
+                        <option value="">Selecteer eigenschappengroep</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Selecteer eigenschapoptie</label>
+                    <select class="form-control property-option-select-update" name="propertyGroups[${updatePropertyGroupCounter}][optionId]" data-index="${updatePropertyGroupCounter}" disabled>
+                        <option value="">Selecteer eerst een optie</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-success add-property-btn-update" title="Add Property">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger remove-property-btn-update" title="Remove Property">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#updatePropertiesContainer').append(newRow);
+    initUpdatePropertyGroupSelect(updatePropertyGroupCounter);
+    
+    // Show remove button for all rows except the first one
+    updateUpdateRemoveButtons();
+});
+
+// Remove property group row for Step 3
+$(document).on('click', '.remove-property-btn-update', function() {
+    $(this).closest('.property-group-row-update').remove();
+    updateUpdateRemoveButtons();
+    
+    // Clear any cached property data to ensure fresh collection on save
+    $('#product-update-form input[name="properties"]').remove();
+});
+
+function updateUpdateRemoveButtons() {
+    const rows = $('.property-group-row-update');
+    rows.each(function(index) {
+        const removeBtn = $(this).find('.remove-property-btn-update');
+        if (rows.length > 1 && index > 0) {
+            removeBtn.show();
+        } else {
+            removeBtn.hide();
+        }
+    });
+}
+
+// Prefill properties when Step 3 modal is shown
+$('#productUpdateModal').on('shown.bs.modal', function() {
+    initUpdatePropertyDropdowns();
+    
+    // Get product ID and prefill properties
+    const productId = $('#updateProductId').val();
+    if (productId && allProductData && allProductData.productData) {
+        prefillProductProperties(productId);
+    }
+});
+
+function prefillProductProperties(productId) {
+    if (!allProductData || !allProductData.productData) return;
+    
+    const product = allProductData.productData.find(p => p.id === productId);
+    if (!product || !product.relationships) return;
+    
+    let propertyOptionIds = [];
+    
+    // Check if product has properties (for parent products)
+    if (product.relationships.properties && product.relationships.properties.data) {
+        propertyOptionIds = product.relationships.properties.data.map(prop => prop.id);
+    }
+    // Check if product has configuratorSettings (for variants)
+    else if (product.relationships.configuratorSettings && product.relationships.configuratorSettings.data) {
+        const configuratorSettings = product.relationships.configuratorSettings.data;
+        configuratorSettings.forEach(setting => {
+            const settingData = allProductData.included.find(item => 
+                item.id === setting.id && item.type === 'product_configurator_setting'
+            );
+            
+            if (settingData && settingData.relationships && settingData.relationships.option) {
+                propertyOptionIds.push(settingData.relationships.option.data.id);
+            }
+        });
+    }
+    
+    if (propertyOptionIds.length === 0) return;
+    
+    // Add additional rows if needed
+    while ($('.property-group-row-update').length < propertyOptionIds.length) {
+        $('.add-property-btn-update:first').click();
+    }
+    
+    // Prefill each property option
+    propertyOptionIds.forEach((optionId, index) => {
+        if (index < $('.property-group-row-update').length) {
+            // Find the property option in included data
+            const optionData = allProductData.included.find(item => 
+                item.id === optionId && item.type === 'property_group_option'
+            );
+            
+            if (optionData && optionData.relationships && optionData.relationships.group) {
+                const groupId = optionData.relationships.group.data.id;
+                const groupData = allProductData.included.find(item => 
+                    item.id === groupId && item.type === 'property_group'
+                );
+                
+                if (groupData) {
+                    const row = $(`.property-group-row-update[data-index="${index}"]`);
+                    const groupSelect = row.find('.property-group-select-update');
+                    const optionSelect = row.find('.property-option-select-update');
+                    
+                    // Set group first
+                    setTimeout(() => {
+                        const groupOption = new Option(groupData.attributes.translated.name, groupId, true, true);
+                        groupSelect.append(groupOption).trigger('change');
+                        
+                        // Then set option after group is selected
+                        setTimeout(() => {
+                            const optionOption = new Option(optionData.attributes.translated.name, optionId, true, true);
+                            optionSelect.append(optionOption).trigger('change');
+                        }, 300);
+                    }, 200 * (index + 1));
+                }
+            }
+        }
+    });
+}
+
+// Update Step 3 form submission to include properties
+$(document).off('submit', '#product-update-form').off('click', '#saveProductUpdate').on('submit', '#product-update-form', function(e) {
+    e.preventDefault();
+    
+    // Prevent double submission
+    if ($(this).data('submitting')) {
+        return false;
+    }
+    $(this).data('submitting', true);
+    
+    $('#full-page-preloader').show();
+    
+    // Remove any existing properties input to avoid duplicates
+    $(this).find('input[name="properties"]').remove();
+    
+    // Collect current properties data from DOM
+    const properties = [];
+    $('.property-group-row-update').each(function() {
+        const optionId = $(this).find('.property-option-select-update').val();
+        if (optionId) {
+            properties.push({ "id": optionId });
+        }
+    });
+    
+    // Always add properties input (empty array if no properties)
+    $(this).append(`<input type="hidden" name="properties" value='${JSON.stringify(properties)}' />`);
+    
+    const formData = new FormData(this);
+    const form = this;
+    
+    $.ajax({
+        url: '/admin/product/update',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            $('#productUpdateModal').modal('hide');
+            $('#full-page-preloader').hide();
+            $(form).data('submitting', false);
+            alert('Product succesvol bijgewerkt');
+            location.reload();
+        },
+        error: function(xhr) {
+            $('#full-page-preloader').hide();
+            $(form).data('submitting', false);
+            let errorMessage = 'Het is niet gelukt om het product bij te werken';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            alert(errorMessage);
+        }
+    });
+});

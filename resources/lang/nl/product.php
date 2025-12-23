@@ -148,4 +148,6 @@ return [
     'dgm_price'                                     => 'DGM Prijs',
     'bol_price_nl'                                  => 'BOL prijs NL',
     'bol_price_be'                                  => 'BOL prijs BE',
+    'configure_properties'                          => 'Eigenschappen configureren',
+    'select_option_first'                           => 'Selecteer eerst een optie',
 ];

@@ -690,8 +690,14 @@ class ProductController extends Controller
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
 
                 if (isset($response['success'])) {
+                    // Parse properties data if provided
+                    $properties = null;
+                    if ($request->has('properties') && !empty($request->properties)) {
+                        $properties = json_decode($request->properties, true);
+                    }
+                    
                     // set custom fields data for created product
-                    $this->patchProductCustomData($productVariantId, $customFields);
+                    $this->patchProductCustomData($productVariantId, $customFields, $properties);
 
                     // set stock to bin location
                     $stockData = [
@@ -1030,12 +1036,17 @@ class ProductController extends Controller
         }, $customFieldData['data'] ?? []);
     }
 
-    public function patchProductCustomData($productVariantId, $customFields)
+    public function patchProductCustomData($productVariantId, $customFields, $properties = null)
     {
         $data = [
             'id' => $productVariantId,
             'customFields' => $customFields
         ];
+        
+        if ($properties !== null) {
+            $data['properties'] = $properties;
+        }
+        
         $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $productVariantId, $data);
         if (isset($response['success'])) {
             return true;
@@ -1253,12 +1264,55 @@ class ProductController extends Controller
         }
 
         try {
-            // Update product via Shopware API
+            // Handle properties update/removal
+            if ($request->has('properties')) {
+                $newProperties = [];
+                $propertiesJson = $request->input('properties');
+                if (!empty($propertiesJson)) {
+                    $newProperties = json_decode($propertiesJson, true);
+                }
+                
+                // Get current product properties
+                $currentProduct = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id'] . '?associations[properties][]');
+                $currentProperties = $currentProduct['data']['relationships']['properties']['data'] ?? [];
+                
+                // Remove properties that are no longer needed
+                foreach ($currentProperties as $currentProp) {
+                    $found = false;
+                    foreach ($newProperties as $newProp) {
+                        if ($currentProp['id'] === $newProp['id']) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        // Remove this property
+                        $this->shopwareApiService->makeApiRequest('DELETE', '/api/product/' . $validatedData['product_id'] . '/properties/' . $currentProp['id']);
+                    }
+                }
+                
+                // Add new properties
+                foreach ($newProperties as $newProp) {
+                    $found = false;
+                    foreach ($currentProperties as $currentProp) {
+                        if ($currentProp['id'] === $newProp['id']) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        // Add this property
+                        $this->shopwareApiService->makeApiRequest('POST', '/api/product/' . $validatedData['product_id'] . '/properties', ['id' => $newProp['id']]);
+                    }
+                }
+            }
+            
+            // Update other product data
             if (!empty($updateData)) {
                 $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $validatedData['product_id'], $updateData);
                 
                 if (!isset($response['success'])) {
-                    return back()->withErrors(__('product.failed_to_update_product'));
+                    return response()->json(['success' => false, 'message' => __('product.failed_to_update_product')], 500);
                 }
             }
 

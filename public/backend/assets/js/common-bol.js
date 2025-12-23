@@ -5,6 +5,8 @@ const categorySearchUrlbol = $('#route-container-category').data('category-searc
 const categoryCreateUrlbol = $('#route-container-sw-create-category').data('sw-create-category');
 const swCategorySearchUrl = $('#route-container-sw-category-search').data('sw-category-search');
 const saveBolData = $('#route-container-save-bol-data').data('save-bol-data');
+const taxSearchUrl = $('#route-container-tax').data('tax-search');
+const salesSearchUrl = $('#route-container-sales').data('sales-search');
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
 let currentPageManufacturer = 1; // Start from the first page
 let isLoadingManufacturer = false;

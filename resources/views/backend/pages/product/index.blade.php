@@ -143,7 +143,9 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/23.0.0/classic/ckeditor.js"></script>
+    <!-- Summernote CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
 
     <script>
         window.selectGradeAlert = @json(__('product.product_created_successfully'));
@@ -175,26 +177,28 @@
             document.querySelectorAll('.description-editor').forEach((el, index) => {
                 const editorId = el.id || `editor-${index}`;
                 if (!window.ckEditors[editorId]) {
-                    ClassicEditor.create(el)
-                        .then(editor => {
-                            editor.editing.view.change(writer => {
-                                writer.setStyle(
-                                    'max-height',
-                                    '200px',
-                                    editor.editing.view.document.getRoot()
-                                );
-                                writer.setStyle(
-                                    'overflow-y',
-                                    'auto',
-                                    editor.editing.view.document.getRoot()
-                                );
-                            });
-
-                            window.ckEditors[editorId] = editor;
-                        })
-                        .catch(error => {
-                            console.error(error);
-                        });
+                    $(el).summernote({
+                        height: 200,
+                        toolbar: [
+                            ['style', ['style']],
+                            ['font', [
+                                'fontname',
+                                'fontsize',
+                                'forecolor',
+                                'backcolor',
+                                'bold',
+                                'italic',
+                                'underline',
+                                'clear'
+                            ]],
+                            ['para', ['ul', 'ol', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['picture']],
+                            ['view', ['undo', 'redo', 'codeview']]
+                        ],
+                        fontSizes: ['10', '12', '14', '16', '18', '20', '24', '28', '32']
+                    });
+                    window.ckEditors[editorId] = $(el);
                 }
             });
             const apiUrl = "{{ url('/api/product') }}";
@@ -655,7 +659,7 @@
                     }
                     
                     if (window.ckEditors['updateDescription']) {
-                        window.ckEditors['updateDescription'].setData(description);
+                        window.ckEditors['updateDescription'].summernote('code', description);
                     } else {
                         $('#updateDescription').val(description);
                     }
@@ -807,30 +811,30 @@
                     });
                 }
                 
-                // Initialize CKEditor for description field if not already initialized
+                // Initialize Summernote for description field if not already initialized
                 if (!window.ckEditors['updateDescription']) {
-                    const descriptionElement = document.getElementById('updateDescription');
-                    if (descriptionElement) {
-                        ClassicEditor.create(descriptionElement)
-                            .then(editor => {
-                                editor.editing.view.change(writer => {
-                                    writer.setStyle(
-                                        'max-height',
-                                        '200px',
-                                        editor.editing.view.document.getRoot()
-                                    );
-                                    writer.setStyle(
-                                        'overflow-y',
-                                        'auto',
-                                        editor.editing.view.document.getRoot()
-                                    );
-                                });
-                                window.ckEditors['updateDescription'] = editor;
-                            })
-                            .catch(error => {
-                                console.error(error);
-                            });
-                    }
+                    $('#updateDescription').summernote({
+                        height: 200,
+                        toolbar: [
+                            ['style', ['style']],
+                            ['font', [
+                                'fontname',
+                                'fontsize',
+                                'forecolor',
+                                'backcolor',
+                                'bold',
+                                'italic',
+                                'underline',
+                                'clear'
+                            ]],
+                            ['para', ['ul', 'ol', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['picture']],
+                            ['view', ['undo', 'redo', 'codeview']]
+                        ],
+                        fontSizes: ['10', '12', '14', '16', '18', '20', '24', '28', '32']
+                    });
+                    window.ckEditors['updateDescription'] = $('#updateDescription');
                 }
                 
                 // Set tax rate data attributes for price calculations (default 21%)

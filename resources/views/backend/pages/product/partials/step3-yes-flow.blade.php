@@ -133,6 +133,40 @@
                                     class="form-control" step="any" required />
                             </div>
                         </div>
+                        
+                        {{-- Configure Properties Section --}}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="my-3">{{ __('product.configure_properties') }}</h5>
+                            </div>
+                        </div>
+                        <div id="propertiesContainer">
+                            <div class="property-group-row" data-index="0">
+                                <div class="row align-items-end mb-3">
+                                    <div class="col-md-5">
+                                        <label class="form-label">@lang('product.property_select_group')</label>
+                                        <select class="form-control property-group-select" name="propertyGroups[0][groupId]" data-index="0">
+                                            <option value="">@lang('product.select_property_group_first')</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label">@lang('product.property_select_group_option')</label>
+                                        <select class="form-control property-option-select" name="propertyGroups[0][optionId]" data-index="0" disabled>
+                                            <option value="">@lang('product.select_option_first')</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-success add-property-btn" title="Add Property">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-danger remove-property-btn" title="Remove Property" style="display: none;">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         {{-- Product Marketplace Section --}}
                         <div class="row">
                             <div class="col-md-12">
