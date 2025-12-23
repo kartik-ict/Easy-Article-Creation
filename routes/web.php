@@ -123,6 +123,10 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/warehouse', [ProductController::class, 'warehouseSearch'])->name('product.warehouseSearch')->middleware('can:product.create');
         Route::post('/bin-location', [ProductController::class, 'binLocationSearch'])->name('product.binLocationSearch')->middleware('can:product.create');
 
+        // Product Logs
+        Route::get('/product-logs', [\App\Http\Controllers\Backend\ProductLogController::class, 'index'])->name('product-logs.index')->middleware('can:product.create');
+        Route::get('/product-logs/{id}', [\App\Http\Controllers\Backend\ProductLogController::class, 'show'])->name('product-logs.show')->middleware('can:product.create');
+
 
     });
 });

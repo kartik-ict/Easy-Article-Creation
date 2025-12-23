@@ -39,6 +39,21 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 form-group mb-3">
+                            <label for="updateBinLocation">@lang('product.bin_location') <span class="text-danger">*</span></label>
+                            <select name="bin_location_id" id="updateBinLocation" class="form-control bin-location-select-update" required>
+                                <option value="">{{ __('product.select_bin_location') }}</option>
+                                @if(isset($binLocationList))
+                                    @foreach ($binLocationList as $location)
+                                        <option value="{{ $location['id'] }}" {{ strtolower($location['attributes']['code']) == 'main bin location' ? 'selected' : '' }}> {{ $location['attributes']['code'] }}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
                             <label for="updateEanNumber">@lang('product.bolProductEanNumber'):</label>
                             <input type="text" class="form-control" id="updateEanNumber" name="productEanNumber" required>
                         </div>
@@ -204,15 +219,6 @@
                             </div>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label for="updateBinLocation">@lang('product.bin_location')</label>
-                            <select name="bin_location_id" id="updateBinLocation" class="form-control bin-location-select-update">
-                                <option value="">{{ __('product.select_bin_location') }}</option>
-                                @if(isset($binLocationList))
-                                    @foreach ($binLocationList as $location)
-                                        <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
                         </div>
                     </div>
 

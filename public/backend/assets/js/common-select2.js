@@ -2332,12 +2332,16 @@ function prefillProductProperties(productId) {
 // Update Step 3 form submission to include properties
 $(document).off('submit', '#product-update-form').off('click', '#saveProductUpdate').on('submit', '#product-update-form', function(e) {
     e.preventDefault();
+    e.stopImmediatePropagation();
     
-    // Prevent double submission
-    if ($(this).data('submitting')) {
+    // Multiple safeguards against double submission
+    if ($(this).data('submitting') || $('#saveProductUpdate').prop('disabled')) {
         return false;
     }
+    
+    // Set multiple flags
     $(this).data('submitting', true);
+    $('#saveProductUpdate').prop('disabled', true).text('Verwerking...');
     
     $('#full-page-preloader').show();
     
@@ -2367,19 +2371,32 @@ $(document).off('submit', '#product-update-form').off('click', '#saveProductUpda
         contentType: false,
         success: function(response) {
             $('#productUpdateModal').modal('hide');
-            $('#full-page-preloader').hide();
-            $(form).data('submitting', false);
-            alert('Product succesvol bijgewerkt');
-            location.reload();
+            
+            if (response.success) {
+                alert('Product succesvol bijgewerkt');
+                location.reload();
+            }
         },
         error: function(xhr) {
-            $('#full-page-preloader').hide();
-            $(form).data('submitting', false);
             let errorMessage = 'Het is niet gelukt om het product bij te werken';
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
             }
             alert(errorMessage);
+        },
+        complete: function() {
+            $('#full-page-preloader').hide();
+            $('#saveProductUpdate').prop('disabled', false).text('Opslaan');
+            $('#product-update-form').data('submitting', false);
         }
     });
+});
+
+// Also prevent button click events
+$(document).off('click', '#saveProductUpdate').on('click', '#saveProductUpdate', function(e) {
+    if ($(this).prop('disabled') || $('#product-update-form').data('submitting')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
+    }
 });

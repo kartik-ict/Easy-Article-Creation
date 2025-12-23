@@ -33,4 +33,5 @@ return [
     'manufacturers' => 'Fabrikanten',
     'newProduct' => 'Nieuw product maken',
     'updateProduct' => 'Product bijwerken',
+    'product_logs' => 'Product Logs',
 ];
