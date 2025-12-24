@@ -7,6 +7,7 @@ const propertySearchUrl = $('#route-container-property').data('property-search')
 const propertyOptionSearchUrl = $('#route-container-property-option').data('property-search-option');
 const propertyOptionSave = $('#route-container-property-option-save').data('property-option-save');
 const variantSave = $('#route-container-variant-save').data('variant-save');
+const productUpdateUrl = $('#route-container-product-update').data('product-update');
 const csrfToken_common = $('meta[name="csrf-token"]').attr('content');
 
 let currentPage = 1; // Start from the first page
@@ -2364,7 +2365,7 @@ $(document).off('submit', '#product-update-form').off('click', '#saveProductUpda
     const form = this;
     
     $.ajax({
-        url: '/admin/product/update',
+        url: productUpdateUrl,
         method: 'POST',
         data: formData,
         processData: false,
