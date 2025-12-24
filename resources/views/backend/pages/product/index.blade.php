@@ -106,6 +106,8 @@
                         data-property-option-save="{{ route('product.savePropertyOption') }}"></div>
                     <div id="route-container-variant-save" data-variant-save="{{ route('product.saveVariantProduct') }}">
                     </div>
+                    <div id="route-container-product-update" data-product-update="{{ route('product.updateProduct') }}">
+                    </div>
 
                     <div id="route-container-sw-category-search"
                         data-sw-category-search="{{ route('sw.category.search') }}"></div>
