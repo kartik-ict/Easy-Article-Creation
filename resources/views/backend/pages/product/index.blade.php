@@ -681,8 +681,8 @@
                         purchasePriceGross = productData.attributes.purchasePrices[0].gross || '';
                         purchasePriceNet = productData.attributes.purchasePrices[0].net || '';
                     }
-                    $('#updatePurchasePrice').val(purchasePriceGross);
-                    $('#updatePurchasePriceGross').val(purchasePriceNet);
+                    $('#updatePurchasePrice').val(purchasePriceNet);
+                    $('#updatePurchasePriceGross').val(purchasePriceGross);
                     
                     // List prices with parent fallback
                     let listPriceGross = '', listPriceNet = '';

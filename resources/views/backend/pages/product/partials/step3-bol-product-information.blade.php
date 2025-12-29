@@ -41,12 +41,12 @@
             </div>
             <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolProductPrice">{{ __('product.productPrice') }}</label>
+                    <label for="bolProductPrice">{{ __('product.productPrice') }} <span class="text-danger">*</span></label>
                     <input type="text" name="bolProductPrice" id="bolProductPrice" class="form-control" required>
                     <input type="hidden" name="bolTotalPrice" id="bolTotalPrice" class="form-control" required>
                 </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolProductListPriceGross">{{ __('product.bolListGrossPrice') }}</label>
+                    <label for="bolProductListPriceGross">{{ __('product.bolListGrossPrice') }} <span class="text-danger">*</span></label>
                     <input type="text" name="bolProductListPriceGross" id="bolProductListPriceGross"
                         class="form-control" required>
                     <input type="hidden" name="bolProductListPriceNet" id="bolProductListPriceNet" class="form-control"

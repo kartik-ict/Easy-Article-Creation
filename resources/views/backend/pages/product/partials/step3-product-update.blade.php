@@ -70,11 +70,11 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 form-group mb-3">
-                            <label for="updatePriceGross">{{ __('product.price_gross') }}</label>
+                            <label for="updatePriceGross">{{ __('product.price_gross') }} <span class="text-danger">*</span></label>
                             <input type="number" name="priceGross" id="updatePriceGross" class="form-control" step="any" required placeholder="{{ __('product.enter_price_gross') }}">
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label for="updatePurchasePrice">{{ __('product.purchase_price') }}</label>
+                            <label for="updatePurchasePrice">{{ __('product.purchase_price') }} <span class="text-danger">*</span></label>
                             <input type="number" name="purchasePriceNet" id="updatePurchasePrice" class="form-control" step="any" required placeholder="{{ __('product.enter_purchase_price') }}">
                         </div>
                     </div>
