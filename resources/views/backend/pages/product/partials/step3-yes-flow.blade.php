@@ -104,7 +104,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 form-group mb-3">
-                                <label for="price_gross">{{ __('product.price_gross') }}</label>
+                                <label for="price_gross">{{ __('product.price_gross') }} <span class="text-danger">*</span></label>
                                 <input type="number" name="priceGross" id="priceGross" class="form-control"
                                     step="any" required placeholder="{{ __('product.enter_price_gross') }}">
                                 <input type="hidden" name="priceNet" id="priceNet" class="form-control" step="any"

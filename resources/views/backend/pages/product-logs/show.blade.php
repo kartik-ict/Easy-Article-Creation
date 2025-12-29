@@ -69,8 +69,8 @@
                                 <table class="table table-sm table-bordered">
                                     <thead class="bg-light text-capitalize">
                                         <tr>
-                                            <th>Old Stock</th>
-                                            <th>New Stock</th>
+                                            <th>@lang('product_logs.previous_stock')</th>
+                                            <th>@lang('product_logs.updated_stock')</th>
                                             <th>Bin Location</th>
                                         </tr>
                                     </thead>

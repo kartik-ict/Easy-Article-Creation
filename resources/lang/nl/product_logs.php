@@ -31,5 +31,7 @@ return [
     'update' => 'Bijwerken',
     'new_variant' => 'Nieuwe Variant',
     'product_created_from_bol' => 'Product Aangemaakt van Bol',
+    'previous_stock' => 'Vorige Voorraad',
+    'updated_stock' => 'Bijgewerkte Voorraad',
     'product_created' => 'Product Aangemaakt',
 ];
