@@ -43,8 +43,8 @@
                             <select name="bin_location_id" id="updateBinLocation" class="form-control bin-location-select-update" required>
                                 <option value="">{{ __('product.select_bin_location') }}</option>
                                 @if(isset($binLocationList))
-                                    @foreach ($binLocationList as $location)
-                                        <option value="{{ $location['id'] }}" {{ strtolower($location['attributes']['code']) == 'main bin location' ? 'selected' : '' }}> {{ $location['attributes']['code'] }}</option>
+                                    @foreach ($binLocationList as $index => $location)
+                                        <option value="{{ $location['id'] }}" {{ $index === 0 ? 'selected' : '' }}> {{ $location['attributes']['code'] }}</option>
                                     @endforeach
                                 @endif
                             </select>
