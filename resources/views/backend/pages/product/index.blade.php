@@ -366,17 +366,17 @@
 
                                     // Get price data
                                     const dgmPrice = product.attributes.price?.[0]?.gross ? parseFloat(product.attributes.price[0].gross).toFixed(2).replace('.', ',') : '-';
-                                    
+
                                     // Get BOL prices from variant or fallback to parent
                                     let bolNlPrice = product.attributes.customFields?.migration_DMG_product_bol_price_nl;
                                     let bolBePrice = product.attributes.customFields?.migration_DMG_product_bol_price_be;
-                                    
+
                                     // If variant prices are null and parentData exists, get parent prices
                                     if ((!bolNlPrice || !bolBePrice) && allProductData.parentData) {
                                         bolNlPrice = bolNlPrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_nl;
                                         bolBePrice = bolBePrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_be;
                                     }
-                                    
+
                                     bolNlPrice = bolNlPrice ? parseFloat(bolNlPrice).toFixed(2).replace('.', ',') : '-';
                                     bolBePrice = bolBePrice ? parseFloat(bolBePrice).toFixed(2).replace('.', ',') : '-';
 
@@ -526,17 +526,17 @@
 
                             // Get price data
                             const dgmPrice = product.attributes.price?.[0]?.gross ? parseFloat(product.attributes.price[0].gross).toFixed(2).replace('.', ',') : '-';
-                            
+
                             // Get BOL prices from variant or fallback to parent
                             let bolNlPrice = product.attributes.customFields?.migration_DMG_product_bol_price_nl;
                             let bolBePrice = product.attributes.customFields?.migration_DMG_product_bol_price_be;
-                            
+
                             // If variant prices are null and parentData exists, get parent prices
                             if ((!bolNlPrice || !bolBePrice) && allProductData.parentData) {
                                 bolNlPrice = bolNlPrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_nl;
                                 bolBePrice = bolBePrice || allProductData.parentData.attributes?.customFields?.migration_DMG_product_bol_price_be;
                             }
-                            
+
                             bolNlPrice = bolNlPrice ? parseFloat(bolNlPrice).toFixed(2).replace('.', ',') : '-';
                             bolBePrice = bolBePrice ? parseFloat(bolBePrice).toFixed(2).replace('.', ',') : '-';
 
@@ -620,52 +620,52 @@
             $(document).on('click', '.update-stock-btn', function() {
                 const row = $(this).closest('tr');
                 const productId = $(this).data('product-id');
-                
+
                 // Find product data
                 const productData = allProductData.productData.find(product => product.id === productId);
-                
+
                 if (productData) {
                     // Get parent data for fallbacks
                     const parentData = allProductData.parentData;
-                    
+
                     // Populate the Step 3 modal with product data and parent fallbacks
                     $('#updateProductId').val(productId);
-                    
+
                     // Name with parent fallback
                     let name = productData.attributes.translated?.name || '';
                     if (!name && parentData) {
                         name = parentData.attributes?.translated?.name || parentData.attributes?.name || '';
                     }
                     $('#updateName').val(name);
-                    
+
                     $('#updateCurrentStock').val(productData.attributes.stock || 0);
-                    
+
                     // EAN with parent fallback
                     let ean = productData.attributes.ean || '';
                     if (!ean && parentData) {
                         ean = parentData.attributes?.ean || '';
                     }
                     $('#updateEanNumber').val(ean);
-                    
+
                     // Product number with parent fallback
                     let productNumber = productData.attributes.productNumber || '';
                     if (!productNumber && parentData) {
                         productNumber = parentData.attributes?.productNumber || '';
                     }
                     $('#updateProductNumber').val(productNumber);
-                    
+
                     // Description with parent fallback
                     let description = productData.attributes.translated?.description || productData.attributes.description || '';
                     if (!description && parentData) {
                         description = parentData.attributes?.translated?.description || parentData.attributes?.description || '';
                     }
-                    
+
                     if (window.ckEditors['updateDescription']) {
                         window.ckEditors['updateDescription'].summernote('code', description);
                     } else {
                         $('#updateDescription').val(description);
                     }
-                    
+
                     // Prices - no parent fallback (not inherited in Shopware 6)
                     let priceGross = '', priceNet = '';
                     if (productData.attributes.price && productData.attributes.price.length > 0) {
@@ -674,7 +674,7 @@
                     }
                     $('#updatePriceGross').val(priceGross);
                     $('#updatePriceNet').val(priceNet);
-                    
+
                     // Purchase prices - no parent fallback (not inherited in Shopware 6)
                     let purchasePriceGross = '', purchasePriceNet = '';
                     if (productData.attributes.purchasePrices && productData.attributes.purchasePrices.length > 0) {
@@ -683,7 +683,7 @@
                     }
                     $('#updatePurchasePrice').val(purchasePriceNet);
                     $('#updatePurchasePriceGross').val(purchasePriceGross);
-                    
+
                     // List prices with parent fallback
                     let listPriceGross = '', listPriceNet = '';
                     if (productData.attributes.price && productData.attributes.price[0]?.listPrice) {
@@ -695,7 +695,7 @@
                     }
                     $('#updateListPrice').val(listPriceGross);
                     $('#updateListPriceNet').val(listPriceNet);
-                    
+
                     // BOL prices and settings with parent fallback
                     let bolNlPrice = '', bolBePrice = '', bolNlActive = false, bolBeActive = false;
                     if (productData.attributes.customFields) {
@@ -703,8 +703,9 @@
                         bolBePrice = productData.attributes.customFields.migration_DMG_product_bol_price_be || '';
                         bolNlActive = productData.attributes.customFields.migration_DMG_product_bol_nl_active || false;
                         bolBeActive = productData.attributes.customFields.migration_DMG_product_bol_be_active || false;
+                        bolProductShortDescription = productData.attributes.customFields.custom_product_message_ || '';
                     }
-                    
+
                     // Fallback to parent BOL data if variant data is empty
                     if ((!bolNlPrice || !bolBePrice) && parentData && parentData.attributes?.customFields) {
                         bolNlPrice = bolNlPrice || parentData.attributes.customFields.migration_DMG_product_bol_price_nl || '';
@@ -712,17 +713,18 @@
                         bolNlActive = bolNlActive || parentData.attributes.customFields.migration_DMG_product_bol_nl_active || false;
                         bolBeActive = bolBeActive || parentData.attributes.customFields.migration_DMG_product_bol_be_active || false;
                     }
-                    
+
                     $('#updateBolNlPrice').val(bolNlPrice);
                     $('#updateBolBePrice').val(bolBePrice);
                     $('#updateBolNlActive').prop('checked', bolNlActive);
                     $('#updateBolBeActive').prop('checked', bolBeActive);
-                    
+                    $('#updateShortDescription').val(bolProductShortDescription);
+
                     // Set shipping information fields with parent fallback
                     let bolNLDeliveryTime = '', bolBEDeliveryTime = '', bolCondition = '', bolConditionDescription = '';
                     let bolOrderBeforeTomorrow = false, bolOrderBefore = false, bolLetterboxPackage = false;
                     let bolLetterboxPackageUp = false, bolPickUpOnly = false;
-                    
+
                     if (productData.attributes.customFields) {
                         bolNLDeliveryTime = productData.attributes.customFields.migration_DMG_product_bol_nl_delivery_code || '';
                         bolBEDeliveryTime = productData.attributes.customFields.migration_DMG_product_bol_be_delivery_code || '';
@@ -734,7 +736,7 @@
                         bolLetterboxPackageUp = productData.attributes.customFields.migration_DMG_product_proposition_4 || false;
                         bolPickUpOnly = productData.attributes.customFields.migration_DMG_product_proposition_5 || false;
                     }
-                    
+
                     // Fallback to parent shipping data if variant data is empty
                     if (parentData && parentData.attributes?.customFields) {
                         bolNLDeliveryTime = bolNLDeliveryTime || parentData.attributes.customFields.migration_DMG_product_bol_nl_delivery_code || '';
@@ -747,7 +749,7 @@
                         bolLetterboxPackageUp = bolLetterboxPackageUp || parentData.attributes.customFields.migration_DMG_product_proposition_4 || false;
                         bolPickUpOnly = bolPickUpOnly || parentData.attributes.customFields.migration_DMG_product_proposition_5 || false;
                     }
-                    
+
                     // Set shipping fields
                     $('#updateBolConditionDescription').val(bolConditionDescription);
                     $('#updateBolOrderBeforeTomorrow').prop('checked', bolOrderBeforeTomorrow);
@@ -755,19 +757,19 @@
                     $('#updateBolLetterboxPackage').prop('checked', bolLetterboxPackage);
                     $('#updateBolLetterboxPackageUp').prop('checked', bolLetterboxPackageUp);
                     $('#updateBolPickUpOnly').prop('checked', bolPickUpOnly);
-                    
+
                     // Store values for dropdown initialization
                     $('#updateBolNLDeliveryTime').data('preselect-value', bolNLDeliveryTime);
                     $('#updateBolBEDeliveryTime').data('preselect-value', bolBEDeliveryTime);
                     $('#updateBolCondition').data('preselect-value', bolCondition);
-                    
+
                     // Show the Step 3 modal
                     $('#productUpdateModal').modal('show');
                 } else {
                     alert('Product data not found.');
                 }
             });
-            
+
             // Add price calculation for Step 3 modal (same as Step 4)
             $(document).on('input', '#updatePriceGross', function() {
                 const priceGross = parseFloat($(this).val()) || 0;
@@ -775,14 +777,14 @@
                 const priceNet = priceGross / (1 + taxRate / 100);
                 $('#updatePriceNet').val(priceNet.toFixed(2));
             });
-            
+
             $(document).on('input', '#updatePurchasePrice', function() {
                 const purchasePriceGross = parseFloat($(this).val()) || 0;
                 const taxRate = parseFloat($(this).data('taxRate')) || 21;
                 const purchasePriceNet = purchasePriceGross / (1 + taxRate / 100);
                 $('#updatePurchasePriceGross').val(purchasePriceNet.toFixed(2));
             });
-            
+
             $(document).on('input', '#updateListPrice', function() {
                 const listPriceGross = parseFloat($(this).val()) || 0;
                 const taxRate = parseFloat($(this).data('taxRate')) || 21;
@@ -812,7 +814,7 @@
                         }
                     });
                 }
-                
+
                 // Initialize Summernote for description field if not already initialized
                 if (!window.ckEditors['updateDescription']) {
                     $('#updateDescription').summernote({
@@ -838,23 +840,23 @@
                     });
                     window.ckEditors['updateDescription'] = $('#updateDescription');
                 }
-                
+
                 // Set tax rate data attributes for price calculations (default 21%)
                 const defaultTaxRate = 21;
                 $('#updatePriceGross').data('taxRate', defaultTaxRate);
                 $('#updatePurchasePrice').data('taxRate', defaultTaxRate);
                 $('#updateListPrice').data('taxRate', defaultTaxRate);
-                
+
                 // Initialize custom field dropdowns for Step 3 modal
                 if (customFieldData && customFieldData.length > 0) {
                     setCustomFieldData(customFieldData);
-                    
+
                     // Set selected values for BOL delivery time and condition dropdowns after initialization
                     setTimeout(() => {
                         const nlDeliveryValue = $('#updateBolNLDeliveryTime').data('preselect-value');
                         const beDeliveryValue = $('#updateBolBEDeliveryTime').data('preselect-value');
                         const conditionValue = $('#updateBolCondition').data('preselect-value');
-                        
+
                         if (nlDeliveryValue) {
                             $('#updateBolNLDeliveryTime').val(nlDeliveryValue).trigger('change');
                         }
@@ -866,7 +868,7 @@
                         }
                     }, 500);
                 }
-                
+
                 // Trigger initial calculations if values exist
                 if ($('#updatePriceGross').val()) $('#updatePriceGross').trigger('input');
                 if ($('#updatePurchasePrice').val()) $('#updatePurchasePrice').trigger('input');
@@ -877,9 +879,9 @@
             $(document).on('submit', '#product-update-form', function(e) {
                 e.preventDefault();
                 $('#full-page-preloader').show();
-                
+
                 const formData = new FormData(this);
-                
+
                 $.ajax({
                     url: "{{ route('product.updateProduct') }}",
                     method: 'POST',
@@ -902,7 +904,7 @@
                     }
                 });
             });
-            
+
             // Old bin location update code removed - now using Step 3 modal
 
             // Handle the Yes Flow
@@ -1092,7 +1094,7 @@
                         dropdownParent: $('#productEditModal')
                     });
                 });
-                
+
                 // Prefill all fields from stored product data
                 const product = $(this).data('product-data');
                 if (product) {
@@ -1109,18 +1111,18 @@
                         $('#swPurchasePriceNet').val(product.attributes.purchasePrices[0].net || '');
                         $('#swPurchasePrice').val(product.attributes.purchasePrices[0].gross || '');
                     }
-                    
+
                     // Prefill custom fields
                     if (product.attributes?.customFields) {
                         const productFields = product.attributes.customFields;
-                        
+
                         // Marketplace fields
                         $('#bolNlActive').prop('checked', !!productFields.migration_DMG_product_bol_nl_active);
                         $('#bolBeActive').prop('checked', !!productFields.migration_DMG_product_bol_be_active);
                         $('#bolNlPrice').val(productFields.migration_DMG_product_bol_price_nl || '');
                         $('#bolBePrice').val(productFields.migration_DMG_product_bol_price_be || '');
                         $('#shortDescription').val(productFields.custom_product_message_ || '');
-                        
+
                         // Shipping information fields
                         $('#bolConditionDescription').val(productFields.migration_DMG_product_bol_condition_desc || '');
                         $('#bolOrderBeforeTomorrow').prop('checked', !!productFields.migration_DMG_product_proposition_1);
@@ -1128,7 +1130,7 @@
                         $('#bolLetterboxPackage').prop('checked', !!productFields.migration_DMG_product_proposition_3);
                         $('#bolLetterboxPackageUp').prop('checked', !!productFields.migration_DMG_product_proposition_4);
                         $('#bolPickUpOnly').prop('checked', !!productFields.migration_DMG_product_proposition_5);
-                        
+
                         // Set dropdown values after custom fields are initialized
                         setTimeout(() => {
                             if (productFields.migration_DMG_product_bol_nl_delivery_code) {

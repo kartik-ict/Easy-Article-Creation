@@ -1268,6 +1268,7 @@ class ProductController extends Controller
             'priceGross' => 'nullable|numeric',
             'priceNet' => 'nullable|numeric',
             'purchasePriceNet' => 'nullable|numeric',
+            'bolProductShortDescription' => 'nullable|string',
             'purchasePrice' => 'nullable|numeric',
             'listPriceGross' => 'nullable|numeric',
             'listPriceNet' => 'nullable|numeric',
@@ -1348,7 +1349,7 @@ class ProductController extends Controller
             if (!empty($updateData)) {
                 $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $validatedData['product_id'], $updateData);
             }
-            
+
             // Handle properties update/removal
             if ($request->has('properties')) {
                 $newProperties = [];

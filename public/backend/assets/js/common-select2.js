@@ -682,7 +682,8 @@ function fetchPropertyGroupOptions(groupId) {
                     page: params.page || 1,
                     groupId : groupId,
                     limit: 25,
-                    searchTerm: params.term
+                    term: params.term || '',
+                    'total-count-mode': 1
                 });
             },
             processResults: function (data, params) {
@@ -1503,23 +1504,23 @@ $('#addPropertyOptionBtn').on('click', function () {
     const selectedGroupNameFive = $('#propertyGroupSelectFive option:selected').text();
     const selectedPropertyOptionFive = $('#propertyGroupOptionSelectFive option:selected').text();
     */
-    
+
     // Set disabled fields to null
     const selectedGroupIdSecond = null;
     const selectedGroupOptionSecond = null;
     const selectedGroupNameSecond = '';
     const selectedPropertyOptionSecond = '';
-    
+
     const selectedGroupIdThird = null;
     const selectedGroupOptionThird = null;
     const selectedGroupNameThird = '';
     const selectedPropertyOptionThird = '';
-    
+
     const selectedGroupIdFour = null;
     const selectedGroupOptionFour = null;
     const selectedGroupNameFour = '';
     const selectedPropertyOptionFour = '';
-    
+
     const selectedGroupIdFive = null;
     const selectedGroupOptionFive = null;
     const selectedGroupNameFive = '';
@@ -1561,7 +1562,7 @@ $('#addPropertyOptionBtn').on('click', function () {
             // Set manufacturer ID from parent product if variant doesn't have one
             const manufacturerId = product.attributes.manufacturerId || (allProductData.parentData ? allProductData.parentData.attributes?.manufacturerId : '');
             $('#manufacturer').val(manufacturerId);
-            
+
             // Prefill marketplace and shipping data from main product
             // Prefill prices from main product
             if (product.attributes?.price && product.attributes.price.length > 0) {
@@ -1576,7 +1577,7 @@ $('#addPropertyOptionBtn').on('click', function () {
                 $('#swPurchasePriceNet').val(product.attributes.purchasePrices[0].net || '');
                 $('#swPurchasePrice').val(product.attributes.purchasePrices[0].gross || '');
             }
-            
+
             // Product data is available in global allProductData
 
         });
@@ -1661,26 +1662,26 @@ function setCustomFieldData(customFieldData) {
             } else if (item.name === 'migration_DMG_product_bol_condition') {
                 selectClass = '.bolConditionSelect';
             }
-            
+
             if (selectClass) {
                 const $select = $(selectClass);
-                
+
                 if ($select.length) {
                     $select.each(function() {
                         const $currentSelect = $(this);
                         $currentSelect.empty();
-                        
+
                         item.options.forEach(opt => {
                             $currentSelect.append(`<option value="${opt.value}">${opt.label}</option>`);
                         });
-                        
+
                         // Initialize select2 if not already initialized
                         if (!$currentSelect.hasClass('select2-hidden-accessible')) {
                             let dropdownParent = $('#productEditModal');
                             if ($currentSelect.closest('#productUpdateModal').length) {
                                 dropdownParent = $('#productUpdateModal');
                             }
-                            
+
                             $currentSelect.select2({
                                 placeholder: item.label,
                                 minimumInputLength: 0,
@@ -1700,7 +1701,7 @@ function setCustomFieldData(customFieldData) {
                                 }
                             });
                         }
-                        
+
                         $currentSelect.val('').trigger('change');
                     });
                 }
@@ -1714,14 +1715,14 @@ $('#productEditModal').on('shown.bs.modal', function() {
     if (customFieldData && customFieldData.length > 0) {
         setCustomFieldData(customFieldData);
     }
-    
+
     if (allProductData && allProductData.productData && allProductData.productData.length > 0) {
         const product = allProductData.productData[0];
         const productFields = product.attributes?.customFields || {};
-        
+
         // Get manufacturer ID from included data or product relationships
         let manufacturerId = null;
-        
+
         // Check if manufacturer is in the included data
         if (allProductData.included) {
             const manufacturerData = allProductData.included.find(item => item.type === 'product_manufacturer');
@@ -1729,17 +1730,17 @@ $('#productEditModal').on('shown.bs.modal', function() {
                 manufacturerId = manufacturerData.id;
             }
         }
-        
+
         // If no manufacturer found in included data, check product relationships
         if (!manufacturerId && product.relationships && product.relationships.manufacturer) {
             manufacturerId = product.relationships.manufacturer.data?.id;
         }
-        
+
         // Set manufacturer ID if found
         if (manufacturerId) {
             $('#manufacturer').val(manufacturerId);
         }
-        
+
         // Set tax ID - use product's tax or fallback to parent
         let taxId = product.attributes?.taxId;
         if (!taxId && allProductData.parentData) {
@@ -1748,7 +1749,7 @@ $('#productEditModal').on('shown.bs.modal', function() {
         if (taxId) {
             $('#swTaxRate').data('taxId', taxId);
         }
-        
+
         // Set packaging dimensions from parent data
         if (allProductData.parentData) {
             const parentAttrs = allProductData.parentData.attributes;
@@ -1757,14 +1758,14 @@ $('#productEditModal').on('shown.bs.modal', function() {
             $('#productPackagingLength').val(parentAttrs?.length || 0);
             $('#productPackagingWeight').val(parentAttrs?.weight || 0);
         }
-        
+
         // Marketplace fields
         $('#productEditModal #bolNlActive').prop('checked', !!productFields.migration_DMG_product_bol_nl_active);
         $('#productEditModal #bolBeActive').prop('checked', !!productFields.migration_DMG_product_bol_be_active);
         $('#productEditModal #bolNlPrice').val(productFields.migration_DMG_product_bol_price_nl || '');
         $('#productEditModal #bolBePrice').val(productFields.migration_DMG_product_bol_price_be || '');
         $('#productEditModal #shortDescription').val(productFields.custom_product_message_ || '');
-        
+
         // Shipping information fields
         $('#productEditModal #bolConditionDescription').val(productFields.migration_DMG_product_bol_condition_desc || '');
         $('#productEditModal #bolOrderBeforeTomorrow').prop('checked', !!productFields.migration_DMG_product_proposition_1);
@@ -1772,7 +1773,7 @@ $('#productEditModal').on('shown.bs.modal', function() {
         $('#productEditModal #bolLetterboxPackage').prop('checked', !!productFields.migration_DMG_product_proposition_3);
         $('#productEditModal #bolLetterboxPackageUp').prop('checked', !!productFields.migration_DMG_product_proposition_4);
         $('#productEditModal #bolPickUpOnly').prop('checked', !!productFields.migration_DMG_product_proposition_5);
-        
+
         // Set dropdown values
         setTimeout(() => {
             if (productFields.migration_DMG_product_bol_nl_delivery_code) {
@@ -1795,13 +1796,13 @@ $('#saveVariant').on('click', function (e) {
     if (ckEditors['description']) {
         $('#description').val(ckEditors['description'].summernote('code'));
     }
-    
+
     // Ensure taxId is set from the stored value
     const taxId = $('#swTaxRate').data('taxId');
     if (taxId && !$('#product-form input[name="taxId"]').length) {
         $('#product-form').append(`<input type="hidden" name="taxId" value="${taxId}" />`);
     }
-    
+
     // Collect properties data
     const properties = [];
     $('.property-group-row').each(function() {
@@ -1810,7 +1811,7 @@ $('#saveVariant').on('click', function (e) {
             properties.push({ "id": optionId });
         }
     });
-    
+
     // Add properties to form data
     if (properties.length > 0) {
         $('#product-form').append(`<input type="hidden" name="properties" value='${JSON.stringify(properties)}' />`);
@@ -1883,15 +1884,15 @@ $('#productEditModal').on('shown.bs.modal', function() {
 function resetPropertyGroups() {
     // Remove all property rows except the first one
     $('.property-group-row:not(:first)').remove();
-    
+
     // Reset the first row
     const firstRow = $('.property-group-row:first');
     firstRow.find('.property-group-select').val('').trigger('change');
     firstRow.find('.property-option-select').val('').prop('disabled', true);
-    
+
     // Reset counter
     propertyGroupCounter = 0;
-    
+
     // Hide remove button on first row
     firstRow.find('.remove-property-btn').hide();
 }
@@ -1961,7 +1962,8 @@ function initPropertyOptionSelect(index, groupId) {
                     page: 1,
                     groupId: groupId,
                     limit: 25,
-                    searchTerm: params.term
+                    term: params.term || '',
+                    'total-count-mode': 1
                 });
             },
             processResults: function(data) {
@@ -1987,14 +1989,14 @@ $(document).on('change', '.property-group-select', function() {
     const index = $(this).data('index');
     const groupId = $(this).val();
     const optionSelect = $(`.property-option-select[data-index="${index}"]`);
-    
+
     // Reset and enable/disable option select
     if (optionSelect.hasClass('select2-hidden-accessible')) {
         optionSelect.select2('destroy');
     }
-    
+
     optionSelect.empty().prop('disabled', !groupId);
-    
+
     if (groupId) {
         initPropertyOptionSelect(index, groupId);
     } else {
@@ -2034,10 +2036,10 @@ $(document).on('click', '.add-property-btn', function() {
             </div>
         </div>
     `;
-    
+
     $('#propertiesContainer').append(newRow);
     initPropertyGroupSelect(propertyGroupCounter);
-    
+
     // Show remove button for all rows except the first one
     updateRemoveButtons();
 });
@@ -2070,15 +2072,15 @@ $('#productUpdateModal').on('hidden.bs.modal', function() {
 function resetUpdatePropertyGroups() {
     // Remove all property rows except the first one
     $('.property-group-row-update:not(:first)').remove();
-    
+
     // Reset the first row
     const firstRow = $('.property-group-row-update:first');
     firstRow.find('.property-group-select-update').val('').trigger('change');
     firstRow.find('.property-option-select-update').val('').prop('disabled', true);
-    
+
     // Reset counter
     updatePropertyGroupCounter = 0;
-    
+
     // Hide remove button on first row
     firstRow.find('.remove-property-btn-update').hide();
 }
@@ -2148,7 +2150,8 @@ function initUpdatePropertyOptionSelect(index, groupId) {
                     page: 1,
                     groupId: groupId,
                     limit: 25,
-                    searchTerm: params.term
+                    term: params.term || '',
+                    'total-count-mode': 1
                 });
             },
             processResults: function(data) {
@@ -2174,14 +2177,14 @@ $(document).on('change', '.property-group-select-update', function() {
     const index = $(this).data('index');
     const groupId = $(this).val();
     const optionSelect = $(`.property-option-select-update[data-index="${index}"]`);
-    
+
     // Reset and enable/disable option select
     if (optionSelect.hasClass('select2-hidden-accessible')) {
         optionSelect.select2('destroy');
     }
-    
+
     optionSelect.empty().prop('disabled', !groupId);
-    
+
     if (groupId) {
         initUpdatePropertyOptionSelect(index, groupId);
     } else {
@@ -2221,10 +2224,10 @@ $(document).on('click', '.add-property-btn-update', function() {
             </div>
         </div>
     `;
-    
+
     $('#updatePropertiesContainer').append(newRow);
     initUpdatePropertyGroupSelect(updatePropertyGroupCounter);
-    
+
     // Show remove button for all rows except the first one
     updateUpdateRemoveButtons();
 });
@@ -2233,7 +2236,7 @@ $(document).on('click', '.add-property-btn-update', function() {
 $(document).on('click', '.remove-property-btn-update', function() {
     $(this).closest('.property-group-row-update').remove();
     updateUpdateRemoveButtons();
-    
+
     // Clear any cached property data to ensure fresh collection on save
     $('#product-update-form input[name="properties"]').remove();
 });
@@ -2253,7 +2256,7 @@ function updateUpdateRemoveButtons() {
 // Prefill properties when Step 3 modal is shown
 $('#productUpdateModal').on('shown.bs.modal', function() {
     initUpdatePropertyDropdowns();
-    
+
     // Get product ID and prefill properties
     const productId = $('#updateProductId').val();
     if (productId && allProductData && allProductData.productData) {
@@ -2263,12 +2266,12 @@ $('#productUpdateModal').on('shown.bs.modal', function() {
 
 function prefillProductProperties(productId) {
     if (!allProductData || !allProductData.productData) return;
-    
+
     const product = allProductData.productData.find(p => p.id === productId);
     if (!product || !product.relationships) return;
-    
+
     let propertyOptionIds = [];
-    
+
     // Check if product has properties (for parent products)
     if (product.relationships.properties && product.relationships.properties.data) {
         propertyOptionIds = product.relationships.properties.data.map(prop => prop.id);
@@ -2277,47 +2280,47 @@ function prefillProductProperties(productId) {
     else if (product.relationships.configuratorSettings && product.relationships.configuratorSettings.data) {
         const configuratorSettings = product.relationships.configuratorSettings.data;
         configuratorSettings.forEach(setting => {
-            const settingData = allProductData.included.find(item => 
+            const settingData = allProductData.included.find(item =>
                 item.id === setting.id && item.type === 'product_configurator_setting'
             );
-            
+
             if (settingData && settingData.relationships && settingData.relationships.option) {
                 propertyOptionIds.push(settingData.relationships.option.data.id);
             }
         });
     }
-    
+
     if (propertyOptionIds.length === 0) return;
-    
+
     // Add additional rows if needed
     while ($('.property-group-row-update').length < propertyOptionIds.length) {
         $('.add-property-btn-update:first').click();
     }
-    
+
     // Prefill each property option
     propertyOptionIds.forEach((optionId, index) => {
         if (index < $('.property-group-row-update').length) {
             // Find the property option in included data
-            const optionData = allProductData.included.find(item => 
+            const optionData = allProductData.included.find(item =>
                 item.id === optionId && item.type === 'property_group_option'
             );
-            
+
             if (optionData && optionData.relationships && optionData.relationships.group) {
                 const groupId = optionData.relationships.group.data.id;
-                const groupData = allProductData.included.find(item => 
+                const groupData = allProductData.included.find(item =>
                     item.id === groupId && item.type === 'property_group'
                 );
-                
+
                 if (groupData) {
                     const row = $(`.property-group-row-update[data-index="${index}"]`);
                     const groupSelect = row.find('.property-group-select-update');
                     const optionSelect = row.find('.property-option-select-update');
-                    
+
                     // Set group first
                     setTimeout(() => {
                         const groupOption = new Option(groupData.attributes.translated.name, groupId, true, true);
                         groupSelect.append(groupOption).trigger('change');
-                        
+
                         // Then set option after group is selected
                         setTimeout(() => {
                             const optionOption = new Option(optionData.attributes.translated.name, optionId, true, true);
@@ -2334,21 +2337,21 @@ function prefillProductProperties(productId) {
 $(document).off('submit', '#product-update-form').off('click', '#saveProductUpdate').on('submit', '#product-update-form', function(e) {
     e.preventDefault();
     e.stopImmediatePropagation();
-    
+
     // Multiple safeguards against double submission
     if ($(this).data('submitting') || $('#saveProductUpdate').prop('disabled')) {
         return false;
     }
-    
+
     // Set multiple flags
     $(this).data('submitting', true);
     $('#saveProductUpdate').prop('disabled', true).text('Verwerking...');
-    
+
     $('#full-page-preloader').show();
-    
+
     // Remove any existing properties input to avoid duplicates
     $(this).find('input[name="properties"]').remove();
-    
+
     // Collect current properties data from DOM
     const properties = [];
     $('.property-group-row-update').each(function() {
@@ -2357,13 +2360,13 @@ $(document).off('submit', '#product-update-form').off('click', '#saveProductUpda
             properties.push({ "id": optionId });
         }
     });
-    
+
     // Always add properties input (empty array if no properties)
     $(this).append(`<input type="hidden" name="properties" value='${JSON.stringify(properties)}' />`);
-    
+
     const formData = new FormData(this);
     const form = this;
-    
+
     $.ajax({
         url: productUpdateUrl,
         method: 'POST',
@@ -2372,7 +2375,7 @@ $(document).off('submit', '#product-update-form').off('click', '#saveProductUpda
         contentType: false,
         success: function(response) {
             $('#productUpdateModal').modal('hide');
-            
+
             if (response.success) {
                 alert('Product succesvol bijgewerkt');
                 location.reload();
