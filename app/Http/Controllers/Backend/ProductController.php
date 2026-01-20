@@ -820,6 +820,9 @@ class ProductController extends Controller
             'bolBEDeliveryTime' => 'nullable|string',
             'bolNLDeliveryTime' => 'nullable|string',
             'bin_location_id' => 'required|string',
+            'propertyGroups' => 'nullable|array',
+            'propertyGroups.*.groupId' => 'nullable|string',
+            'propertyGroups.*.optionId' => 'nullable|string',
         ]);
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -929,9 +932,19 @@ class ProductController extends Controller
             $response = $this->shopwareApiService->makeApiRequest('POST', '/api/product', $data);
 
             if (isset($response['success'])) {
+                // Prepare properties if provided
+                $properties = null;
+                if (isset($validatedData['propertyGroups'])) {
+                    $properties = [];
+                    foreach ($validatedData['propertyGroups'] as $propertyGroup) {
+                        if (!empty($propertyGroup['optionId'])) {
+                            $properties[] = ['id' => $propertyGroup['optionId']];
+                        }
+                    }
+                }
 
                 // set custom fields data for created product
-                $this->patchProductCustomData($uuid, $customFields);
+                $this->patchProductCustomData($uuid, $customFields, $properties);
                 if (intval($validatedData['bolStock'] ?? 0) > 0) {
                     // set stock to bin location
                     $stockData = [
@@ -1255,6 +1268,7 @@ class ProductController extends Controller
             'priceGross' => 'nullable|numeric',
             'priceNet' => 'nullable|numeric',
             'purchasePriceNet' => 'nullable|numeric',
+            'bolProductShortDescription' => 'nullable|string',
             'purchasePrice' => 'nullable|numeric',
             'listPriceGross' => 'nullable|numeric',
             'listPriceNet' => 'nullable|numeric',
@@ -1335,7 +1349,7 @@ class ProductController extends Controller
             if (!empty($updateData)) {
                 $response = $this->shopwareApiService->makeApiRequest('PATCH', '/api/product/' . $validatedData['product_id'], $updateData);
             }
-            
+
             // Handle properties update/removal
             if ($request->has('properties')) {
                 $newProperties = [];

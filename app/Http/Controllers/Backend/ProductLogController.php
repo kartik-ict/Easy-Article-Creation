@@ -14,7 +14,7 @@ class ProductLogController extends Controller
             ->orderBy('created_at', 'desc');
 
         if ($request->product_id) {
-            $query->where('product_id', $request->product_id);
+            $query->where('product_number', $request->product_id);
         }
 
         if ($request->action) {

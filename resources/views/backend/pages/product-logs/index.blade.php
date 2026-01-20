@@ -41,7 +41,7 @@
                 <div class="card-body">
                     <h4 class="header-title float-left">@lang('product_logs.product_logs')</h4>
                     <div class="clearfix"></div>
-                    
+
                     <!-- Filters -->
                     <form method="GET" class="mb-4">
                         <div class="row">
@@ -113,6 +113,10 @@
     if ($('#dataTable').length) {
         $('#dataTable').DataTable({
             responsive: true,
+            order: [[3, 'desc']],
+            columnDefs: [
+                { orderable: false, targets: [0, 1, 2, 4] }
+            ],
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Dutch.json"
             }
