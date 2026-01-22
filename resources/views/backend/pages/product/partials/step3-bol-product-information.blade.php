@@ -41,12 +41,12 @@
             </div>
             <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolProductPrice">{{ __('product.productPrice') }}</label>
+                    <label for="bolProductPrice">{{ __('product.productPrice') }} <span class="text-danger">*</span></label>
                     <input type="text" name="bolProductPrice" id="bolProductPrice" class="form-control" required>
                     <input type="hidden" name="bolTotalPrice" id="bolTotalPrice" class="form-control" required>
                 </div>
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
-                    <label for="bolProductListPriceGross">{{ __('product.bolListGrossPrice') }}</label>
+                    <label for="bolProductListPriceGross">{{ __('product.bolListGrossPrice') }} <span class="text-danger">*</span></label>
                     <input type="text" name="bolProductListPriceGross" id="bolProductListPriceGross"
                         class="form-control" required>
                     <input type="hidden" name="bolProductListPriceNet" id="bolProductListPriceNet" class="form-control"
@@ -98,6 +98,39 @@
                     <input type="text" class="form-control" disabled id="bolProductCategories"
                         name="bolProductCategories" required>
                     <input type="hidden" id="bolProductCategoriesId" name="bolProductCategoriesId">
+                </div>
+            </div>
+
+            {{-- Configure Properties Section --}}
+            <div class="row">
+                <div class="col-md-12">
+                    <h5 class="my-3">{{ __('product.configure_properties') }}</h5>
+                </div>
+            </div>
+            <div id="bolPropertiesContainer">
+                <div class="property-group-row-bol" data-index="0">
+                    <div class="row align-items-end mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label">{{ __('product.property_select_group') }}</label>
+                            <select class="form-control property-group-select-bol" name="propertyGroups[0][groupId]" data-index="0">
+                                <option value="">{{ __('product.select_property_group_first') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">{{ __('product.property_select_group_option') }}</label>
+                            <select class="form-control property-option-select-bol" name="propertyGroups[0][optionId]" data-index="0" disabled>
+                                <option value="">{{ __('product.select_option_first') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-success add-property-btn-bol" title="Add Property">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger remove-property-btn-bol" title="Remove Property" style="display: none;">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
