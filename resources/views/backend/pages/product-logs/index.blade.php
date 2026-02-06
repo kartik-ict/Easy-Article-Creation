@@ -56,6 +56,12 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="col-md-2">
+                                <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="{{ request('start_date') }}" id="start_date">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="end_date" class="form-control" placeholder="End Date" value="{{ request('end_date') }}" id="end_date">
+                            </div>
                             <div class="col-md-3">
                                 <button type="submit" class="btn btn-primary">@lang('product_logs.filter')</button>
                                 <a href="{{ route('product-logs.index') }}" class="btn btn-secondary">@lang('product_logs.clear')</a>
@@ -122,5 +128,14 @@
             }
         });
     }
+
+    // Date range validation
+    $('#start_date').on('change', function() {
+        $('#end_date').attr('min', $(this).val());
+    });
+
+    $('#end_date').on('change', function() {
+        $('#start_date').attr('max', $(this).val());
+    });
 </script>
 @endsection

@@ -25,7 +25,15 @@ class ProductLogController extends Controller
             $query->where('user_id', $request->user_id);
         }
 
-        $logs = $query->paginate(50);
+        if ($request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $logs = $query->get();
 
         return view('backend.pages.product-logs.index', compact('logs'));
     }
