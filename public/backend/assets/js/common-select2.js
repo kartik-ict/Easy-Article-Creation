@@ -1716,9 +1716,13 @@ $('#productEditModal').on('shown.bs.modal', function() {
         setCustomFieldData(customFieldData);
     }
 
+    // Auto-prefill properties from main product
     if (allProductData && allProductData.productData && allProductData.productData.length > 0) {
         const product = allProductData.productData[0];
         const productFields = product.attributes?.customFields || {};
+
+        // Prefill properties from parent product
+        prefillVariantProperties();
 
         // Get manufacturer ID from included data or product relationships
         let manufacturerId = null;
@@ -2322,6 +2326,59 @@ function prefillProductProperties(productId) {
                         groupSelect.append(groupOption).trigger('change');
 
                         // Then set option after group is selected
+                        setTimeout(() => {
+                            const optionOption = new Option(optionData.attributes.translated.name, optionId, true, true);
+                            optionSelect.append(optionOption).trigger('change');
+                        }, 300);
+                    }, 200 * (index + 1));
+                }
+            }
+        }
+    });
+}
+
+function prefillVariantProperties() {
+    if (!allProductData || !allProductData.productData) return;
+
+    const product = allProductData.productData[0];
+    if (!product || !product.relationships) return;
+
+    let propertyOptionIds = [];
+
+    // Get properties from parent product
+    if (product.relationships.properties && product.relationships.properties.data) {
+        propertyOptionIds = product.relationships.properties.data.map(prop => prop.id);
+    }
+
+    if (propertyOptionIds.length === 0) return;
+
+    // Add additional rows if needed
+    while ($('.property-group-row').length < propertyOptionIds.length) {
+        $('.add-property-btn:first').click();
+    }
+
+    // Prefill each property option
+    propertyOptionIds.forEach((optionId, index) => {
+        if (index < $('.property-group-row').length) {
+            const optionData = allProductData.included.find(item =>
+                item.id === optionId && item.type === 'property_group_option'
+            );
+
+            if (optionData && optionData.relationships && optionData.relationships.group) {
+                const groupId = optionData.relationships.group.data.id;
+                const groupData = allProductData.included.find(item =>
+                    item.id === groupId && item.type === 'property_group'
+                );
+
+                if (groupData) {
+                    const row = $(`.property-group-row[data-index="${index}"]`);
+                    const groupSelect = row.find('.property-group-select');
+                    const optionSelect = row.find('.property-option-select');
+
+                    setTimeout(() => {
+                        const groupOption = new Option(groupData.attributes.translated.name, groupId, true, true);
+                        groupSelect.append(groupOption).trigger('change');
+
                         setTimeout(() => {
                             const optionOption = new Option(optionData.attributes.translated.name, optionId, true, true);
                             optionSelect.append(optionOption).trigger('change');
