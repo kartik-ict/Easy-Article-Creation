@@ -1768,7 +1768,7 @@ $('#productEditModal').on('shown.bs.modal', function() {
         $('#productEditModal #bolBeActive').prop('checked', !!productFields.migration_DMG_product_bol_be_active);
         $('#productEditModal #bolNlPrice').val(productFields.migration_DMG_product_bol_price_nl || '');
         $('#productEditModal #bolBePrice').val(productFields.migration_DMG_product_bol_price_be || '');
-        $('#productEditModal #shortDescription').val(productFields.custom_product_message_ || '');
+        $('#productEditModal #shortDescription').val(typeof productFields.custom_product_message_ === 'string' ? productFields.custom_product_message_ : '');
 
         // Shipping information fields
         $('#productEditModal #bolConditionDescription').val(productFields.migration_DMG_product_bol_condition_desc || '');

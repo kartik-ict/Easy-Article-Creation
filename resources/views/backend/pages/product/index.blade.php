@@ -697,13 +697,15 @@
                     $('#updateListPriceNet').val(listPriceNet);
 
                     // BOL prices and settings with parent fallback
-                    let bolNlPrice = '', bolBePrice = '', bolNlActive = false, bolBeActive = false;
+                    let bolNlPrice = '', bolBePrice = '', bolNlActive = false, bolBeActive = false, bolProductShortDescription = '';
                     if (productData.attributes.customFields) {
                         bolNlPrice = productData.attributes.customFields.migration_DMG_product_bol_price_nl || '';
                         bolBePrice = productData.attributes.customFields.migration_DMG_product_bol_price_be || '';
                         bolNlActive = productData.attributes.customFields.migration_DMG_product_bol_nl_active || false;
                         bolBeActive = productData.attributes.customFields.migration_DMG_product_bol_be_active || false;
-                        bolProductShortDescription = productData.attributes.customFields.custom_product_message_ || '';
+                        bolProductShortDescription = typeof productData.attributes.customFields.custom_product_message_ === 'string'
+                            ? productData.attributes.customFields.custom_product_message_
+                            : '';
                     }
 
                     // Fallback to parent BOL data if variant data is empty
@@ -712,6 +714,11 @@
                         bolBePrice = bolBePrice || parentData.attributes.customFields.migration_DMG_product_bol_price_be || '';
                         bolNlActive = bolNlActive || parentData.attributes.customFields.migration_DMG_product_bol_nl_active || false;
                         bolBeActive = bolBeActive || parentData.attributes.customFields.migration_DMG_product_bol_be_active || false;
+                    }
+                    if (!bolProductShortDescription && parentData && parentData.attributes?.customFields) {
+                        bolProductShortDescription = typeof parentData.attributes.customFields.custom_product_message_ === 'string'
+                            ? parentData.attributes.customFields.custom_product_message_
+                            : '';
                     }
 
                     $('#updateBolNlPrice').val(bolNlPrice);
@@ -1121,7 +1128,7 @@
                         $('#bolBeActive').prop('checked', !!productFields.migration_DMG_product_bol_be_active);
                         $('#bolNlPrice').val(productFields.migration_DMG_product_bol_price_nl || '');
                         $('#bolBePrice').val(productFields.migration_DMG_product_bol_price_be || '');
-                        $('#shortDescription').val(productFields.custom_product_message_ || '');
+                        $('#shortDescription').val(typeof productFields.custom_product_message_ === 'string' ? productFields.custom_product_message_ : '');
 
                         // Shipping information fields
                         $('#bolConditionDescription').val(productFields.migration_DMG_product_bol_condition_desc || '');
