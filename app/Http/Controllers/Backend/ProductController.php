@@ -166,30 +166,41 @@ class ProductController extends Controller
         } else {
 
             $optionsIds = null;
-            $parentData = null;
+            $products = $product['data'] ?? [];
+            $currentProduct = $products[0] ?? [];
+            $mainProduct = collect($products)->first(function ($item) {
+                return data_get($item, 'attributes.parentId') === null;
+            }) ?? $currentProduct;
+            $parentData = $mainProduct ?: null;
 
-            if ($product['data'][0]['attributes']['parentId'] == null) {
-                $productId = $product['data'][0]['id'];
-                $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
-                if (isset($parentProduct['data']['0']['attributes']['optionIds'])) {
-                    $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+            if (($currentProduct['attributes']['parentId'] ?? null) == null) {
+                $productId = $currentProduct['id'] ?? null;
+                if ($productId) {
+                    $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/?filter[parentId]=$productId&associations[configuratorSettings][associations][option]=[]");
+                    if (isset($parentProduct['data']['0']['attributes']['optionIds'])) {
+                        $optionsIds = $parentProduct['data']['0']['attributes']['optionIds'];
+                    }
                 }
             } else {
                 // If product has parentId, fetch parent data
-                $parentId = $product['data'][0]['attributes']['parentId'];
-                $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/$parentId");
-                if (isset($parentProduct['data'])) {
-                    $parentData = $parentProduct['data'];
+                $parentId = $currentProduct['attributes']['parentId'];
+                if (($mainProduct['id'] ?? null) === $parentId) {
+                    $parentData = $mainProduct;
+                } else {
+                    $parentProduct = $this->shopwareApiService->makeApiRequest('GET', "/api/product/$parentId");
+                    if (isset($parentProduct['data'])) {
+                        $parentData = $parentProduct['data'];
+                    }
                 }
             }
 
             $productData = [
-                'name' => $product['data']['0']['attributes']['translated']['name'],
-                'ean' => $product['data']['0']['attributes']['ean'] ?? $ean,
-                'stock' => $product['data']['0']['attributes']['stock'],
-                'id' => $product['data']['0']['id'],
-                'productData' => $product['data'],
-                'included' => $product['included'],
+                'name' => $currentProduct['attributes']['translated']['name'] ?? '',
+                'ean' => $currentProduct['attributes']['ean'] ?? $ean,
+                'stock' => $currentProduct['attributes']['stock'] ?? 0,
+                'id' => $currentProduct['id'] ?? '',
+                'productData' => $products,
+                'included' => $product['included'] ?? [],
                 'bol' => false,
                 'optionsIds' => $optionsIds,
                 'custom_fields' => $this->getCustomFieldData(),
