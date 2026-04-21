@@ -43,35 +43,35 @@
                     <div class="clearfix"></div>
 
                     <!-- Filters -->
-                    <form method="GET" class="mb-4">
+                    <div class="mb-4" id="filters-section">
                         <div class="row">
                             <div class="col-md-2">
-                                <input type="text" name="product_id" class="form-control" placeholder="@lang('product_logs.product_number')" value="{{ request('product_id') }}">
+                                <input type="text" id="filter-product-id" class="form-control" placeholder="@lang('product_logs.product_number')">
                             </div>
                             <div class="col-md-2">
-                                <select name="user_id" class="form-control">
+                                <select id="filter-user-id" class="form-control">
                                     <option value="">@lang('product_logs.all_users')</option>
                                     @foreach(\App\Models\Admin::all() as $admin)
-                                        <option value="{{ $admin->id }}" {{ request('user_id') == $admin->id ? 'selected' : '' }}>{{ $admin->name }}</option>
+                                        <option value="{{ $admin->id }}" {{ auth()->user()->id == $admin->id ? 'selected' : '' }}>{{ $admin->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <input type="date" name="start_date" class="form-control" placeholder="Start Date" value="{{ request('start_date') }}" id="start_date">
+                                <input type="date" id="filter-start-date" class="form-control" placeholder="Start Date">
                             </div>
                             <div class="col-md-2">
-                                <input type="date" name="end_date" class="form-control" placeholder="End Date" value="{{ request('end_date') }}" id="end_date">
+                                <input type="date" id="filter-end-date" class="form-control" placeholder="End Date">
                             </div>
                             <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary">@lang('product_logs.filter')</button>
-                                <a href="{{ route('product-logs.index') }}" class="btn btn-secondary">@lang('product_logs.clear')</a>
+                                <button type="button" id="apply-filters" class="btn btn-primary">@lang('product_logs.filter')</button>
+                                <button type="button" id="clear-filters" class="btn btn-secondary">@lang('product_logs.clear')</button>
                             </div>
                         </div>
-                    </form>
+                    </div>
 
                     <div class="data-tables">
                         @include('backend.layouts.partials.messages')
-                        <table id="dataTable" class="text-center">
+                        <table id="dataTable" class="text-center table table-striped table-bordered">
                             <thead class="bg-light text-capitalize">
                                 <tr>
                                     <th>@lang('product_logs.product_number')</th>
@@ -81,19 +81,6 @@
                                     <th>@lang('product_logs.action')</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach($logs as $log)
-                                <tr>
-                                    <td>{{ $log->product_number }}</td>
-                                    <td>{{ $log->user->name ?? __('product_logs.unknown_user') }}</td>
-                                    <td>{{ $log->message }}</td>
-                                    <td>{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
-                                    <td>
-                                        <a href="{{ route('product-logs.show', $log->id) }}" class="btn btn-success text-white">@lang('product_logs.view')</a>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -113,29 +100,65 @@
 <script src="https://cdn.datatables.net/responsive/2.2.3/js/responsive.bootstrap.min.js"></script>
 
 <script>
-    /*================================
-        datatable active
-        ==================================*/
-    if ($('#dataTable').length) {
-        $('#dataTable').DataTable({
-            responsive: true,
-            order: [[3, 'desc']],
-            columnDefs: [
-                { orderable: false, targets: [0, 1, 2, 4] }
-            ],
-            language: {
-                url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Dutch.json"
+$(document).ready(function() {
+    // Initialize DataTable with server-side processing
+    var table = $('#dataTable').DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        ajax: {
+            url: '{{ route('product-logs.index') }}',
+            data: function(d) {
+                d.product_id = $('#filter-product-id').val();
+                d.user_id = $('#filter-user-id').val();
+                d.start_date = $('#filter-start-date').val();
+                d.end_date = $('#filter-end-date').val();
             }
-        });
-    }
+        },
+        columns: [
+            { data: 'product_number', name: 'product_number', orderable: false },
+            { data: 'user_name', name: 'user.name', orderable: false },
+            { data: 'message', name: 'message', orderable: false },
+            { data: 'formatted_date', name: 'created_at', orderable: true },
+            { data: 'action', name: 'action', orderable: false, searchable: false }
+        ],
+        order: [[3, 'desc']], // Order by date column descending
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.10.19/i18n/Dutch.json"
+        },
+        pageLength: 10,
+        lengthMenu: [[10, 15, 25, 50, 100], [10, 15, 25, 50, 100]]
+    });
+
+    // Apply filters
+    $('#apply-filters').on('click', function() {
+        table.ajax.reload();
+    });
+
+    // Clear filters
+    $('#clear-filters').on('click', function() {
+        $('#filter-product-id').val('');
+        $('#filter-user-id').val('');
+        $('#filter-start-date').val('');
+        $('#filter-end-date').val('');
+        table.ajax.reload();
+    });
+
+    // Apply filters on Enter key
+    $('#filters-section input').on('keypress', function(e) {
+        if (e.which === 13) {
+            table.ajax.reload();
+        }
+    });
 
     // Date range validation
-    $('#start_date').on('change', function() {
-        $('#end_date').attr('min', $(this).val());
+    $('#filter-start-date').on('change', function() {
+        $('#filter-end-date').attr('min', $(this).val());
     });
 
-    $('#end_date').on('change', function() {
-        $('#start_date').attr('max', $(this).val());
+    $('#filter-end-date').on('change', function() {
+        $('#filter-start-date').attr('max', $(this).val());
     });
+});
 </script>
 @endsection
