@@ -56,7 +56,7 @@
             <div class="row">
                 <div class="form-group mb-3 col-sm-6 col-xs-12 px-3">
                     <label for="purchase_price">
-                        {{ __('product.purchase_price') }} <span class="text-danger">*</span>
+                        {{ __('product.purchase_price') }}
                     </label>
                     <input type="number" name="purchasePriceNet" id="purchasePriceNet"
                         class="form-control @error('purchasePriceNet') is-invalid @enderror" step="any" required
