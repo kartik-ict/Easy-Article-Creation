@@ -810,7 +810,6 @@ class ProductController extends Controller
             'bolProductThumbnail' => 'nullable|string',
             'salesChannelBol' => 'required|array',
             'salesChannelBol.*' => 'required|string',
-            'salesChannelBol.*' => 'required|string',
             'bolTaxId' => 'required|string|regex:/^[0-9a-f]{32}$/',
             'active_for_allBol' => 'nullable|boolean',
 
