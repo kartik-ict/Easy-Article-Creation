@@ -492,6 +492,8 @@ class ProductController extends Controller
         ];
 
         try {
+            // for make manage stock section true
+            $this->updateStockManagement($request->product_id);
             //set the stock to select bin location
             $this->setBinLocationStock($stockData, $request->bin_location_id);
 
@@ -745,7 +747,13 @@ class ProductController extends Controller
                         'product_id' => $productVariantId,
                         'stock' => intval($validatedData['stock'])
                     ];
+                    // for make manage stock section true
+                    $this->updateStockManagement($productVariantId);
+
                     $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+
+                    // After product/variant creation or update
+                    $this->setClearanceSaleOn($productVariantId);
 
                     // Log stock if stock > 0
                     if (intval($validatedData['stock']) > 0) {
@@ -1418,6 +1426,8 @@ class ProductController extends Controller
                     'stock' => intval($validatedData['new_stock'])
                 ];
                 $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                // for make manage stock section true
+                $this->updateStockManagement($validatedData['product_id']);
 
                 // Log ONLY stock change
                 ProductLog::logProductChange($validatedData['product_id'], 'Stock',
@@ -1431,9 +1441,151 @@ class ProductController extends Controller
                 );
             }
 
+            // After product/variant creation or update
+            $this->setClearanceSaleOn($validatedData['product_id']);
+
             return response()->json(['success' => true, 'message' => __('product.product_updated_successfully')]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => __('product.failed_to_update_product')], 500);
+        }
+    }
+
+    public function getPickwareProductByProductId(string $productId): ?array
+    {
+        $payload = [
+            'page' => 1,
+            'limit' => 1,
+            'filter' => [
+                [
+                    'type' => 'equals',
+                    'field' => 'productId',
+                    'value' => $productId,
+                ]
+            ],
+            'total-count-mode' => 1,
+        ];
+        Log::error('Pickware product Search', [
+            'product_id' => $productId,
+            'payload' => $payload,
+        ]);
+        try {
+            $response = $this->shopwareApiService->makeApiRequest(
+                'POST',
+                '/api/search/pickware-erp-pickware-product',
+                $payload
+            );
+
+            return $response['data'][0] ?? null;
+        } catch (\Exception $e) {
+            Log::error('Failed to find Pickware product', [
+                'product_id' => $productId,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+    public function updateStockManagement(string $productId, bool $disabled = false): bool
+    {
+        try {
+            $pickwareProduct = $this->getPickwareProductByProductId($productId);
+
+            if (!$pickwareProduct) {
+                Log::error('Pickware product not found', [
+                    'product_id' => $productId,
+                ]);
+
+                return false;
+            }
+
+            $pickwareEntityId = $pickwareProduct['id'];
+
+            $response = $this->shopwareApiService->makeApiRequest(
+                'PATCH',
+                "/api/pickware-erp-pickware-product/{$pickwareEntityId}",
+                [
+                    'id' => $pickwareEntityId,
+                    'isStockManagementDisabled' => $disabled,
+                ]
+            );
+
+            Log::info('Pickware stock management updated', [
+                'product_id' => $productId,
+                'pickware_entity_id' => $pickwareEntityId,
+                'disabled' => $disabled,
+                'response' => $response,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to update Pickware stock management', [
+                'product_id' => $productId,
+                'message' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Enable Clearance Sales (isCloseout) for a product or variant.
+     *
+     * @param string $productId
+     * @return bool
+     */
+    public function setClearanceSaleOn(string $productId): bool
+    {
+        try {
+            if (empty($productId)) {
+                Log::warning('setClearanceSaleOn: Product ID is empty.');
+
+                return false;
+            }
+
+            Log::info('setClearanceSaleOn: Request started.', [
+                'product_id' => $productId,
+            ]);
+
+            $payload = [
+                'id' => $productId,
+                'isCloseout' => true,
+            ];
+
+            $response = $this->shopwareApiService->makeApiRequest(
+                'PATCH',
+                '/api/product/' . $productId,
+                $payload
+            );
+
+            Log::info('setClearanceSaleOn: Shopware API response.', [
+                'product_id' => $productId,
+                'response' => $response,
+            ]);
+
+            if (isset($response['success']) && $response['success']) {
+                Log::info('setClearanceSaleOn: Clearance sale enabled successfully.', [
+                    'product_id' => $productId,
+                ]);
+
+                return true;
+            }
+
+            Log::warning('setClearanceSaleOn: Shopware API returned unsuccessful response.', [
+                'product_id' => $productId,
+                'response' => $response,
+            ]);
+
+            return false;
+        } catch (\Throwable $e) {
+            Log::error('setClearanceSaleOn: Exception occurred.', [
+                'product_id' => $productId,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return false;
         }
     }
 }
