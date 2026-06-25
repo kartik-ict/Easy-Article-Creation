@@ -493,7 +493,7 @@ class ProductController extends Controller
 
         try {
             // for make manage stock section true
-            $this->updateStockManagement($request->product_id);
+            // $this->updateStockManagement($request->product_id);
             //set the stock to select bin location
             $this->setBinLocationStock($stockData, $request->bin_location_id);
 
@@ -748,12 +748,12 @@ class ProductController extends Controller
                         'stock' => intval($validatedData['stock'])
                     ];
                     // for make manage stock section true
-                    $this->updateStockManagement($productVariantId);
+                    // $this->updateStockManagement($productVariantId);
 
                     $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
 
                     // After product/variant creation or update
-                    $this->setClearanceSaleOn($productVariantId);
+                    // $this->setClearanceSaleOn($productVariantId);
 
                     // Log stock if stock > 0
                     if (intval($validatedData['stock']) > 0) {
@@ -1427,7 +1427,7 @@ class ProductController extends Controller
                 ];
                 $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
                 // for make manage stock section true
-                $this->updateStockManagement($validatedData['product_id']);
+                // $this->updateStockManagement($validatedData['product_id']);
 
                 // Log ONLY stock change
                 ProductLog::logProductChange($validatedData['product_id'], 'Stock',
@@ -1442,7 +1442,7 @@ class ProductController extends Controller
             }
 
             // After product/variant creation or update
-            $this->setClearanceSaleOn($validatedData['product_id']);
+            // $this->setClearanceSaleOn($validatedData['product_id']);
 
             return response()->json(['success' => true, 'message' => __('product.product_updated_successfully')]);
         } catch (\Exception $e) {
