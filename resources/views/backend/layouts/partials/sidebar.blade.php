@@ -25,6 +25,18 @@
                         </li>
                     @endif
 
+                    @if ($usr->can('product.create'))
+                        <li class="{{ Route::is('product-logs.index') || Route::is('product-logs.show') ? 'active' : '' }}">
+                            <a href="{{ route('product-logs.index') }}"><i class="fa fa-history"></i><span>{{ trans('custom.product_logs') }}</span></a>
+                        </li>
+                    @endif
+
+                    @if ($usr->can('product.create'))
+                        <li class="{{ Route::is('bol-image-import.index') ? 'active' : '' }}">
+                            <a href="{{ route('bol-image-import.index') }}"><i class="fa fa-image"></i><span>{{ trans('custom.bol_image_import') }}</span></a>
+                        </li>
+                    @endif
+
 
                     {{-- <li class="{{ Route::is('admin.product.list')  ? 'active' : '' }}">
                         <a href="{{ route('admin.product.list') }}">{{ trans('custom.list') }}</a>

@@ -34,4 +34,8 @@ return [
     'manufacturers' => 'Manufacturers',
     'newProduct' => 'Create New Product',
     'updateProduct' => 'Update Product',
+    'bol_image_import' => 'Bol image import',
+    'bol_offer_mappings' => 'Bol offer mappings',
+    'sync_offer_mappings' => 'Sync offer mappings',
+    'push_images' => 'Push images',
 ];
