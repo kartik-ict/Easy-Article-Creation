@@ -31,6 +31,12 @@
                         </li>
                     @endif
 
+                    @if ($usr->can('product.create'))
+                        <li class="{{ Route::is('bol-image-import.index') ? 'active' : '' }}">
+                            <a href="{{ route('bol-image-import.index') }}"><i class="fa fa-image"></i><span>{{ trans('custom.bol_image_import') }}</span></a>
+                        </li>
+                    @endif
+
 
                     {{-- <li class="{{ Route::is('admin.product.list')  ? 'active' : '' }}">
                         <a href="{{ route('admin.product.list') }}">{{ trans('custom.list') }}</a>
