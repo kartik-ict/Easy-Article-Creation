@@ -74,6 +74,8 @@ return [
     'no'                                            => 'Nee',
     'yes'                                           => 'Ja',
     'update_stock'                                  => 'Voorraad bijwerken',
+    'update_product'                                => 'Product bijwerken',
+    'product_updated_successfully'                  => 'Product succesvol bijgewerkt',
     'stock_quantity'                                => 'Voorraadhoeveelheid',
     'bolStock'                                      => 'Voorraadhoeveelheid',
     'product_details'                               => 'Productgegevens',
@@ -92,6 +94,7 @@ return [
     'product_description'                           => 'Productbeschrijving',
     'property_group'                                => 'Eigenschappengroep',
     'step4'                                         => 'Stap 4: Voer de vereiste productinformatie in',
+    'step3_product_update'                          => 'Stap 3: Product bijwerken',
     'create_new_variant'                            => 'Nieuwe variant maken',
     'property_select_group'                         => 'Selecteer eigenschappengroep',
     'property_select_group_option'                  => 'Selecteer eigenschapoptie',
@@ -141,5 +144,10 @@ return [
     'enter_purchase_price'                          => 'Voer de Inkoopprijs (excl. BTW) in',
     'please_select_existing_category'               => 'Selecteer een bestaande categorie.',
     'please_select_existing_manufacture'            => 'Selecteer een bestaande fabrikant.',
-    'product_shipping_header'                       => 'Verzendinformatie DGM site'
+    'product_shipping_header'                       => 'Verzendinformatie DGM site',
+    'dgm_price'                                     => 'DGM Prijs',
+    'bol_price_nl'                                  => 'BOL prijs NL',
+    'bol_price_be'                                  => 'BOL prijs BE',
+    'configure_properties'                          => 'Eigenschappen configureren',
+    'select_option_first'                           => 'Selecteer eerst een optie',
 ];

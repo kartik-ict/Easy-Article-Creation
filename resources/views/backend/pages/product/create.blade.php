@@ -135,8 +135,8 @@
                                             <strong>{{ $message }}</strong>
                                         </span>
                                     @enderror
-                                    <input type="hidden" name="purchasePrice" id="purchasePrice"
-                                        class="form-control" step="any" required/>
+                                    <input type="hidden" name="purchasePrice" id="purchasePrice" class="form-control"
+                                        step="any" required />
                                 </div>
                             </div>
 
@@ -332,7 +332,8 @@
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label for="binLocation">@lang('product.bin_location')</label>
-                                    <select name="bin_location_id" id="binLocation" class="form-control bin-location-select">
+                                    <select name="bin_location_id" id="binLocation"
+                                        class="form-control bin-location-select">
                                         <option value=""></option>
                                         @foreach ($binLocationList as $location)
                                             <option value="{{ $location['id'] }}"> {{ $location['attributes']['code'] }}
@@ -357,32 +358,50 @@
 @endsection
 
 @section('scripts')
+    <!-- Route data containers for JS -->
+    <div id="route-container" data-manufacturer-search="{{ route('product.manufacturerSearch') }}"
+        data-category-search="{{ route('product.categorySearch') }}" data-tax-search="{{ route('product.fetchTax') }}"
+        style="display: none;"></div>
+
+    <div id="route-container-sales" data-sales-search="{{ route('product.salesChannelSearch') }}"
+        style="display: none;"></div>
+
+    <div id="route-container-category" data-category-search="{{ route('product.categorySearch') }}"
+        style="display: none;"></div>
+
+    <div id="route-container-tax" data-tax-search="{{ route('product.fetchTax') }}" style="display: none;"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/23.0.0/classic/ckeditor.js"></script>
+    <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
+    {{-- <script src="{{ asset('backend/assets/js/common-bol.js') }}"></script> --}}
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
     <script>
         // names you want preselected
         const preselectSalesChannelNames = ['DGMoutlet.nl', 'Bol NL', 'Bol BE'];
 
         $(document).ready(function() {
-            ClassicEditor.create(document.querySelector('#description'))
-                .then(editor => {
-                    editor.editing.view.change(writer => {
-                        writer.setStyle(
-                            'max-height',
-                            '200px',
-                            editor.editing.view.document.getRoot()
-                        );
-                        writer.setStyle(
-                            'overflow-y',
-                            'auto',
-                            editor.editing.view.document.getRoot()
-                        );
-                    });
-
-                })
-                .catch(error => {
-                    console.error(error);
-                });
+            $('#description').summernote({
+                height: 200,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', [
+                        'fontname',
+                        'fontsize',
+                        'forecolor',
+                        'backcolor',
+                        'bold',
+                        'italic',
+                        'underline',
+                        'clear'
+                    ]],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['picture']],
+                    ['view', ['undo', 'redo', 'codeview']]
+                ],
+                fontSizes: ['10', '12', '14', '16', '18', '20', '24', '28', '32']
+            });
 
             // Initialize select2 for all delivery and condition dropdowns
             const selectFields = ['#bolNLDeliveryTime', '#bolBEDeliveryTime', '#bolCondition'];
