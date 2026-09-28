@@ -1435,6 +1435,34 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * DGM-307 hotfix — a variant created before the inheritance feature existed never had
+     * its own has_serial_number field written, so it reads as false even though the parent
+     * requires serial tracking. The storefront/admin display already falls back to the
+     * parent's value for these (shows the toggle as checked), but updateProduct's
+     * requirement check read only the variant's own field, so real stock updates on these
+     * older variants could bypass the serial-number requirement entirely — confirmed live
+     * on AS0711719453895 (a pre-existing variant under a serial-required parent). This
+     * mirrors that same display fallback on the backend side.
+     *
+     * @param array $productAttributes A product's attributes, as returned by the Admin API
+     */
+    private function productOrParentRequiresSerialNumber(array $productAttributes): bool
+    {
+        if (!empty($productAttributes['customFields']['has_serial_number'])) {
+            return true;
+        }
+
+        $parentId = $productAttributes['parentId'] ?? null;
+        if (!$parentId) {
+            return false;
+        }
+
+        $parentResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $parentId);
+
+        return !empty($parentResponse['data']['attributes']['customFields']['has_serial_number']);
+    }
+
     public function updateProduct(Request $request)
     {
         $currencyId = $this->currencyId->getCurrencyId();
@@ -1478,7 +1506,7 @@ class ProductController extends Controller
         // or a restock that omits the (hidden, unrelated-to-this-form) field would silently
         // reset it to false before the check ever ran.
         $currentProductForSerialCheck = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
-        $requiresSerialNumber = $currentProductForSerialCheck['data']['attributes']['customFields']['has_serial_number'] ?? false;
+        $requiresSerialNumber = $this->productOrParentRequiresSerialNumber($currentProductForSerialCheck['data']['attributes'] ?? []);
         if ($requiresSerialNumber && !empty($validatedData['new_stock']) && empty($validatedData['serialNumber'])) {
             return response()->json(['success' => false, 'message' => __('product.serial_number_required')], 422);
         }
