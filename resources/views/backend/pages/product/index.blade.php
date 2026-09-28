@@ -876,6 +876,8 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                     $('#updateBolBeActive').prop('checked', bolBeActive);
                     $('#updateShortDescription').val(bolProductShortDescription);
                     $('#updateHasSerialNumber').prop('checked', hasSerialNumber);
+                    $('#updateSerialNumberGroup').toggle(hasSerialNumber);
+                    $('#updateSerialNumber').val('');
 
                     // Set shipping information fields with parent fallback
                     let bolNLDeliveryTime = '', bolBEDeliveryTime = '', bolCondition = '', bolConditionDescription = '';
@@ -1032,6 +1034,12 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                 if ($('#updateListPrice').val()) $('#updateListPrice').trigger('input');
             });
 
+            // DGM-307 feedback: keep the inline serial number field in sync if the user
+            // manually flips "Vereist serienummer" while this modal is open.
+            $(document).on('change', '#updateHasSerialNumber', function() {
+                $('#updateSerialNumberGroup').toggle($(this).is(':checked'));
+            });
+
             // Handle Step 3 product update form submission
             $(document).on('submit', '#product-update-form', function(e) {
                 e.preventDefault();
@@ -1138,6 +1146,13 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                     $('#eanForm').val(productData.attributes.ean || '');
                     $('#stock').val(productData.attributes.stock || 1);
                     $('#description').val(productData.attributes.description || '');
+
+                    // DGM-307 feedback: the variant always inherits "Vereist serienummer"
+                    // from this parent — the serial input only needs to show up here when
+                    // the parent requires it, since the backend enforces the inheritance.
+                    const parentRequiresSerialNumber = !!(productData.attributes.customFields && productData.attributes.customFields.has_serial_number);
+                    $('#serialNumberGroup').toggle(parentRequiresSerialNumber);
+                    $('#serialNumber').val('');
 
                     // For the `productNumber` field, if there's a `productNumber` field in your data:
                     $('#productNumber').val(productData.attributes.productNumber || '');

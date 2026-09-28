@@ -668,7 +668,20 @@ class ProductController extends Controller
             'bolBEDeliveryTime' => 'nullable|string',
             'bolNLDeliveryTime' => 'nullable|string',
             'bin_location_id' => 'required|string',
+            'serialNumber' => 'nullable|string|max:255',
         ]);
+
+        // DGM-307 feedback: a variant always inherits "Vereist serienummer" from its
+        // parent — enforced here server-side, not left to whatever the creation form
+        // happened to submit.
+        $parentHasSerialNumber = $parentProduct['data']['attributes']['customFields']['has_serial_number'] ?? false;
+        if ($parentHasSerialNumber) {
+            $validatedData['hasSerialNumber'] = '1';
+        }
+
+        if (!empty($validatedData['hasSerialNumber']) && intval($validatedData['stock']) > 0 && empty($validatedData['serialNumber'])) {
+            return response()->json(['errors' => __('product.serial_number_required')], 422);
+        }
 
         $customFields = $this->setCustomFieldd($validatedData);
 
@@ -818,6 +831,15 @@ class ProductController extends Controller
                         Log::error('Product variant creation Error: setBinLocationStock failed for ' . $productVariantId);
                         $this->rollbackVariantCreation($productVariantId, $childCreated, $validatedData['parentId'], $parentConfiguratorOptionIdsAdded);
                         return response()->json(['errors' => __('product.failed_to_update_product')], 400);
+                    }
+
+                    if (!empty($validatedData['serialNumber']) && intval($validatedData['stock']) > 0) {
+                        $this->saveSerialNumbers(
+                            $productVariantId,
+                            $validatedData['bin_location_id'],
+                            $validatedData['serialNumber'],
+                            intval($validatedData['stock'])
+                        );
                     }
 
                     // After product/variant creation or update
@@ -1384,6 +1406,35 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * Creates one ictech_serial_number row per unit of stock, all sharing the same
+     * serial string the user entered — one input field regardless of quantity, per
+     * DGM-307 follow-up feedback. Each row stays individually trackable afterwards
+     * (return-flow mismatch matching etc.), only the entry step is batched.
+     */
+    private function saveSerialNumbers(string $productId, ?string $binLocationId, string $serial, int $quantity): void
+    {
+        for ($i = 0; $i < $quantity; $i++) {
+            $payload = [
+                'id' => str_replace('-', '', (string) Str::uuid()),
+                'serial' => $serial,
+                'status' => 'in_stock',
+                'productId' => $productId,
+                // ictech_serial_number.product_version_id is a ReferenceVersionField with no
+                // DB default — Shopware's live version id must be passed explicitly here.
+                'productVersionId' => '0fa91ce3e96a4bc2be4bd9ce752c3425',
+            ];
+            if ($binLocationId) {
+                $payload['binLocationId'] = $binLocationId;
+            }
+
+            $response = $this->shopwareApiService->makeApiRequest('POST', '/api/ictech-serial-number', $payload);
+            if (isset($response['error'])) {
+                Log::error('Failed to save serial number', ['product_id' => $productId, 'error' => $response['error']]);
+            }
+        }
+    }
+
     public function updateProduct(Request $request)
     {
         $currencyId = $this->currencyId->getCurrencyId();
@@ -1417,7 +1468,20 @@ class ProductController extends Controller
             'bolLetterboxPackage' => 'nullable|in:0,1',
             'bolLetterboxPackageUp' => 'nullable|in:0,1',
             'bolPickUpOnly' => 'nullable|in:0,1',
+            'serialNumber' => 'nullable|string|max:255',
         ]);
+
+        // DGM-307 feedback: a serial number is required before stock can be added for a
+        // product that has "Vereist serienummer" enabled. Checked against the product's
+        // state BEFORE any writes below — setCustomFieldd() below overwrites customFields
+        // wholesale from this request alone, so has_serial_number must be read here first
+        // or a restock that omits the (hidden, unrelated-to-this-form) field would silently
+        // reset it to false before the check ever ran.
+        $currentProductForSerialCheck = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
+        $requiresSerialNumber = $currentProductForSerialCheck['data']['attributes']['customFields']['has_serial_number'] ?? false;
+        if ($requiresSerialNumber && !empty($validatedData['new_stock']) && empty($validatedData['serialNumber'])) {
+            return response()->json(['success' => false, 'message' => __('product.serial_number_required')], 422);
+        }
 
         $customFields = $this->setCustomFieldd($validatedData);
 
@@ -1527,9 +1591,9 @@ class ProductController extends Controller
 
             // Update stock if provided
             if (!empty($validatedData['new_stock']) && !empty($validatedData['bin_location_id'])) {
-                // Get current stock for logging
-                $currentProduct = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
-                $oldStock = $currentProduct['data']['attributes']['stock'] ?? 0;
+                // Stock isn't touched by the customFields PATCH above, so the early fetch
+                // (used for the serial-number check) is still accurate for oldStock here.
+                $oldStock = $currentProductForSerialCheck['data']['attributes']['stock'] ?? 0;
 
                 // Get bin location name
                 $binLocationResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $validatedData['bin_location_id']);
@@ -1553,6 +1617,15 @@ class ProductController extends Controller
                     ],
                     "{$oldStock} → {$validatedData['new_stock']} → {$binLocationName}"
                 );
+
+                if (!empty($validatedData['serialNumber'])) {
+                    $this->saveSerialNumbers(
+                        $validatedData['product_id'],
+                        $validatedData['bin_location_id'],
+                        $validatedData['serialNumber'],
+                        intval($validatedData['new_stock'])
+                    );
+                }
             }
 
             // After product/variant creation or update
