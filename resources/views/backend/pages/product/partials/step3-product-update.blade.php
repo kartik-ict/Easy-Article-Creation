@@ -49,7 +49,9 @@
                                 @endif
                             </select>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-6 form-group mb-3" id="updateSerialNumberGroup" style="display: none;">
+                            <label for="updateSerialNumber">@lang('product.serial_number'):</label>
+                            <input type="text" class="form-control" id="updateSerialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
                         </div>
                     </div>
                     <div class="row">
@@ -82,6 +84,13 @@
                         <div class="col-md-6 form-group mb-3">
                             <label for="updateListPrice">{{ __('product.list_price') }}</label>
                             <input type="number" name="listPriceGross" id="updateListPrice" class="form-control" step="any" required placeholder="{{ __('product.enter_list_price') }}">
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <input type="hidden" name="hasSerialNumber" value="0">
+                            <label for="updateHasSerialNumber" class="hasSerialNumber">{{ __('product.requires_serial_number') }}</label>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="hasSerialNumber" id="updateHasSerialNumber" value="1">
+                            </div>
                         </div>
                     </div>
                     
@@ -137,13 +146,6 @@
                             <label for="updateBolBeActive" class="bolBeActive">{{ __('product.active_for_bol_be') }}</label>
                             <div class="form-check form-switch">
                                 <input type="checkbox" class="form-check-input" name="bolBeActive" id="updateBolBeActive" value="1">
-                            </div>
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <input type="hidden" name="hasSerialNumber" value="0">
-                            <label for="updateHasSerialNumber" class="hasSerialNumber">{{ __('product.requires_serial_number') }}</label>
-                            <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" name="hasSerialNumber" id="updateHasSerialNumber" value="1">
                             </div>
                         </div>
                     </div>
