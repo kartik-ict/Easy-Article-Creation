@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "14ff9570dc1fc0c09a22c443c46193e3",
+    "content-hash": "a6b928da98ada9287d232a58d8fc30c1",
     "packages": [
         {
             "name": "archtechx/enums",
@@ -1405,7 +1405,7 @@
         },
         {
             "name": "laravel-lang/lang",
-            "version": "12.24.2",
+            "version": "12.24.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Laravel-Lang/lang.git",
@@ -1461,12 +1461,6 @@
                 "issues": "https://github.com/Laravel-Lang/lang/issues",
                 "source": "https://github.com/Laravel-Lang/lang"
             },
-            "funding": [
-                {
-                    "url": "https://opencollective.com/laravel-lang",
-                    "type": "open_collective"
-                }
-            ],
             "time": "2023-07-25T22:28:42+00:00"
         },
         {
