@@ -309,7 +309,7 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6 form-group" id="serialNumberGroup" style="display: none;">
-                                <label for="serialNumber">@lang('product.serial_number'):</label>
+                                <label for="serialNumber">@lang('product.serial_number') <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="serialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
                             </div>
                         </div>
