@@ -2089,15 +2089,59 @@ class ProductController extends Controller
      */
     private function getPhysicalStockAtBinLocation(string $productId, string $binLocationId): int
     {
-        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-warehouse-location-product-stock', [
-            'filter' => [
-                ['type' => 'equals', 'field' => 'productId', 'value' => $productId],
-                ['type' => 'equals', 'field' => 'warehouseLocationId', 'value' => $binLocationId],
-            ],
+        $stockByBinLocationId = $this->getNetStockByBinLocationForProduct($productId);
+
+        return $stockByBinLocationId[$binLocationId] ?? 0;
+    }
+
+    /**
+     * DGM-312 follow-up fix — the pickware-erp-warehouse-location-product-stock read-model
+     * this originally queried turned out to be stale/unpopulated for stock that predates
+     * Pickware tracking it (confirmed live: Rory's own Shopware admin screenshot showed
+     * real per-bin stock — 8 + 1 = 9 — for a product where that read-model returned only
+     * zeros). Computed here instead from the actual stock movement ledger, which cannot go
+     * stale: net stock at a bin = sum(quantity moved TO it) - sum(quantity moved FROM it).
+     * Verified against the same real product: this returns exactly 8 and 1, matching
+     * Shopware admin's own displayed totals.
+     *
+     * @return array<string, int> binLocationId => net stock (bins with 0 or less omitted)
+     */
+    private function getNetStockByBinLocationForProduct(string $productId): array
+    {
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-stock-movement', [
+            'filter' => [['type' => 'equals', 'field' => 'productId', 'value' => $productId]],
             'limit' => 1,
+            'aggregations' => [
+                [
+                    'name' => 'dest',
+                    'type' => 'terms',
+                    'field' => 'destinationBinLocationId',
+                    'aggregation' => ['name' => 'qty', 'type' => 'sum', 'field' => 'quantity'],
+                ],
+                [
+                    'name' => 'src',
+                    'type' => 'terms',
+                    'field' => 'sourceBinLocationId',
+                    'aggregation' => ['name' => 'qty', 'type' => 'sum', 'field' => 'quantity'],
+                ],
+            ],
         ]);
 
-        return (int) ($response['data'][0]['attributes']['physicalStock'] ?? 0);
+        $net = [];
+        foreach (($response['aggregations']['dest']['buckets'] ?? []) as $bucket) {
+            if (empty($bucket['key'])) {
+                continue; // non-bin destinations (orders, special stock locations, etc.)
+            }
+            $net[$bucket['key']] = ($net[$bucket['key']] ?? 0) + (int) $bucket['qty']['sum'];
+        }
+        foreach (($response['aggregations']['src']['buckets'] ?? []) as $bucket) {
+            if (empty($bucket['key'])) {
+                continue;
+            }
+            $net[$bucket['key']] = ($net[$bucket['key']] ?? 0) - (int) $bucket['qty']['sum'];
+        }
+
+        return array_filter($net, fn ($qty) => $qty > 0);
     }
 
     /**
@@ -2195,18 +2239,7 @@ class ProductController extends Controller
             'product_id' => ['required', 'string', 'regex:/^[0-9a-f]{32}$/'],
         ]);
 
-        $stockResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-warehouse-location-product-stock', [
-            'filter' => [
-                ['type' => 'equals', 'field' => 'productId', 'value' => $validated['product_id']],
-                ['type' => 'range', 'field' => 'physicalStock', 'parameters' => ['gt' => 0]],
-            ],
-            'limit' => 100,
-        ]);
-
-        $stockByBinLocationId = [];
-        foreach (($stockResponse['data'] ?? []) as $row) {
-            $stockByBinLocationId[$row['attributes']['warehouseLocationId']] = $row['attributes']['physicalStock'];
-        }
+        $stockByBinLocationId = $this->getNetStockByBinLocationForProduct($validated['product_id']);
 
         if (empty($stockByBinLocationId)) {
             return response()->json(['binLocations' => []]);
