@@ -2082,6 +2082,155 @@ class ProductController extends Controller
     }
 
     /**
+     * DGM-312 follow-up — how much of this product physically sits at this specific bin
+     * location, per Pickware's warehouse-location aggregation. A dedicated function (not a
+     * branch inside decreaseStock/decreaseStockAtBinLocation) per Kartik's instruction to
+     * write new functions for new behaviour rather than adding conditions to existing ones.
+     */
+    private function getPhysicalStockAtBinLocation(string $productId, string $binLocationId): int
+    {
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-warehouse-location-product-stock', [
+            'filter' => [
+                ['type' => 'equals', 'field' => 'productId', 'value' => $productId],
+                ['type' => 'equals', 'field' => 'warehouseLocationId', 'value' => $binLocationId],
+            ],
+            'limit' => 1,
+        ]);
+
+        return (int) ($response['data'][0]['attributes']['physicalStock'] ?? 0);
+    }
+
+    /**
+     * DGM-312 follow-up — Rory reported that decreasing stock at a bin location that has
+     * zero stock for the product still silently succeeds. Root cause: decreaseStock only
+     * checks the product's TOTAL stock across all bin locations, never the specific bin's
+     * own stock. A new function (not a condition added to decreaseStock) per Kartik's
+     * instruction; decreaseStock itself is left untouched.
+     */
+    public function decreaseStockAtBinLocation(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id'      => ['required', 'string', 'regex:/^[0-9a-f]{32}$/'],
+            'decrease_by'     => ['required', 'integer', 'min:1'],
+            'warehouse_id'    => ['required', 'string'],
+            'bin_location_id' => ['required', 'string'],
+            'comment'         => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $productId     = $validated['product_id'];
+        $decreaseBy    = (int) $validated['decrease_by'];
+        $binLocationId = $validated['bin_location_id'];
+        $comment       = trim($validated['comment'] ?? '');
+
+        $binStock = $this->getPhysicalStockAtBinLocation($productId, $binLocationId);
+        if ($decreaseBy > $binStock) {
+            return response()->json(['error' => __('product.not_enough_stock_at_bin_location')], 422);
+        }
+
+        $productResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $productId);
+        $currentStock    = (int) ($productResponse['data']['attributes']['stock'] ?? 0);
+
+        $binResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $binLocationId);
+        $binName     = $binResponse['data']['attributes']['code'] ?? 'Unknown';
+
+        $movementId  = str_replace('-', '', (string) \Illuminate\Support\Str::uuid());
+        $moveComment = $comment !== '' ? $comment : 'EAC stock correction - decrease';
+
+        $payload = [
+            [
+                'id'          => $movementId,
+                'productId'   => $productId,
+                'quantity'    => $decreaseBy,
+                'source'      => [
+                    'binLocation' => ['id' => $binLocationId],
+                ],
+                'destination' => 'stock_correction',
+                'comment'     => $moveComment,
+            ]
+        ];
+
+        try {
+            $this->shopwareApiService->makeApiRequest('POST', '/api/_action/pickware-erp/stock/move', $payload);
+
+            $newStock = $currentStock - $decreaseBy;
+            $logMessage = "{$currentStock} -> {$newStock} -> {$binName}";
+            if ($comment !== '') {
+                $logMessage .= " (Opmerking: {$comment})";
+            }
+
+            \App\Models\ProductLog::logProductChange(
+                $productId,
+                'Stock',
+                ['stock' => $currentStock],
+                [
+                    'stock'             => $newStock,
+                    'bin_location_name' => $binName,
+                    'comment'           => $comment,
+                    'type'              => 'decrease',
+                ],
+                $logMessage
+            );
+
+            return response()->json([
+                'success'   => true,
+                'new_stock' => $newStock,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('DGM-312 decreaseStockAtBinLocation failed: ' . $e->getMessage());
+            return response()->json(['error' => __('product.stock_decrease_failed')], 500);
+        }
+    }
+
+    /**
+     * DGM-312 follow-up — bin locations where THIS product actually has physical stock,
+     * per Rory's feedback (staff need to correct stock at a location even when they aren't
+     * personally assigned to it, as long as the product is really sitting there). A new,
+     * dedicated endpoint rather than adding a product-filter condition inside
+     * stockCorrectionIndex's existing (user-assignment based) bin location list, per
+     * Kartik's instruction.
+     */
+    public function getBinLocationsWithStock(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'string', 'regex:/^[0-9a-f]{32}$/'],
+        ]);
+
+        $stockResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-warehouse-location-product-stock', [
+            'filter' => [
+                ['type' => 'equals', 'field' => 'productId', 'value' => $validated['product_id']],
+                ['type' => 'range', 'field' => 'physicalStock', 'parameters' => ['gt' => 0]],
+            ],
+            'limit' => 100,
+        ]);
+
+        $stockByBinLocationId = [];
+        foreach (($stockResponse['data'] ?? []) as $row) {
+            $stockByBinLocationId[$row['attributes']['warehouseLocationId']] = $row['attributes']['physicalStock'];
+        }
+
+        if (empty($stockByBinLocationId)) {
+            return response()->json(['binLocations' => []]);
+        }
+
+        $binDetailsResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', [
+            'filter' => [['type' => 'equalsAny', 'field' => 'id', 'value' => array_keys($stockByBinLocationId)]],
+            'limit'  => 100,
+        ]);
+
+        $binLocations = [];
+        foreach (($binDetailsResponse['data'] ?? []) as $bin) {
+            $binLocations[] = [
+                'id'            => $bin['id'],
+                'code'          => $bin['attributes']['code'] ?? $bin['id'],
+                'warehouseId'   => $bin['attributes']['warehouseId'] ?? null,
+                'physicalStock' => $stockByBinLocationId[$bin['id']],
+            ];
+        }
+
+        return response()->json(['binLocations' => $binLocations]);
+    }
+
+    /**
      * DGM-307 — Serial Numbers lookup page. Read-only.
      */
     public function serialNumbersIndex(Request $request)

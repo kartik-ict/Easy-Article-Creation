@@ -173,6 +173,44 @@ $(document).ready(function() {
         }
     });
 
+    // DGM-312 follow-up — new function, not an edit to updateModalBinLocations below,
+    // per Kartik's instruction. Populates the bin dropdown with only the locations where
+    // this specific product actually has physical stock (Rory's feedback: staff need to
+    // correct stock at a location even if they aren't personally assigned to it, as long
+    // as the product is really there).
+    function populateBinLocationsWithStock(productId) {
+        var binSelect = $('#modalSourceBinLocation');
+        binSelect.empty().append('<option value="">@lang("product.select_bin_location")</option>');
+
+        $.ajax({
+            url: "{{ route('stock.correction.bin-locations-with-stock') }}",
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                product_id: productId
+            },
+            success: function(res) {
+                var bins = res.binLocations || [];
+
+                if (bins.length === 0) {
+                    binSelect.append('<option value="">Geen stellinglocaties met voorraad</option>');
+                    return;
+                }
+
+                bins.sort(function(a, b) {
+                    if (a.code === 'Main Bin Location') return -1;
+                    if (b.code === 'Main Bin Location') return 1;
+                    return a.code.localeCompare(b.code);
+                });
+
+                bins.forEach(function(bin) {
+                    binSelect.append('<option value="' + bin.id + '" data-warehouse-id="' + bin.warehouseId + '">' +
+                        $('<div>').text(bin.code + ' (' + bin.physicalStock + ' op voorraad)').html() + '</option>');
+                });
+            }
+        });
+    }
+
     function updateModalBinLocations() {
         var selectedWhId = $('#modalSourceWarehouse').val();
         var binSelect = $('#modalSourceBinLocation');
@@ -385,7 +423,7 @@ $(document).ready(function() {
         $('#modalCorrectionComment').val('');
         $('#modalAlertMessage').hide();
 
-        updateModalBinLocations();
+        populateBinLocationsWithStock(productId);
 
         $('#decreaseStockModal').modal('show');
     });
@@ -413,7 +451,7 @@ $(document).ready(function() {
         $('#modalAlertMessage').hide();
 
         $.ajax({
-            url: "{{ route('stock.correction.decrease') }}",
+            url: "{{ route('stock.correction.decrease-at-bin-location') }}",
             type: "POST",
             data: {
                 _token: "{{ csrf_token() }}",
