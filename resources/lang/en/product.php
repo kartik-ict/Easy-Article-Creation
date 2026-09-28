@@ -160,6 +160,7 @@ return [
     'bol_price_be'                              => 'BOL Price BE',
     'decrease_by'            => 'Decrease by',
     'not_enough_stock'       => 'Not enough stock to decrease.',
+    'not_enough_stock_at_bin_location' => 'This bin location does not have enough stock of this product to decrease.',
     'stock_decreased'        => 'Stock decreased.',
     'stock_decrease_failed'  => 'Stock decrease failed.',
     'search_product_placeholder' => 'Product number or EAN...',

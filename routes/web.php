@@ -116,6 +116,9 @@ Route::group(['prefix' => 'admin'], function () {
         // DGM-312 — Stock Correction (Voorraad verlagen). Additive — new routes only.
         Route::get('/stock-correction', [ProductController::class, 'stockCorrectionIndex'])->name('stock.correction.index')->middleware('can:product.create');
         Route::post('/stock-correction/decrease', [ProductController::class, 'decreaseStock'])->name('stock.correction.decrease')->middleware('can:product.create');
+        // DGM-312 follow-up — new functions/routes rather than extending the ones above.
+        Route::post('/stock-correction/decrease-at-bin-location', [ProductController::class, 'decreaseStockAtBinLocation'])->name('stock.correction.decrease-at-bin-location')->middleware('can:product.create');
+        Route::post('/stock-correction/bin-locations-with-stock', [ProductController::class, 'getBinLocationsWithStock'])->name('stock.correction.bin-locations-with-stock')->middleware('can:product.create');
 
         // DGM-307 — Serial Numbers lookup (read-only). Additive — new routes only.
         Route::get('/serial-numbers', [ProductController::class, 'serialNumbersIndex'])->name('serial-numbers.index')->middleware('can:product.create');

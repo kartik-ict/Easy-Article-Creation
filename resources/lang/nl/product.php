@@ -162,6 +162,7 @@ return [
     'select_option_first'                           => 'Selecteer eerst een optie',
     'decrease_by'            => 'Verlagen met',
     'not_enough_stock'       => 'Niet genoeg voorraad om te verlagen.',
+    'not_enough_stock_at_bin_location' => 'Deze stellinglocatie heeft niet genoeg voorraad van dit product om te verlagen.',
     'stock_decreased'        => 'Voorraad verlaagd.',
     'stock_decrease_failed'  => 'Voorraadverlaging mislukt.',
     'search_product_placeholder' => 'Productnummer of EAN...',
