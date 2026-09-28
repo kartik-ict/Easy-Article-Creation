@@ -141,6 +141,7 @@ return [
     'failed_to_update_product'                  => 'Failed to update product.',
     'variant_delete_blocked_stock'               => 'Cannot delete: this variant still has stock.',
     'variant_delete_blocked_orders'              => 'Cannot delete: this variant is linked to an order.',
+    'variant_delete_blocked_is_parent'           => 'Cannot delete: this is a main product, not a variant. Deleting it would remove all of its variants.',
     'variant_deleted_successfully'                => 'Variant deleted.',
     'delete'                                     => 'Delete',
     'link_conditie'                               => 'Link',
