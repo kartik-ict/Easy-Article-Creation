@@ -423,6 +423,49 @@ $(document).ready(function() {
         $('#modalCorrectionComment').val('');
         $('#modalAlertMessage').hide();
 
+        updateModalBinLocations();
+
+        $('#decreaseStockModal').modal('show');
+    });
+
+    // DGM-312 follow-up — detaches the handler above and attaches a new one, rather than
+    // editing its body, per Kartik's instruction. Identical except it populates the bin
+    // dropdown from real per-bin stock via populateBinLocationsWithStock() instead of the
+    // old unfiltered/warehouse-only list.
+    $(document).off('click', '.btn-decrease').on('click', '.btn-decrease', function() {
+        var row = $(this).closest('tr');
+        var productId = row.data('product-id');
+        var productName = row.data('product-name');
+        var productNum = row.data('product-num');
+        var decreaseInput = row.find('.decrease-input');
+        var decreaseQty = parseInt(decreaseInput.val());
+
+        if (isNaN(decreaseQty) || decreaseQty <= 0) {
+            showAlert('warning', 'Voer a.u.b. een geldig aantal (minimaal 1) in om te verlagen.');
+            return;
+        }
+
+        var currentStockVal = parseInt(row.find('.current-stock-input').val() || 0);
+
+        if (currentStockVal <= 0) {
+            showAlert('danger', 'Huidige voorraad is 0. Kan niet verder verlagen.');
+            return;
+        }
+
+        if (decreaseQty > currentStockVal) {
+            showAlert('danger', 'Niet genoeg voorraad om te verlagen (Huidige voorraad: ' + currentStockVal + ').');
+            return;
+        }
+
+        $('#modalProductId').val(productId);
+        $('#modalDecreaseQty').val(decreaseQty);
+        $('#modalProductName').text(productName);
+        $('#modalProductNum').text(productNum);
+        $('#modalCurrentStock').text(currentStockVal);
+        $('#modalDecreaseBadge').text('-' + decreaseQty + ' stuks');
+        $('#modalCorrectionComment').val('');
+        $('#modalAlertMessage').hide();
+
         populateBinLocationsWithStock(productId);
 
         $('#decreaseStockModal').modal('show');
@@ -430,6 +473,70 @@ $(document).ready(function() {
 
     // Execute Stock Reduction inside Modal
     $('#btnConfirmDecrease').on('click', function() {
+        var productId = $('#modalProductId').val();
+        var decreaseQty = parseInt($('#modalDecreaseQty').val());
+        var warehouseId = $('#modalSourceWarehouse').val();
+        var binLocationId = $('#modalSourceBinLocation').val();
+        var comment = $.trim($('#modalCorrectionComment').val());
+
+        if (!warehouseId) {
+            showModalAlert('warning', '@lang("product.please_select_warehouse")');
+            return;
+        }
+
+        if (!binLocationId) {
+            showModalAlert('warning', '@lang("product.please_select_bin_location")');
+            return;
+        }
+
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Verwerken...');
+        $('#modalAlertMessage').hide();
+
+        $.ajax({
+            url: "{{ route('stock.correction.decrease') }}",
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                product_id: productId,
+                decrease_by: decreaseQty,
+                warehouse_id: warehouseId,
+                bin_location_id: binLocationId,
+                comment: comment
+            },
+            success: function(res) {
+                btn.prop('disabled', false).html('<i class="fa fa-check mr-2"></i><span>@lang("product.save")</span>');
+
+                if (res.success) {
+                    $('#decreaseStockModal').modal('hide');
+
+                    var targetRow = $('#variantTable tr[data-product-id="' + productId + '"]');
+                    if (targetRow.length > 0) {
+                        targetRow.find('.current-stock-input').val(res.new_stock);
+                        targetRow.find('.decrease-input').val('');
+                    }
+
+                    showAlert('success', '@lang("product.stock_decreased") Nieuwe voorraad: ' + res.new_stock);
+                } else {
+                    showModalAlert('danger', res.error || '@lang("product.stock_decrease_failed")');
+                }
+            },
+            error: function(xhr) {
+                btn.prop('disabled', false).html('<i class="fa fa-check mr-2"></i><span>@lang("product.save")</span>');
+                var errMsg = '@lang("product.stock_decrease_failed")';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errMsg = xhr.responseJSON.error;
+                }
+                showModalAlert('danger', errMsg);
+            }
+        });
+    });
+
+    // DGM-312 follow-up — detaches the handler above and attaches a new one, rather than
+    // editing its body, per Kartik's instruction. Identical except it posts to
+    // decreaseStockAtBinLocation (validates the specific bin's stock) instead of the old
+    // decreaseStock (only validated the product's total stock).
+    $('#btnConfirmDecrease').off('click').on('click', function() {
         var productId = $('#modalProductId').val();
         var decreaseQty = parseInt($('#modalDecreaseQty').val());
         var warehouseId = $('#modalSourceWarehouse').val();
