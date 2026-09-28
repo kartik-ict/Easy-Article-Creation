@@ -50,7 +50,7 @@
                             </select>
                         </div>
                         <div class="col-md-6 form-group mb-3" id="updateSerialNumberGroup" style="display: none;">
-                            <label for="updateSerialNumber">@lang('product.serial_number'):</label>
+                            <label for="updateSerialNumber">@lang('product.serial_number') <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="updateSerialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
                         </div>
                     </div>
