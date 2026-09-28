@@ -166,8 +166,49 @@ class ProductController extends Controller
         } else {
 
             $optionsIds = null;
-            $products = $product['data'] ?? [];
-            $currentProduct = $products[0] ?? [];
+            $initialProducts = $product['data'] ?? [];
+            $currentProduct = $initialProducts[0] ?? [];
+
+            // Family variant lookup: fetch parent AND all child variants in this product family
+            $familyId = $currentProduct['attributes']['parentId'] ?? ($currentProduct['id'] ?? null);
+            $includedData = $product['included'] ?? [];
+            $products = $initialProducts;
+
+            if ($familyId) {
+                $familyPayload = [
+                    'filter' => [
+                        [
+                            'type' => 'multi',
+                            'operator' => 'or',
+                            'queries' => [
+                                ['type' => 'equals', 'field' => 'id', 'value' => $familyId],
+                                ['type' => 'equals', 'field' => 'parentId', 'value' => $familyId],
+                            ]
+                        ]
+                    ],
+                    'associations' => [
+                        'options' => [
+                            'associations' => [
+                                'group' => []
+                            ]
+                        ],
+                        'properties' => [
+                            'associations' => [
+                                'group' => []
+                            ]
+                        ],
+                        'media' => [],
+                        'categories' => []
+                    ]
+                ];
+
+                $familyResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product?inheritance=true', $familyPayload);
+                if (!empty($familyResponse['data'])) {
+                    $products = $familyResponse['data'];
+                    $includedData = $familyResponse['included'] ?? [];
+                }
+            }
+
             $mainProduct = collect($products)->first(function ($item) {
                 return data_get($item, 'attributes.parentId') === null;
             }) ?? $currentProduct;
@@ -200,7 +241,7 @@ class ProductController extends Controller
                 'stock' => $currentProduct['attributes']['stock'] ?? 0,
                 'id' => $currentProduct['id'] ?? '',
                 'productData' => $products,
-                'included' => $product['included'] ?? [],
+                'included' => $includedData,
                 'bol' => false,
                 'optionsIds' => $optionsIds,
                 'custom_fields' => $this->getCustomFieldData(),
@@ -342,6 +383,7 @@ class ProductController extends Controller
             'bolCondition' => 'nullable|string',
             'bolConditionDescription' => 'nullable|string',
             'bolNlActive' => 'nullable|in:0,1',
+            'hasSerialNumber' => 'nullable|in:0,1',
             'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
             'bolOrderBefore' => 'nullable|in:0,1',
             'bolLetterboxPackage' => 'nullable|in:0,1',
@@ -617,6 +659,7 @@ class ProductController extends Controller
             'bolCondition' => 'nullable|string',
             'bolConditionDescription' => 'nullable|string',
             'bolNlActive' => 'nullable|in:0,1',
+            'hasSerialNumber' => 'nullable|in:0,1',
             'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
             'bolOrderBefore' => 'nullable|in:0,1',
             'bolLetterboxPackage' => 'nullable|in:0,1',
@@ -631,6 +674,14 @@ class ProductController extends Controller
 
         // Generate a UUID for the new product
         $productVariantId = str_replace('-', '', (string) Str::uuid());
+
+        // Tracks exactly what this request has actually committed to Shopware so far,
+        // so that if any later step fails we can undo precisely that and nothing more
+        // — instead of leaving a half-built variant that blocks the SKU forever and
+        // desyncs the parent's configurator options (the "ghost variant" bug).
+        $parentConfiguratorOptionIdsAdded = [];
+        $childCreated = false;
+
         try {
             // Step 1: Update Parent Product
             $optionIds = explode(',', $request->get('propertyOptionIdAll'));
@@ -659,6 +710,9 @@ class ProductController extends Controller
                             return response()->json(['errors' => "Er is iets fout gegaan!"], 400);
                         }
                     }
+                    // Step 1 succeeded — remember exactly what we added to the parent,
+                    // so a failure further down can remove it again cleanly.
+                    $parentConfiguratorOptionIdsAdded = $filteredOptionIds;
                 } catch (\Exception $e) {
                     Log::info('Product variant creation Error ' . $e->getMessage());
                     return response()->json(['errors' => __('product.failed_to_update_product')], 400);
@@ -733,6 +787,8 @@ class ProductController extends Controller
                 $response = $this->shopwareApiService->makeApiRequest('POST', $childEndpoint, $data);
 
                 if (isset($response['success'])) {
+                    $childCreated = true;
+
                     // Parse properties data if provided
                     $properties = null;
                     if ($request->has('properties') && !empty($request->properties)) {
@@ -740,7 +796,14 @@ class ProductController extends Controller
                     }
 
                     // set custom fields data for created product
-                    $this->patchProductCustomData($productVariantId, $customFields, $properties);
+                    $customDataSaved = $this->patchProductCustomData($productVariantId, $customFields, $properties);
+                    if (!$customDataSaved) {
+                        // The variant exists but its condition/property link never got attached —
+                        // this is exactly the "N/A" ghost pattern. Don't report success on a half-built variant.
+                        Log::error('Product variant creation Error: patchProductCustomData failed for ' . $productVariantId);
+                        $this->rollbackVariantCreation($productVariantId, $childCreated, $validatedData['parentId'], $parentConfiguratorOptionIdsAdded);
+                        return response()->json(['errors' => __('product.failed_to_update_product')], 400);
+                    }
 
                     // set stock to bin location
                     $stockData = [
@@ -750,7 +813,12 @@ class ProductController extends Controller
                     // for make manage stock section true
                     // $this->updateStockManagement($productVariantId);
 
-                    $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                    $stockSaved = $this->setBinLocationStock($stockData, $validatedData['bin_location_id']);
+                    if (!$stockSaved) {
+                        Log::error('Product variant creation Error: setBinLocationStock failed for ' . $productVariantId);
+                        $this->rollbackVariantCreation($productVariantId, $childCreated, $validatedData['parentId'], $parentConfiguratorOptionIdsAdded);
+                        return response()->json(['errors' => __('product.failed_to_update_product')], 400);
+                    }
 
                     // After product/variant creation or update
                     // $this->setClearanceSaleOn($productVariantId);
@@ -778,10 +846,12 @@ class ProductController extends Controller
                     if (isset($response['error'])) {
                         $errorData = json_decode($response['error'], true);
                         if (isset($errorData['errors'][0]['code']) && $errorData['errors'][0]['code'] === 'CONTENT__DUPLICATE_PRODUCT_NUMBER') {
+                            $this->rollbackVariantCreation($productVariantId, $childCreated, $validatedData['parentId'], $parentConfiguratorOptionIdsAdded);
                             return response()->json(['errors' => 'Product already exists with the same number'], 400);
                         }
                     }
                     Log::error('Product variant creation Error: ' . json_encode($response));
+                    $this->rollbackVariantCreation($productVariantId, $childCreated, $validatedData['parentId'], $parentConfiguratorOptionIdsAdded);
                     return response()->json(['errors' => __('product.failed_to_update_product')], 400);
                 }
             } else {
@@ -789,8 +859,49 @@ class ProductController extends Controller
                 return response()->json(['errors' => __('product.failed_to_update_product')], 400);
             }
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            Log::error('Product variant creation Exception: ' . $e->getMessage());
+            $this->rollbackVariantCreation($productVariantId, $childCreated, $request->get('parentId'), $parentConfiguratorOptionIdsAdded);
             return response()->json(['errors' => "Er is iets fout gegaan!"], 400);
+        }
+    }
+
+    /**
+     * Undo whatever partial state a failed variant creation left behind: delete the
+     * orphaned child if it was created, and remove any option this request just added
+     * to the parent's configurator settings. Without this, a failure here leaves a row
+     * that permanently blocks the SKU and desyncs the parent's variant generator —
+     * the root cause of DGM-309.
+     */
+    private function rollbackVariantCreation($productVariantId, $childCreated, $parentId, array $optionIdsToRemove)
+    {
+        if ($childCreated) {
+            $deleteResponse = $this->shopwareApiService->makeApiRequest('DELETE', "/api/product/{$productVariantId}");
+            if (!isset($deleteResponse['success'])) {
+                Log::error('Variant rollback: failed to delete orphaned child ' . $productVariantId . ': ' . json_encode($deleteResponse));
+            }
+        }
+
+        if (!empty($optionIdsToRemove) && $parentId) {
+            $searchPayload = [
+                'filter' => [
+                    [
+                        'type' => 'multi',
+                        'operator' => 'and',
+                        'queries' => [
+                            ['type' => 'equals', 'field' => 'productId', 'value' => $parentId],
+                            ['type' => 'equalsAny', 'field' => 'optionId', 'value' => array_values($optionIdsToRemove)],
+                        ],
+                    ],
+                ],
+            ];
+            $searchResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product-configurator-setting', $searchPayload);
+
+            foreach (($searchResponse['data'] ?? []) as $settingRow) {
+                $settingId = $settingRow['id'] ?? null;
+                if ($settingId) {
+                    $this->shopwareApiService->makeApiRequest('DELETE', "/api/product-configurator-setting/{$settingId}");
+                }
+            }
         }
     }
 
@@ -830,6 +941,7 @@ class ProductController extends Controller
             'bolCondition' => 'nullable|string',
             'bolConditionDescription' => 'nullable|string',
             'bolNlActive' => 'nullable|in:0,1',
+            'hasSerialNumber' => 'nullable|in:0,1',
             'bolOrderBeforeTomorrow' => 'nullable|in:0,1',
             'bolOrderBefore' => 'nullable|in:0,1',
             'bolLetterboxPackage' => 'nullable|in:0,1',
@@ -1160,6 +1272,7 @@ class ProductController extends Controller
             "migration_DMG_product_bol_price_be" => $validatedData['bolBePrice'] ?? null,
             "migration_DMG_product_bol_price_nl" => $validatedData['bolNlPrice'] ?? null,
             "migration_DMG_product_bol_be_active" => isset($validatedData['bolBeActive']) ? (bool)$validatedData['bolBeActive'] : false,
+            "has_serial_number" => isset($validatedData['hasSerialNumber']) ? (bool)$validatedData['hasSerialNumber'] : false,
             "migration_DMG_product_bol_condition" => $validatedData['bolCondition'] ?? null,
             "migration_DMG_product_bol_condition_desc" => $validatedData['bolConditionDescription'] ?? null,
             // "migration_DMG_product_variant_description_long" => $validatedData['bolConditionDescription'] ?? null,
@@ -1293,6 +1406,7 @@ class ProductController extends Controller
             'bolNlPrice' => 'nullable|numeric',
             'bolBePrice' => 'nullable|numeric',
             'bolNlActive' => 'nullable|in:0,1',
+            'hasSerialNumber' => 'nullable|in:0,1',
             'bolBeActive' => 'nullable|in:0,1',
             'bolNLDeliveryTime' => 'nullable|string',
             'bolBEDeliveryTime' => 'nullable|string',
@@ -1588,4 +1702,403 @@ class ProductController extends Controller
             return false;
         }
     }
+
+    /**
+     * Return the live "Conditie" property group's options, for the inline relink
+     * dropdown on variants shown as N/A. Looked up by name rather than a hardcoded
+     * id, since the group's id is generated per Shopware install and would differ
+     * between staging and production.
+     */
+    public function getConditieOptions()
+    {
+        $groupSearch = $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group', [
+            'filter' => [['type' => 'equals', 'field' => 'name', 'value' => 'Conditie']],
+            'limit' => 1,
+        ]);
+        $groupId = $groupSearch['data'][0]['id'] ?? null;
+
+        if (!$groupId) {
+            return response()->json(['options' => []]);
+        }
+
+        $optionsSearch = $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group-option', [
+            'filter' => [['type' => 'equals', 'field' => 'groupId', 'value' => $groupId]],
+            'sort' => [['field' => 'name', 'order' => 'ASC']],
+            'limit' => 100,
+        ]);
+
+        $options = [];
+        foreach (($optionsSearch['data'] ?? []) as $row) {
+            $options[] = [
+                'id' => $row['id'],
+                'name' => $row['attributes']['name'] ?? $row['id'],
+            ];
+        }
+
+        return response()->json(['options' => $options]);
+    }
+
+    /**
+     * Link the real Conditie configurator option onto a single variant. This writes
+     * to the actual product_option relationship (what drives the "N/A" label and
+     * Shopware's own variant generator) — distinct from updateProduct()'s "properties"
+     * handling, which only ever touches the unrelated informational product_property
+     * table and was never able to fix this on its own.
+     *
+     * Any Conditie-group option the variant already has is removed first, so a variant
+     * ends up with exactly one Condition value instead of stacking a second one
+     * alongside a stale or wrong one. Options from other property groups (color,
+     * size, ...) are never touched.
+     */
+    public function relinkConditie(Request $request)
+    {
+        $validatedData = $request->validate([
+            'product_id' => 'required|string|regex:/^[0-9a-f]{32}$/',
+            'option_id' => 'required|string|regex:/^[0-9a-f]{32}$/',
+        ]);
+        $productId = $validatedData['product_id'];
+        $newOptionId = $validatedData['option_id'];
+
+        $groupSearch = $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group', [
+            'filter' => [['type' => 'equals', 'field' => 'name', 'value' => 'Conditie']],
+            'limit' => 1,
+        ]);
+        $conditieGroupId = $groupSearch['data'][0]['id'] ?? null;
+        if (!$conditieGroupId) {
+            Log::error('Conditie relink failed: Conditie property group not found');
+            return response()->json(['errors' => __('product.failed_to_update_product')], 400);
+        }
+
+        $product = $this->shopwareApiService->makeApiRequest('GET', "/api/product/{$productId}");
+        if (!isset($product['data'])) {
+            return response()->json(['errors' => __('product.failed_to_update_product')], 404);
+        }
+        $currentOptionIds = $product['data']['attributes']['optionIds'] ?? [];
+
+        // Of the variant's current options, find any that belong to the Conditie
+        // group specifically — those are what we replace. Everything else is left alone.
+        $existingConditieOptionIds = [];
+        if (!empty($currentOptionIds)) {
+            $optionsLookup = $this->shopwareApiService->makeApiRequest('POST', '/api/search/property-group-option', [
+                'filter' => [
+                    ['type' => 'equalsAny', 'field' => 'id', 'value' => $currentOptionIds],
+                    ['type' => 'equals', 'field' => 'groupId', 'value' => $conditieGroupId],
+                ],
+            ]);
+            foreach (($optionsLookup['data'] ?? []) as $row) {
+                $existingConditieOptionIds[] = $row['id'];
+            }
+        }
+
+        foreach ($existingConditieOptionIds as $staleOptionId) {
+            if ($staleOptionId === $newOptionId) {
+                continue;
+            }
+            $this->shopwareApiService->makeApiRequest('DELETE', "/api/product/{$productId}/options/{$staleOptionId}");
+        }
+
+        $response = $this->shopwareApiService->makeApiRequest('POST', "/api/product/{$productId}/options", ['id' => $newOptionId]);
+        if (!isset($response['success'])) {
+            Log::error('Conditie relink failed for ' . $productId . ': ' . json_encode($response));
+            return response()->json(['errors' => __('product.failed_to_update_product')], 400);
+        }
+
+        ProductLog::logProductChange(
+            $productId,
+            'Conditie relink',
+            ['optionIds' => $existingConditieOptionIds],
+            ['optionIds' => [$newOptionId]],
+            'Conditie option linked via EAC (variant was showing as N/A)'
+        );
+
+        return response()->json(['message' => __('product.product_updated_successfully')]);
+    }
+
+    /**
+     * Delete a single variant, but only when it's safe: zero stock and no order has
+     * ever referenced it. Every delete is written to product_logs for audit. This
+     * never touches the parent product or any sibling variant.
+     */
+    public function deleteVariant(Request $request)
+    {
+        $validatedData = $request->validate([
+            'product_id' => 'required|string|regex:/^[0-9a-f]{32}$/',
+        ]);
+        $productId = $validatedData['product_id'];
+
+        $product = $this->shopwareApiService->makeApiRequest('GET', "/api/product/{$productId}");
+        if (!isset($product['data'])) {
+            return response()->json(['errors' => __('product.failed_to_update_product')], 404);
+        }
+
+        $attributes = $product['data']['attributes'];
+        $productNumber = $attributes['productNumber'] ?? $productId;
+        $stock = intval($attributes['stock'] ?? 0);
+
+        if ($stock > 0) {
+            return response()->json(['errors' => __('product.variant_delete_blocked_stock')], 400);
+        }
+
+        $orderCheck = $this->shopwareApiService->makeApiRequest('POST', '/api/search/order-line-item', [
+            'filter' => [['type' => 'equals', 'field' => 'productId', 'value' => $productId]],
+            'limit' => 1,
+        ]);
+        if (!empty($orderCheck['data'])) {
+            return response()->json(['errors' => __('product.variant_delete_blocked_orders')], 400);
+        }
+
+        $deleteResponse = $this->shopwareApiService->makeApiRequest('DELETE', "/api/product/{$productId}");
+        if (!isset($deleteResponse['success'])) {
+            Log::error('Variant delete failed for ' . $productId . ': ' . json_encode($deleteResponse));
+            return response()->json(['errors' => __('product.failed_to_update_product')], 400);
+        }
+
+        // The product no longer exists, so we can't reuse logProductChange()'s
+        // internal lookup — record the audit entry directly with the number we
+        // already had before deleting.
+        ProductLog::create([
+            'product_number' => $productNumber,
+            'user_id' => auth('admin')->id(),
+            'action' => 'Delete',
+            'old_values' => ['stock' => $stock],
+            'new_values' => null,
+            'message' => "Variant {$productNumber} deleted via EAC (stock was 0, no orders attached)",
+            'ip_address' => request()->ip(),
+        ]);
+
+        return response()->json(['message' => __('product.variant_deleted_successfully')]);
+    }
+
+
+    /**
+     * DGM-312 — Stock Correction page.
+     * Shows the dedicated "Voorraad verlagen" page.
+     * Additive — does not modify any existing method.
+     */
+    public function stockCorrectionIndex(Request $request)
+    {
+        $admin = $request->user();
+
+        // 1. Fetch Warehouses
+        $whResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-warehouse', []);
+        $warehouseList = $whResponse['data'] ?? [];
+
+        // 2. Fetch Bin Locations
+        $filter = [];
+        if (!empty($admin->bin_location_ids)) {
+            $filter = [
+                'filter' => [
+                    [
+                        'type'  => 'equalsAny',
+                        'field' => 'id',
+                        'value' => $admin->bin_location_ids,
+                    ]
+                ]
+            ];
+        }
+        $binResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', $filter);
+        $binLocationList = $binResponse['data'] ?? [];
+
+        return view('backend.pages.stock-correction.index', compact('admin', 'warehouseList', 'binLocationList'));
+    }
+
+    /**
+     * DGM-312 — Decrease stock by N units for a specific variant.
+     * Moves stock FROM the bin location TO Pickware "stock_correction" special location.
+     * Additive — does not modify any existing method.
+     */
+    public function decreaseStock(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id'      => ['required', 'string', 'regex:/^[0-9a-f]{32}$/'],
+            'decrease_by'     => ['required', 'integer', 'min:1'],
+            'warehouse_id'    => ['required', 'string'],
+            'bin_location_id' => ['required', 'string'],
+            'comment'         => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $productId     = $validated['product_id'];
+        $decreaseBy    = (int) $validated['decrease_by'];
+        $binLocationId = $validated['bin_location_id'] ?? null;
+        $warehouseId   = $validated['warehouse_id'] ?? null;
+        $comment       = trim($validated['comment'] ?? '');
+
+        if (!$binLocationId) {
+            $admin = $request->user();
+            $filter = [];
+            if (!empty($admin->bin_location_ids)) {
+                $filter = [
+                    'filter' => [
+                        [
+                            'type'  => 'equalsAny',
+                            'field' => 'id',
+                            'value' => $admin->bin_location_ids,
+                        ]
+                    ]
+                ];
+            }
+            $binRes = $this->shopwareApiService->makeApiRequest('POST', '/api/search/pickware-erp-bin-location', $filter);
+            $binLocationId = $binRes['data'][0]['id'] ?? null;
+        }
+
+        if (!$binLocationId) {
+            return response()->json(['error' => 'Geen stellinglocatie gevonden.'], 400);
+        }
+
+        // Re-fetch current stock server-side — never trust the client value.
+        $productResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $productId);
+        $currentStock    = (int) ($productResponse['data']['attributes']['stock'] ?? 0);
+
+        if ($decreaseBy > $currentStock) {
+            return response()->json([
+                'error' => __('product.not_enough_stock'),
+            ], 422);
+        }
+
+        // Fetch bin name for audit log.
+        $binResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/pickware-erp-bin-location/' . $binLocationId);
+        $binName     = $binResponse['data']['attributes']['code'] ?? 'Unknown';
+
+        // Pickware stock move: FROM bin TO stock_correction special location.
+        $movementId = str_replace('-', '', (string) \Illuminate\Support\Str::uuid());
+        $moveComment = $comment !== '' ? $comment : 'EAC stock correction - decrease';
+
+        $payload = [
+            [
+                'id'          => $movementId,
+                'productId'   => $productId,
+                'quantity'    => $decreaseBy,
+                'source'      => [
+                    'binLocation' => ['id' => $binLocationId],
+                ],
+                'destination' => 'stock_correction',
+                'comment'     => $moveComment,
+            ]
+        ];
+
+        try {
+            $this->shopwareApiService->makeApiRequest('POST', '/api/_action/pickware-erp/stock/move', $payload);
+
+            $newStock = $currentStock - $decreaseBy;
+            $logMessage = "{$currentStock} -> {$newStock} -> {$binName}";
+            if ($comment !== '') {
+                $logMessage .= " (Opmerking: {$comment})";
+            }
+
+            \App\Models\ProductLog::logProductChange(
+                $productId,
+                'Stock',
+                ['stock' => $currentStock],
+                [
+                    'stock'             => $newStock,
+                    'bin_location_name' => $binName,
+                    'comment'           => $comment,
+                    'type'              => 'decrease',
+                ],
+                $logMessage
+            );
+
+            return response()->json([
+                'success'   => true,
+                'new_stock' => $newStock,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('DGM-312 decreaseStock failed: ' . $e->getMessage());
+            return response()->json(['error' => __('product.stock_decrease_failed')], 500);
+        }
+    }
+
+    /**
+     * DGM-307 — Serial Numbers lookup page. Read-only.
+     */
+    public function serialNumbersIndex(Request $request)
+    {
+        return view('backend.pages.serial-numbers.index');
+    }
+
+    /**
+     * DGM-307 — AJAX search: by serial number (partial match) or by product number/EAN (exact),
+     * whichever the query looks like. Read-only, queries the Admin API only, no writes.
+     */
+    public function searchSerialNumbers(Request $request)
+    {
+        $validated = $request->validate([
+            'query' => ['required', 'string', 'max:255'],
+        ]);
+        $query = trim($validated['query']);
+
+        $filter = [
+            [
+                'type'  => 'contains',
+                'field' => 'serial',
+                'value' => $query,
+            ],
+        ];
+
+        // If nothing matches by serial, try resolving the query as a product number/EAN instead.
+        $searchResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/ictech-serial-number', [
+            'filter'      => $filter,
+            'associations' => ['product' => new \stdClass()],
+            'limit'       => 100,
+            'sort'        => [['field' => 'createdAt', 'order' => 'DESC']],
+        ]);
+        $rows = $searchResponse['data'] ?? [];
+
+        if (empty($rows)) {
+            $productResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product', [
+                'filter' => [
+                    [
+                        'type'  => 'multi',
+                        'operator' => 'or',
+                        'queries' => [
+                            ['type' => 'equals', 'field' => 'productNumber', 'value' => $query],
+                            ['type' => 'equals', 'field' => 'ean', 'value' => $query],
+                        ],
+                    ],
+                ],
+                'limit' => 10,
+            ]);
+            $productIds = array_column($productResponse['data'] ?? [], 'id');
+
+            if (!empty($productIds)) {
+                $searchResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/ictech-serial-number', [
+                    'filter'      => [
+                        ['type' => 'equalsAny', 'field' => 'productId', 'value' => $productIds],
+                    ],
+                    'associations' => ['product' => new \stdClass()],
+                    'limit'       => 100,
+                    'sort'        => [['field' => 'createdAt', 'order' => 'DESC']],
+                ]);
+                $rows = $searchResponse['data'] ?? [];
+            }
+        }
+
+        // Build a lookup of included products (JSON:API `included` array) by id, so each row
+        // can show a readable product name/number instead of just a raw product id.
+        $includedProductsById = [];
+        foreach (($searchResponse['included'] ?? []) as $included) {
+            if (($included['type'] ?? null) === 'product') {
+                $includedProductsById[$included['id']] = $included['attributes'] ?? [];
+            }
+        }
+
+        $results = array_map(function ($row) use ($includedProductsById) {
+            $attrs = $row['attributes'] ?? [];
+            $productId = $attrs['productId'] ?? null;
+            $productAttrs = $productId ? ($includedProductsById[$productId] ?? []) : [];
+
+            return [
+                'serial'          => $attrs['serial'] ?? null,
+                'status'          => $attrs['status'] ?? null,
+                'productId'       => $productId,
+                'productNumber'   => $productAttrs['productNumber'] ?? null,
+                'productName'     => $productAttrs['translated']['name'] ?? ($productAttrs['name'] ?? null),
+                'orderLineItemId' => $attrs['orderLineItemId'] ?? null,
+                'createdAt'       => $attrs['createdAt'] ?? null,
+            ];
+        }, $rows);
+
+        return response()->json(['results' => $results]);
+    }
+
 }

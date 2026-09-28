@@ -139,6 +139,13 @@
                                 <input type="checkbox" class="form-check-input" name="bolBeActive" id="updateBolBeActive" value="1">
                             </div>
                         </div>
+                        <div class="col-md-6 form-group">
+                            <input type="hidden" name="hasSerialNumber" value="0">
+                            <label for="updateHasSerialNumber" class="hasSerialNumber">{{ __('product.requires_serial_number') }}</label>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="hasSerialNumber" id="updateHasSerialNumber" value="1">
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 form-group mb-3">

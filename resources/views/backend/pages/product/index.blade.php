@@ -175,6 +175,37 @@
         // Define ckEditors as a global variable
         window.ckEditors = {};
 
+        // Real Conditie property options, for the inline relink dropdown on unlinked
+        // variants. Prefetched once here so it's ready by the time the variant grid
+        // renders.
+        let conditieOptionsCache = [];
+        let conditieOptionIdSet = new Set();
+        $.get("{{ route('product.getConditieOptions') }}", function(response) {
+            conditieOptionsCache = response.options || [];
+            conditieOptionIdSet = new Set(conditieOptionsCache.map(o => o.id));
+        });
+
+        function buildConditieOptionsHtml() {
+            if (!conditieOptionsCache.length) {
+                return '<option value="">...</option>';
+            }
+            let html = '<option value="">{{ __('product.select_option_first') }}</option>';
+            conditieOptionsCache.forEach(function(option) {
+                html += `<option value="${option.id}">${option.name}</option>`;
+            });
+            return html;
+        }
+
+        // Whether a variant actually has a real Conditie option linked. This is
+        // deliberately independent of the "N/A" label text: a variant can be missing
+        // its Condition entirely (no such optionId at all) while still showing a
+        // resolved label for some other property (color, size, ...), which the plain
+        // N/A-label check alone would miss.
+        function hasConditieOption(product) {
+            const optionIds = product.attributes?.optionIds || [];
+            return optionIds.some(id => conditieOptionIdSet.has(id));
+        }
+
         $(document).ready(function() {
             document.querySelectorAll('.description-editor').forEach((el, index) => {
                 const editorId = el.id || `editor-${index}`;
@@ -380,17 +411,39 @@
                                     bolNlPrice = bolNlPrice ? parseFloat(bolNlPrice).toFixed(2).replace('.', ',') : '-';
                                     bolBePrice = bolBePrice ? parseFloat(bolBePrice).toFixed(2).replace('.', ',') : '-';
 
-                                    // Create a new row for the table
+                                    // Ghost-variant cleanup: gated delete (stock must be 0; the server
+                                    // re-checks stock and orders regardless of this client-side hint)
+                                    // and an inline relink for variants showing N/A.
+                                    const rowStock = parseInt(product.attributes.stock || 0);
+                                    const deleteDisabledAttr = rowStock > 0 ? 'disabled title="{{ __('product.variant_delete_blocked_stock') }}"' : '';
+                                    // Only actual variants that are genuinely missing a real Conditie
+                                    // option get the control — checked directly (hasConditieOption),
+                                    // not via the N/A label text, since a variant can be missing its
+                                    // Condition entirely while still showing a label for some other
+                                    // property (color, size, ...). The parent's own row is excluded
+                                    // since relinking a parent isn't a real action.
+                                    const conditieRelinkHtml = (!hasConditieOption(product) && product.attributes.parentId) ? `
+                                        <div class="input-group input-group-sm mt-1" style="min-width:200px;">
+                                            <select class="form-control conditie-relink-select">${buildConditieOptionsHtml()}</select>
+                                            <button type="button" class="btn btn-outline-success conditie-relink-btn" data-product-id="${product.id}">{{ __('product.link_conditie') }}</button>
+                                        </div>` : '';
+
+const rowProductName = product.attributes.translated?.name || product.attributes.name || response.product.name || '-';
+                                    const rowDisplayName = propertyGroupNames ? `${rowProductName} (${propertyGroupNames})` : rowProductName;
                                     const productRow = `
                                         <tr data-product-id="${product.id}">
-                                        <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
+                                        <td>${rowDisplayName}</td>
                                         <td class="d-none">${product.attributes.ean || '-'}</td>
                                         <td>${product.attributes.productNumber || '-'}</td>
                                         <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
                                         <td>${dgmPrice !== '-' ? '€' + dgmPrice : '-'}</td>
                                         <td>${bolNlPrice !== '-' ? '€' + bolNlPrice : '-'}</td>
                                         <td>${bolBePrice !== '-' ? '€' + bolBePrice : '-'}</td>
-                                        <td><button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_product') }}</button></td>
+                                        <td>
+                                            <button class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_product') }}</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm variant-delete-btn mt-1" data-product-id="${product.id}" ${deleteDisabledAttr}>{{ __('product.delete') }}</button>
+                                            ${conditieRelinkHtml}
+                                        </td>
                                         </tr>
                                         `;
                                     $('#productTable-update tbody').append(productRow);
@@ -472,7 +525,7 @@
                             // Create a new row for the table
                             const productRow = `
                                 <tr data-product-id="${product.id}">
-                                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
+                                <td>${(product.attributes.translated?.name || product.attributes.name || (typeof response !== 'undefined' && response.product ? response.product.name : (typeof allProductData !== 'undefined' ? allProductData.name : '')) || '-') + (propertyGroupNames ? ' (' + propertyGroupNames + ')' : '')}</td>
                                 <td class="d-none">${product.attributes.ean || '-'}</td>
                                 <td>${product.attributes.productNumber || '-'}</td>
                                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
@@ -540,17 +593,38 @@
                             bolNlPrice = bolNlPrice ? parseFloat(bolNlPrice).toFixed(2).replace('.', ',') : '-';
                             bolBePrice = bolBePrice ? parseFloat(bolBePrice).toFixed(2).replace('.', ',') : '-';
 
+                            // Ghost-variant cleanup: gated delete (stock must be 0; the server
+                            // re-checks stock and orders regardless of this client-side hint)
+                            // and an inline relink for variants showing N/A.
+                            const rowStock = parseInt(product.attributes.stock || 0);
+                            const deleteDisabledAttr = rowStock > 0 ? 'disabled title="{{ __('product.variant_delete_blocked_stock') }}"' : '';
+                            // Only actual variants that are genuinely missing a real Conditie
+                            // option get the control — checked directly (hasConditieOption),
+                            // not via the N/A label text, since a variant can be missing its
+                            // Condition entirely while still showing a label for some other
+                            // property (color, size, ...). The parent's own row is excluded
+                            // since relinking a parent isn't a real action.
+                            const conditieRelinkHtml = (!hasConditieOption(product) && product.attributes.parentId) ? `
+                                <div class="input-group input-group-sm mt-1" style="min-width:200px;">
+                                    <select class="form-control conditie-relink-select">${buildConditieOptionsHtml()}</select>
+                                    <button type="button" class="btn btn-outline-success conditie-relink-btn" data-product-id="${product.id}">{{ __('product.link_conditie') }}</button>
+                                </div>` : '';
+
                             // Create a new row for the table
                             const productRow = `
                                 <tr data-product-id="${product.id}">
-                                <td>${product.attributes.translated?.name + "(" + propertyGroupNames + ")" || '-'}</td>
+                                <td>${(product.attributes.translated?.name || product.attributes.name || (typeof response !== 'undefined' && response.product ? response.product.name : (typeof allProductData !== 'undefined' ? allProductData.name : '')) || '-') + (propertyGroupNames ? ' (' + propertyGroupNames + ')' : '')}</td>
                                 <td class="d-none">${product.attributes.ean || '-'}</td>
                                 <td>${product.attributes.productNumber || '-'}</td>
                                 <td><input type="number" class="form-control" value="${product.attributes.stock || '0'}" disabled></td>
                                 <td>${dgmPrice !== '-' ? '€' + dgmPrice : '-'}</td>
                                 <td>${bolNlPrice !== '-' ? '€' + bolNlPrice : '-'}</td>
                                 <td>${bolBePrice !== '-' ? '€' + bolBePrice : '-'}</td>
-                                <td><button type="button" class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_product') }}</button></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary update-stock-btn" data-product-id="${product.id}" data-product-ean="${product.attributes.ean}">{{ __('product.update_product') }}</button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm variant-delete-btn mt-1" data-product-id="${product.id}" ${deleteDisabledAttr}>{{ __('product.delete') }}</button>
+                                    ${conditieRelinkHtml}
+                                </td>
                                 `;
                             $('#productTable-update tbody').append(productRow);
                         });
@@ -616,6 +690,77 @@
             });
 
             // Handle Update Data button (Update stock)
+
+            // Ghost-variant cleanup: delete a single variant. The button is only
+            // enabled client-side when stock is 0; the server independently
+            // re-checks stock and any attached orders before deleting anything.
+            $(document).on('click', '.variant-delete-btn', function() {
+                if ($(this).is('[disabled]')) {
+                    return;
+                }
+                const productId = $(this).data('product-id');
+                if (!confirm('{{ __('product.confirm_variant_delete') }}')) {
+                    return;
+                }
+                const $btn = $(this);
+                const $row = $btn.closest('tr');
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: "{{ route('product.deleteVariant') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        product_id: productId
+                    },
+                    success: function(response) {
+                        $row.remove();
+                        alert(response.message || '{{ __('product.variant_deleted_successfully') }}');
+                    },
+                    error: function(xhr) {
+                        $btn.prop('disabled', false);
+                        let errorMessage = '{{ __('product.failed_to_update_product') }}';
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = xhr.responseJSON.errors;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            });
+
+            // Ghost-variant cleanup: link the real Conditie option on a variant
+            // currently showing as N/A, without needing Shopware admin.
+            $(document).on('click', '.conditie-relink-btn', function() {
+                const $btn = $(this);
+                const $row = $btn.closest('tr');
+                const optionId = $row.find('.conditie-relink-select').val();
+                if (!optionId) {
+                    alert('{{ __('product.select_option_first') }}');
+                    return;
+                }
+                const productId = $btn.data('product-id');
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: "{{ route('product.relinkConditie') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        product_id: productId,
+                        option_id: optionId
+                    },
+                    success: function(response) {
+                        alert(response.message || '{{ __('product.product_updated_successfully') }}');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        $btn.prop('disabled', false);
+                        let errorMessage = '{{ __('product.failed_to_update_product') }}';
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = xhr.responseJSON.errors;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            });
 
             $(document).on('click', '.update-stock-btn', function() {
                 const row = $(this).closest('tr');
@@ -697,7 +842,7 @@
                     $('#updateListPriceNet').val(listPriceNet);
 
                     // BOL prices and settings with parent fallback
-                    let bolNlPrice = '', bolBePrice = '', bolNlActive = false, bolBeActive = false, bolProductShortDescription = '';
+                    let bolNlPrice = '', bolBePrice = '', bolNlActive = false, bolBeActive = false, bolProductShortDescription = '', hasSerialNumber = false;
                     if (productData.attributes.customFields) {
                         bolNlPrice = productData.attributes.customFields.migration_DMG_product_bol_price_nl || '';
                         bolBePrice = productData.attributes.customFields.migration_DMG_product_bol_price_be || '';
@@ -706,6 +851,7 @@
                         bolProductShortDescription = typeof productData.attributes.customFields.custom_product_message_ === 'string'
                             ? productData.attributes.customFields.custom_product_message_
                             : '';
+                        hasSerialNumber = productData.attributes.customFields.has_serial_number || false;
                     }
 
                     // Fallback to parent BOL data if variant data is empty
@@ -720,12 +866,16 @@
                             ? parentData.attributes.customFields.custom_product_message_
                             : '';
                     }
+                    if (!hasSerialNumber && parentData && parentData.attributes?.customFields) {
+                        hasSerialNumber = parentData.attributes.customFields.has_serial_number || false;
+                    }
 
                     $('#updateBolNlPrice').val(bolNlPrice);
                     $('#updateBolBePrice').val(bolBePrice);
                     $('#updateBolNlActive').prop('checked', bolNlActive);
                     $('#updateBolBeActive').prop('checked', bolBeActive);
                     $('#updateShortDescription').val(bolProductShortDescription);
+                    $('#updateHasSerialNumber').prop('checked', hasSerialNumber);
 
                     // Set shipping information fields with parent fallback
                     let bolNLDeliveryTime = '', bolBEDeliveryTime = '', bolCondition = '', bolConditionDescription = '';

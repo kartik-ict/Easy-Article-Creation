@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Backend\Auth\LoginController;
+use App\Http\Controllers\Backend\BolImageImportController;
 use App\Http\Controllers\Backend\CategoryController;
 use App\Http\Controllers\Backend\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -111,6 +112,23 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/category', [ProductController::class, 'categorySearch'])->name('product.categorySearch')->middleware('can:product.create');
         Route::post('/fetch-tax-providers', [ProductController::class, 'fetchTaxProviders'])->name('product.fetchTax')->middleware('can:product.create');
         Route::post('/product/update-stock', [ProductController::class, 'updateStock'])->name('product.update_stock')->middleware('can:product.create');
+
+        // DGM-312 — Stock Correction (Voorraad verlagen). Additive — new routes only.
+        Route::get('/stock-correction', [ProductController::class, 'stockCorrectionIndex'])->name('stock.correction.index')->middleware('can:product.create');
+        Route::post('/stock-correction/decrease', [ProductController::class, 'decreaseStock'])->name('stock.correction.decrease')->middleware('can:product.create');
+
+        // DGM-307 — Serial Numbers lookup (read-only). Additive — new routes only.
+        Route::get('/serial-numbers', [ProductController::class, 'serialNumbersIndex'])->name('serial-numbers.index')->middleware('can:product.create');
+        Route::post('/serial-numbers/search', [ProductController::class, 'searchSerialNumbers'])->name('serial-numbers.search')->middleware('can:product.create');
+
+        // Bol circular-pilot image import — additive, own controller (bigger surface than a lookup-only page).
+        Route::get('/bol-image-import', [BolImageImportController::class, 'index'])->name('bol-image-import.index')->middleware('can:product.create');
+        Route::post('/bol-image-import/sync-mappings', [BolImageImportController::class, 'syncOfferMappings'])->name('bol-image-import.sync-mappings')->middleware('can:product.create');
+        Route::post('/bol-image-import/lookup', [BolImageImportController::class, 'lookup'])->name('bol-image-import.lookup')->middleware('can:product.create');
+        Route::post('/bol-image-import/upload-photo', [BolImageImportController::class, 'uploadPhoto'])->name('bol-image-import.upload-photo')->middleware('can:product.create');
+        Route::post('/bol-image-import/push', [BolImageImportController::class, 'pushImages'])->name('bol-image-import.push')->middleware('can:product.create');
+        Route::post('/bol-image-import/batches/{batchId}/check-status', [BolImageImportController::class, 'checkBatchStatus'])->name('bol-image-import.check-status')->middleware('can:product.create');
+
         Route::post('/product/propertyGroupSearch', [ProductController::class, 'propertyGroupSearch'])->name('product.propertyGroupSearch')->middleware('can:product.create');
         Route::post('/product/propertyGroupOptionSearch', [ProductController::class, 'propertyGroupOption'])->name('product.propertyGroupOptionSearch')->middleware('can:product.create');
         Route::post('/product/propertySave', [ProductController::class, 'savePropertyOption'])->name('product.savePropertyOption')->middleware('can:product.create');
@@ -122,6 +140,11 @@ Route::group(['prefix' => 'admin'], function () {
 
         Route::post('/warehouse', [ProductController::class, 'warehouseSearch'])->name('product.warehouseSearch')->middleware('can:product.create');
         Route::post('/bin-location', [ProductController::class, 'binLocationSearch'])->name('product.binLocationSearch')->middleware('can:product.create');
+
+        // Ghost-variant cleanup: safe delete (stock=0, no orders) + Conditie relink for N/A variants
+        Route::get('/product/conditie-options', [ProductController::class, 'getConditieOptions'])->name('product.getConditieOptions')->middleware('can:product.create');
+        Route::post('/product/variant/relink-conditie', [ProductController::class, 'relinkConditie'])->name('product.relinkConditie')->middleware('can:product.create');
+        Route::post('/product/variant/delete', [ProductController::class, 'deleteVariant'])->name('product.deleteVariant')->middleware('can:product.create');
 
         // Product Logs
         Route::get('/product-logs', [\App\Http\Controllers\Backend\ProductLogController::class, 'index'])->name('product-logs.index')->middleware('can:product.create');

@@ -31,6 +31,24 @@
                         </li>
                     @endif
 
+                    @if ($usr->can('product.create'))
+                        <li class="{{ Route::is('stock.correction.index') ? 'active' : '' }}">
+                            <a href="{{ route('stock.correction.index') }}"><i class="fa fa-minus-circle"></i><span>{{ trans('custom.stock_correction') }}</span></a>
+                        </li>
+                    @endif
+
+                    @if ($usr->can('product.create'))
+                        <li class="{{ Route::is('serial-numbers.index') ? 'active' : '' }}">
+                            <a href="{{ route('serial-numbers.index') }}"><i class="fa fa-barcode"></i><span>{{ trans('custom.serial_numbers') }}</span></a>
+                        </li>
+                    @endif
+
+                    @if ($usr->can('product.create'))
+                        <li class="{{ Route::is('bol-image-import.index') ? 'active' : '' }}">
+                            <a href="{{ route('bol-image-import.index') }}"><i class="fa fa-image"></i><span>{{ trans('custom.bol_image_import') }}</span></a>
+                        </li>
+                    @endif
+
 
                     {{-- <li class="{{ Route::is('admin.product.list')  ? 'active' : '' }}">
                         <a href="{{ route('admin.product.list') }}">{{ trans('custom.list') }}</a>
