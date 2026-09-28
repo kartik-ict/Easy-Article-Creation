@@ -35,6 +35,7 @@ class BolAuthService
                 'auth' => [config('bol.client_id'), config('bol.client_secret')],
                 'form_params' => [
                     'grant_type' => 'client_credentials',
+                    'scope' => 'retailer',
                 ],
             ]);
 
@@ -83,7 +84,7 @@ class BolAuthService
                 ];
                 if (!empty($data)) {
                     $options['json'] = $data;
-                    $options['headers']['Content-Type'] = 'application/vnd.retailer.v10+json';
+                    $options['headers']['Content-Type'] = $accept;
                 }
 
                 $response = $this->client->request($method, $this->apiUrl . $endpoint, $options);

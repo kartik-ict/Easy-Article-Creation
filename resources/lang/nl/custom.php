@@ -34,6 +34,8 @@ return [
     'newProduct' => 'Nieuw product maken',
     'updateProduct' => 'Product bijwerken',
     'product_logs' => 'Product Logs',
+    'stock_correction' => 'Voorraad verlagen',
+    'serial_numbers' => 'Serienummers',
     'bol_image_import' => 'Bol foto import',
     'bol_offer_mappings' => 'Bol offer koppelingen',
     'sync_offer_mappings' => 'Offer koppelingen synchroniseren',

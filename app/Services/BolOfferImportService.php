@@ -215,7 +215,7 @@ class BolOfferImportService
         $path = str_replace('{offerId}', $mapping->offer_id, config('bol.offer_import_path'));
         $response = $this->bolAuth->makeApiRequest('POST', $path, [
             'assets' => array_map(fn (string $url) => ['url' => $url], $imageUrls),
-        ]);
+        ], 3, 'application/vnd.retailer.v11-pilot-bulk-image-import+json');
 
         if (isset($response['error'])) {
             return ['error' => $response['error']];
@@ -247,7 +247,7 @@ class BolOfferImportService
             [$batch->offer_id, $batch->batch_id],
             config('bol.offer_import_status_path')
         );
-        $response = $this->bolAuth->makeApiRequest('GET', $path);
+        $response = $this->bolAuth->makeApiRequest('GET', $path, [], 3, 'application/vnd.retailer.v11-pilot-bulk-image-import+json');
 
         if (isset($response['error'])) {
             $batch->error = $response['error'];

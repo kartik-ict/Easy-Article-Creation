@@ -8,6 +8,6 @@ return [
     // The circular-pilot image-import endpoint is still experimental on Bol's side (confirmed
     // via their own engineer: "the api path will still change"), so its path is a config value
     // rather than hardcoded — swapping it later is a one-line env change, not a code change.
-    'offer_import_path' => env('BOL_OFFER_IMPORT_PATH', '/public-api/offers/{offerId}/import'),
-    'offer_import_status_path' => env('BOL_OFFER_IMPORT_STATUS_PATH', '/public-api/offers/{offerId}/import/{batchId}'),
+    'offer_import_path' => env('BOL_OFFER_IMPORT_PATH', '/retailer/offers/{offerId}/image-imports'),
+    'offer_import_status_path' => env('BOL_OFFER_IMPORT_STATUS_PATH', '/retailer/offers/{offerId}/image-imports/{batchId}'),
 ];
