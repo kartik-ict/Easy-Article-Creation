@@ -35,6 +35,7 @@ class BolAuthService
                 'auth' => [config('bol.client_id'), config('bol.client_secret')],
                 'form_params' => [
                     'grant_type' => 'client_credentials',
+                    'scope' => 'retailer',
                 ],
             ]);
 
