@@ -727,6 +727,44 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                 });
             });
 
+            // DGM-309 hotfix — detaches the handler above and attaches a new one, rather
+            // than editing its body, per Kartik's instruction. Identical except it posts to
+            // deleteVariantSafe (rejects deleting a parent product outright) instead of the
+            // old deleteVariant, which had no protection against being called on a parent
+            // and would cascade-delete every variant under it.
+            $(document).off('click', '.variant-delete-btn').on('click', '.variant-delete-btn', function() {
+                if ($(this).is('[disabled]')) {
+                    return;
+                }
+                const productId = $(this).data('product-id');
+                if (!confirm('{{ __('product.confirm_variant_delete') }}')) {
+                    return;
+                }
+                const $btn = $(this);
+                const $row = $btn.closest('tr');
+                $btn.prop('disabled', true);
+                $.ajax({
+                    url: "{{ route('product.deleteVariantSafe') }}",
+                    method: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        product_id: productId
+                    },
+                    success: function(response) {
+                        $row.remove();
+                        alert(response.message || '{{ __('product.variant_deleted_successfully') }}');
+                    },
+                    error: function(xhr) {
+                        $btn.prop('disabled', false);
+                        let errorMessage = '{{ __('product.failed_to_update_product') }}';
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = xhr.responseJSON.errors;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            });
+
             // Ghost-variant cleanup: link the real Conditie option on a variant
             // currently showing as N/A, without needing Shopware admin.
             $(document).on('click', '.conditie-relink-btn', function() {
@@ -1331,4 +1369,40 @@ const rowProductName = product.attributes.translated?.name || product.attributes
     </script>
     <script src="{{ asset('backend/assets/js/common-select2.js') }}"></script>
     <script src="{{ asset('backend/assets/js/common-bol.js') }}"></script>
+    <script>
+        // DGM-309 follow-up — greys out the delete button for variants with order history
+        // too, not just current stock, matching what deleteVariantSafe already enforces
+        // server-side. Fully decoupled from the rendering code above (listens for the
+        // product-search AJAX completing rather than editing any existing function), per
+        // Kartik's instruction.
+        $(document).ajaxComplete(function(event, xhr, settings) {
+            if (settings.url !== "{{ route('product.search') }}") {
+                return;
+            }
+
+            const productIds = $('.variant-delete-btn:not([disabled])').map(function() {
+                return $(this).data('product-id');
+            }).get();
+
+            if (productIds.length === 0) {
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('product.checkVariantsHaveOrders') }}",
+                method: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    product_ids: productIds
+                },
+                success: function(res) {
+                    (res.productIdsWithOrders || []).forEach(function(id) {
+                        $('.variant-delete-btn[data-product-id="' + id + '"]')
+                            .prop('disabled', true)
+                            .attr('title', '{{ __('product.variant_delete_blocked_orders') }}');
+                    });
+                }
+            });
+        });
+    </script>
 @endsection

@@ -148,6 +148,10 @@ Route::group(['prefix' => 'admin'], function () {
         Route::get('/product/conditie-options', [ProductController::class, 'getConditieOptions'])->name('product.getConditieOptions')->middleware('can:product.create');
         Route::post('/product/variant/relink-conditie', [ProductController::class, 'relinkConditie'])->name('product.relinkConditie')->middleware('can:product.create');
         Route::post('/product/variant/delete', [ProductController::class, 'deleteVariant'])->name('product.deleteVariant')->middleware('can:product.create');
+        // DGM-309 hotfix — new route/function, deleteVariant itself untouched per Kartik's instruction.
+        Route::post('/product/variant/delete-safe', [ProductController::class, 'deleteVariantSafe'])->name('product.deleteVariantSafe')->middleware('can:product.create');
+        // DGM-309 follow-up — read-only, greys out delete buttons client-side for variants with order history.
+        Route::post('/product/variants/check-orders', [ProductController::class, 'checkVariantsHaveOrders'])->name('product.checkVariantsHaveOrders')->middleware('can:product.create');
 
         // Product Logs
         Route::get('/product-logs', [\App\Http\Controllers\Backend\ProductLogController::class, 'index'])->name('product-logs.index')->middleware('can:product.create');

@@ -1920,6 +1920,67 @@ class ProductController extends Controller
      * ever referenced it. Every delete is written to product_logs for audit. This
      * never touches the parent product or any sibling variant.
      */
+    /**
+     * DGM-309 hotfix — deleteVariant's own docblock says it "never touches the parent
+     * product or any sibling variant", but nothing actually enforced that: a parent
+     * product's own stock is 0 and no order ever references a parent's id directly (orders
+     * reference the specific variant purchased), so both of deleteVariant's existing safety
+     * checks trivially pass when called on a PARENT product — and deleting a parent via the
+     * Shopware API cascades, destroying every variant under it. Confirmed live on staging:
+     * deleting "SW10831" (a parent) silently cascaded and removed "SW10831.1" and its real
+     * stock/order history along with it.
+     *
+     * This rejects the delete outright if the target has no parentId (i.e. it IS a parent,
+     * not a real variant), before deleteVariant's own checks ever run. A new function
+     * rather than a condition added to deleteVariant itself, per Kartik's instruction —
+     * delegates to the untouched original once this extra check passes.
+     */
+    /**
+     * DGM-309 follow-up — lets the frontend grey out the delete button for variants that
+     * have order history, not just current stock, matching what deleteVariantSafe already
+     * enforces server-side (a variant with 0 stock but real orders currently shows as
+     * clickable, which is what alarmed Rory even though the backend does block it). A new,
+     * read-only endpoint rather than a condition added to any existing rendering logic, per
+     * Kartik's instruction.
+     */
+    public function checkVariantsHaveOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'product_ids' => ['required', 'array'],
+            'product_ids.*' => ['string', 'regex:/^[0-9a-f]{32}$/'],
+        ]);
+
+        $response = $this->shopwareApiService->makeApiRequest('POST', '/api/search/order-line-item', [
+            'filter' => [['type' => 'equalsAny', 'field' => 'productId', 'value' => $validated['product_ids']]],
+            'limit' => 1,
+            'aggregations' => [
+                ['name' => 'products_with_orders', 'type' => 'terms', 'field' => 'productId'],
+            ],
+        ]);
+
+        $productIdsWithOrders = array_column($response['aggregations']['products_with_orders']['buckets'] ?? [], 'key');
+
+        return response()->json(['productIdsWithOrders' => array_values(array_filter($productIdsWithOrders))]);
+    }
+
+    public function deleteVariantSafe(Request $request)
+    {
+        $validatedData = $request->validate([
+            'product_id' => 'required|string|regex:/^[0-9a-f]{32}$/',
+        ]);
+
+        $product = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
+        if (!isset($product['data'])) {
+            return response()->json(['errors' => __('product.failed_to_update_product')], 404);
+        }
+
+        if (empty($product['data']['attributes']['parentId'])) {
+            return response()->json(['errors' => __('product.variant_delete_blocked_is_parent')], 400);
+        }
+
+        return $this->deleteVariant($request);
+    }
+
     public function deleteVariant(Request $request)
     {
         $validatedData = $request->validate([

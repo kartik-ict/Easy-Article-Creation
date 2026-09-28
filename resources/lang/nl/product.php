@@ -141,6 +141,7 @@ return [
     'failed_to_update_product'                      => 'Het is niet gelukt om het product bij te werken.',
     'variant_delete_blocked_stock'                   => 'Kan niet verwijderen: deze variant heeft nog voorraad.',
     'variant_delete_blocked_orders'                  => 'Kan niet verwijderen: deze variant is gekoppeld aan een order.',
+    'variant_delete_blocked_is_parent'               => 'Kan niet verwijderen: dit is een hoofdproduct, geen variant. Verwijderen zou alle bijbehorende varianten verwijderen.',
     'variant_deleted_successfully'                    => 'Variant verwijderd.',
     'delete'                                         => 'Verwijderen',
     'link_conditie'                                   => 'Koppelen',
