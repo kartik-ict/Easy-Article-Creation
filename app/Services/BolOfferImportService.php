@@ -212,6 +212,8 @@ class BolOfferImportService
             return ['error' => 'No Bol offer ID known for this product yet — run a mapping sync first.'];
         }
 
+        $imageUrls = $this->sanitizeImageUrlsForBol($imageUrls);
+
         $path = str_replace('{offerId}', $mapping->offer_id, config('bol.offer_import_path'));
         $response = $this->bolAuth->makeApiRequest('POST', $path, [
             'assets' => array_map(fn (string $url) => ['url' => $url], $imageUrls),
@@ -286,5 +288,131 @@ class BolOfferImportService
         }
 
         return $rows;
+    }
+
+    /**
+     * Bol's own validation bot (BolcomAssetFox) double-URL-encodes a url it's given before
+     * fetching it — confirmed via nginx logs: a submitted ".../Sw%201_....jpg" was re-requested
+     * by Bol as ".../Sw%25201_....jpg" (the literal "%" re-encoded to "%25"), a 404 on our end
+     * every time, which Bol then reports back as a generic "Validation timed out" rather than a
+     * clear not-found. Any percent-encoded character trips this, not just spaces.
+     *
+     * Renames the underlying Shopware media to a filename with nothing left to re-encode, then
+     * submits whatever url Shopware now actually serves that same image/thumbnail at — rather
+     * than just rejecting/warning, since the fix (a safe filename) is something we can actually
+     * make true going forward. The submitted urls are thumbnail variants (e.g. "..._1920x1440"),
+     * and confirmed by direct testing that renaming a media also changes its *hash path*
+     * segments, not just the filename — so the new url is read back from Shopware after the
+     * rename rather than guessed by string-editing the old one, which would produce a url that
+     * doesn't resolve at all. Never blocks submission over this: a url that can't be
+     * matched/renamed/re-resolved for any reason is submitted exactly as given, so a
+     * sanitization failure can only fall back to today's behaviour, never add a new way to fail.
+     *
+     * @param string[] $imageUrls
+     * @return string[]
+     */
+    private function sanitizeImageUrlsForBol(array $imageUrls): array
+    {
+        return array_map(function (string $url) {
+            try {
+                $parsed = parse_url($url);
+                $path = $parsed['path'] ?? '';
+                if ($path === '' || !str_contains($path, '%')) {
+                    return $url;
+                }
+
+                $segments = explode('/', $path);
+                $encodedFileName = array_pop($segments);
+                $decodedFileName = rawurldecode($encodedFileName);
+                $extension = pathinfo($decodedFileName, PATHINFO_EXTENSION);
+                $baseName = pathinfo($decodedFileName, PATHINFO_FILENAME);
+
+                // Thumbnail file names end in "_{width}x{height}" appended after the media's
+                // own fileName — stripped here to get the actual fileName to search/rename, and
+                // the width/height are kept to find the matching thumbnail's url afterward.
+                $thumbnailDimensions = null;
+                $mediaBaseName = $baseName;
+                if (preg_match('/^(.*)_(\d+)x(\d+)$/', $baseName, $matches)) {
+                    $mediaBaseName = $matches[1];
+                    $thumbnailDimensions = ['width' => (int) $matches[2], 'height' => (int) $matches[3]];
+                }
+
+                $safeBaseName = preg_replace('/[^A-Za-z0-9_-]+/', '_', $mediaBaseName);
+                if ($safeBaseName === null || $safeBaseName === $mediaBaseName) {
+                    return $url;
+                }
+
+                $newUrl = $this->renameShopwareMediaAndGetUrl($mediaBaseName, $safeBaseName, $thumbnailDimensions);
+
+                return $newUrl ?? $url;
+            } catch (\Throwable $e) {
+                Log::warning('[bol-image-import] URL sanitization failed, submitting original url as-is', [
+                    'url' => $url,
+                    'exception' => $e->getMessage(),
+                ]);
+
+                return $url;
+            }
+        }, $imageUrls);
+    }
+
+    /**
+     * Renames the Shopware media matching $currentFileName to $newFileName, then returns the
+     * url Shopware now actually serves it at — the matching thumbnail's url if
+     * $thumbnailDimensions was given and a matching size exists, otherwise the base media url.
+     * Returns null on any failure (no matching media, rename rejected, etc.) rather than
+     * constructing a guessed url.
+     *
+     * @param array{width: int, height: int}|null $thumbnailDimensions
+     */
+    private function renameShopwareMediaAndGetUrl(
+        string $currentFileName,
+        string $newFileName,
+        ?array $thumbnailDimensions
+    ): ?string {
+        $search = $this->shopwareAuth->makeApiRequest('POST', '/api/search/media', [
+            'filter' => [
+                ['type' => 'equals', 'field' => 'fileName', 'value' => $currentFileName],
+            ],
+            'limit' => 1,
+        ]);
+
+        $mediaId = $search['data'][0]['id'] ?? null;
+        if (!$mediaId) {
+            return null;
+        }
+
+        // The dedicated rename action (not a plain PATCH /api/media/{id}) — confirmed by direct
+        // testing that only this action actually moves the physical file and recomputes the
+        // served path; a plain fileName field PATCH only updates the database column and leaves
+        // the real file (and its URL) untouched, which would have made this fix submit a url to
+        // Bol that doesn't even resolve on our own server.
+        $rename = $this->shopwareAuth->makeApiRequest('POST', '/api/_action/media/' . $mediaId . '/rename', [
+            'fileName' => $newFileName,
+        ]);
+
+        if (isset($rename['error'])) {
+            return null;
+        }
+
+        $fresh = $this->shopwareAuth->makeApiRequest(
+            'GET',
+            '/api/media/' . $mediaId . '?associations[thumbnails][]'
+        );
+
+        if ($thumbnailDimensions !== null) {
+            foreach ($fresh['included'] ?? [] as $included) {
+                $attrs = $included['attributes'] ?? [];
+                if (
+                    ($attrs['width'] ?? null) === $thumbnailDimensions['width']
+                    && ($attrs['height'] ?? null) === $thumbnailDimensions['height']
+                    && isset($attrs['url'])
+                ) {
+                    return $attrs['url'];
+                }
+            }
+        }
+
+        return $fresh['data']['attributes']['url'] ?? null;
     }
 }
