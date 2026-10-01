@@ -60,6 +60,10 @@
                             <div class="col-md-6 form-group mb-3">
                                 <label for="stock">@lang('product.stock'):</label>
                                 <input type="number" class="form-control" id="stock" name="stock" required>
+                                <div class="form-group mt-3" id="serialNumberGroup" style="display: none;">
+                                    <label for="serialNumber">@lang('product.serial_number') <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="serialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
+                                </div>
                             </div>
 
 
@@ -306,12 +310,6 @@
                                 </select>
                             </div>
                             <input type="hidden" name="warehouse" value="{{ $admin->warehouse_id }}" />
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6 form-group" id="serialNumberGroup" style="display: none;">
-                                <label for="serialNumber">@lang('product.serial_number') <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="serialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
-                            </div>
                         </div>
 
                         {{-- Hidden Fields Start --}}
