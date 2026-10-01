@@ -1578,6 +1578,17 @@ $('#addPropertyOptionBtn').on('click', function () {
                 $('#swPurchasePrice').val(product.attributes.purchasePrices[0].gross || '');
             }
 
+            // DGM-310: this "add property option -> open Stap 4" flow is a separate
+            // implementation from the one in index.blade.php (.edit-details-btn) and never
+            // toggled the serial number field at all, so it stayed hidden here even when the
+            // parent requires it. Reuses the same window-level helper index.blade.php defines
+            // for that other flow, rather than duplicating the fallback logic again.
+            if (typeof dgm310NewVariantRequiresSerialNumber === 'function') {
+                const requiresSerialNumber = dgm310NewVariantRequiresSerialNumber(product);
+                $('#serialNumberGroup').toggle(requiresSerialNumber);
+                $('#serialNumber').val('');
+            }
+
             // Product data is available in global allProductData
 
         });

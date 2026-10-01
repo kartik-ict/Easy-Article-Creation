@@ -235,6 +235,30 @@
                 }
             });
             const apiUrl = "{{ url('/api/product') }}";
+
+            // DGM-310 feedback: the "create new variant" flow's own serial-number toggle only
+            // checked productData's own has_serial_number, with no parent fallback — unlike the
+            // already-working "update variant" flow, which has its own local parentData. The
+            // create-new-variant handler (.edit-details-btn) never derives a local parentData at
+            // all, so this reads allProductData.parentData directly (the same source every other
+            // handler's local parentData is itself just assigned from) rather than requiring a
+            // parameter that handler doesn't have. When a variant doesn't yet carry the flag
+            // itself but its parent requires it, the field never showed at all, even though the
+            // backend still enforced the requirement — forcing Rory's manual
+            // toggle-off/create/toggle-on workaround.
+            // Assigned on window explicitly (not a plain function declaration): this whole
+            // block sits inside the page's main $(document).ready(...) closure, so a plain
+            // declaration here would be local to that closure and invisible to
+            // common-select2.js — a separate <script src> that populates the same Stap 4
+            // modal through a different, duplicate code path and needs to call this too.
+            window.dgm310NewVariantRequiresSerialNumber = function(productData) {
+                if (productData?.attributes?.customFields?.has_serial_number) {
+                    return true;
+                }
+                const parentData = allProductData?.parentData;
+                return !!(parentData && parentData.attributes?.customFields?.has_serial_number);
+            };
+
             let productDetails = {};
             let selectedGrade = "";
             let productRow = "";
@@ -1188,7 +1212,9 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                     // DGM-307 feedback: the variant always inherits "Vereist serienummer"
                     // from this parent — the serial input only needs to show up here when
                     // the parent requires it, since the backend enforces the inheritance.
-                    const parentRequiresSerialNumber = !!(productData.attributes.customFields && productData.attributes.customFields.has_serial_number);
+                    // DGM-310: falls back to the parent's own flag too — see
+                    // dgm310NewVariantRequiresSerialNumber() above.
+                    const parentRequiresSerialNumber = dgm310NewVariantRequiresSerialNumber(productData);
                     $('#serialNumberGroup').toggle(parentRequiresSerialNumber);
                     $('#serialNumber').val('');
 
