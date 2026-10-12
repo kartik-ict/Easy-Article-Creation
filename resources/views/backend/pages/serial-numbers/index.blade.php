@@ -108,9 +108,6 @@
 
         function doSearch() {
             const query = $('#serialSearchQuery').val().trim();
-            if (!query) {
-                return;
-            }
 
             $('#serialSearchLoading').show();
             $('#serialResultsTable').hide();
@@ -141,6 +138,9 @@
                 doSearch();
             }
         });
+
+        // Default list on page load — same render path, just an empty query.
+        doSearch();
     });
 </script>
 @endsection

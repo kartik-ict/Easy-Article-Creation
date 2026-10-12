@@ -2363,32 +2363,32 @@ class ProductController extends Controller
     /**
      * DGM-307 — AJAX search: by serial number (partial match) or by product number/EAN (exact),
      * whichever the query looks like. Read-only, queries the Admin API only, no writes.
+     *
+     * An empty query lists the most recently recorded serials instead of searching — lets the
+     * page show a default list on load, same table, same render path as a real search.
      */
     public function searchSerialNumbers(Request $request)
     {
         $validated = $request->validate([
-            'query' => ['required', 'string', 'max:255'],
+            'query' => ['nullable', 'string', 'max:255'],
         ]);
-        $query = trim($validated['query']);
+        $query = trim((string) ($validated['query'] ?? ''));
 
-        $filter = [
-            [
-                'type'  => 'contains',
-                'field' => 'serial',
-                'value' => $query,
-            ],
-        ];
-
-        // If nothing matches by serial, try resolving the query as a product number/EAN instead.
         $searchResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/ictech-serial-number', [
-            'filter'      => $filter,
+            'filter'      => $query === '' ? [] : [
+                [
+                    'type'  => 'contains',
+                    'field' => 'serial',
+                    'value' => $query,
+                ],
+            ],
             'associations' => ['product' => new \stdClass()],
             'limit'       => 100,
             'sort'        => [['field' => 'createdAt', 'order' => 'DESC']],
         ]);
         $rows = $searchResponse['data'] ?? [];
 
-        if (empty($rows)) {
+        if (empty($rows) && $query !== '') {
             $productResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product', [
                 'filter' => [
                     [
