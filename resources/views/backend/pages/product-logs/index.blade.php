@@ -63,7 +63,7 @@
                                 <input type="date" id="filter-end-date" class="form-control" placeholder="End Date">
                             </div>
                             <div class="col-md-3">
-                                <button type="button" id="apply-filters" class="btn btn-primary">@lang('product_logs.filter')</button>
+                                <button type="button" id="apply-filters" class="btn btn-success">@lang('product_logs.filter')</button>
                                 <button type="button" id="clear-filters" class="btn btn-secondary">@lang('product_logs.clear')</button>
                             </div>
                         </div>
