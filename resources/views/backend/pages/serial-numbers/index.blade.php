@@ -58,9 +58,36 @@
                                 <th>@lang('product.product_number')</th>
                                 <th>Product</th>
                                 <th>Recorded</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="serialResultsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DGM-307 follow-up: currently in-stock summary, grouped by product -->
+    <div class="row">
+        <div class="col-12 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title float-left">Currently in stock</h4>
+                    <div class="clearfix"></div>
+
+                    <div id="inStockLoading" class="text-muted" style="display:none;">Loading…</div>
+                    <div id="inStockEmpty" class="text-muted" style="display:none;">Nothing currently in stock.</div>
+
+                    <table class="table table-bordered" id="inStockTable" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>@lang('product.product_number')</th>
+                                <th>Product</th>
+                                <th>In stock serials</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inStockBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -91,15 +118,21 @@
                     shipped: 'Shipped',
                     returned: 'Returned',
                     mismatch: 'Mismatch',
+                    stale: 'Stale',
                 }[row.status] || row.status || '-';
 
+                const actionCell = (row.status === 'in_stock' && row.id)
+                    ? '<button type="button" class="btn btn-sm btn-outline-danger btn-mark-stale" data-serial-id="' + row.id + '">Mark as stale</button>'
+                    : '-';
+
                 $body.append(
-                    '<tr>' +
+                    '<tr data-serial-id="' + (row.id || '') + '">' +
                     '<td>' + $('<div>').text(row.serial || '-').html() + '</td>' +
                     '<td>' + $('<div>').text(statusLabel).html() + '</td>' +
                     '<td>' + $('<div>').text(row.productNumber || '-').html() + '</td>' +
                     '<td>' + $('<div>').text(row.productName || '-').html() + '</td>' +
                     '<td>' + $('<div>').text(row.createdAt || '-').html() + '</td>' +
+                    '<td>' + actionCell + '</td>' +
                     '</tr>'
                 );
             });
@@ -139,8 +172,96 @@
             }
         });
 
+        // DGM-307 follow-up — currently in-stock summary, grouped by product.
+        function renderInStock(products) {
+            const $body = $('#inStockBody');
+            $body.empty();
+
+            if (!products || products.length === 0) {
+                $('#inStockTable').hide();
+                $('#inStockEmpty').show();
+                return;
+            }
+
+            $('#inStockEmpty').hide();
+            products.forEach(function (product) {
+                const serialRows = product.serials.map(function (s) {
+                    return '<div class="d-flex align-items-center justify-content-between mb-1" data-serial-id="' + s.id + '" style="border-bottom:1px solid #eee;padding:3px 0;">' +
+                        '<span>' + $('<div>').text(s.serial || '-').html() + '</span>' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger btn-mark-stale-inline ml-2" data-serial-id="' + s.id + '">Mark as stale</button>' +
+                        '</div>';
+                }).join('');
+
+                $body.append(
+                    '<tr data-product-number="' + $('<div>').text(product.productNumber || '').html() + '">' +
+                    '<td>' + $('<div>').text(product.productNumber || '-').html() + '</td>' +
+                    '<td>' + $('<div>').text(product.productName || '-').html() + '</td>' +
+                    '<td>' + serialRows + '</td>' +
+                    '</tr>'
+                );
+            });
+            $('#inStockTable').show();
+        }
+
+        function loadInStockSummary() {
+            $('#inStockLoading').show();
+            $('#inStockTable').hide();
+            $('#inStockEmpty').hide();
+
+            $.ajax({
+                url: '{{ route("serial-numbers.in-stock") }}',
+                method: 'POST',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function (response) {
+                    $('#inStockLoading').hide();
+                    renderInStock(response.products || []);
+                },
+                error: function () {
+                    $('#inStockLoading').hide();
+                    $('#inStockEmpty').text('Failed to load — try again.').show();
+                },
+            });
+        }
+
+        // DGM-307 follow-up — mark a serial as stale (non-destructive), then refresh both
+        // the search results table and the in-stock summary so they stay in sync.
+        function markStale(serialId, $trigger) {
+            if (!serialId) {
+                return;
+            }
+
+            const originalHtml = $trigger.html();
+            $trigger.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: '{{ route("serial-numbers.mark-stale") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    serialId: serialId,
+                },
+                success: function () {
+                    doSearch();
+                    loadInStockSummary();
+                },
+                error: function () {
+                    $trigger.prop('disabled', false).html(originalHtml);
+                    alert('Could not mark this serial as stale — try again.');
+                },
+            });
+        }
+
+        $(document).on('click', '.btn-mark-stale', function () {
+            markStale($(this).data('serial-id'), $(this));
+        });
+        $(document).on('click', '.btn-mark-stale-inline', function (e) {
+            e.preventDefault();
+            markStale($(this).data('serial-id'), $(this));
+        });
+
         // Default list on page load — same render path, just an empty query.
         doSearch();
+        loadInStockSummary();
     });
 </script>
 @endsection

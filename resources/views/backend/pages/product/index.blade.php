@@ -259,6 +259,37 @@
                 return !!(parentData && parentData.attributes?.customFields?.has_serial_number);
             };
 
+            // DGM-307 follow-up #2 — every unit needs its own distinct serial number
+            // (confirmed by Giel), so the single text input is replaced with one input
+            // per unit of stock, regenerated whenever the quantity field changes.
+            // Window-level for the same reason as dgm310NewVariantRequiresSerialNumber
+            // above: common-select2.js (the create-flow "Stap 4" modal, loaded as a
+            // separate <script src> after this inline block) needs to call this too.
+            window.dgm307RegenerateSerialInputs = function(containerSelector, count) {
+                const $container = $(containerSelector);
+                const existingValues = $container.find('input').map(function() {
+                    return $(this).val();
+                }).get();
+
+                $container.empty();
+                const safeCount = Math.max(0, parseInt(count, 10) || 0);
+
+                for (let i = 0; i < safeCount; i++) {
+                    const $input = $('<input>', {
+                        type: 'text',
+                        class: 'form-control mb-2',
+                        name: 'serialNumbers[]',
+                        placeholder: '{{ __('product.enter_serial_number') }} ' + (i + 1),
+                        value: existingValues[i] || '',
+                    });
+                    $container.append($input);
+                }
+            };
+
+            window.dgm307ClearSerialInputs = function(containerSelector) {
+                $(containerSelector).empty();
+            };
+
             let productDetails = {};
             let selectedGrade = "";
             let productRow = "";
@@ -939,7 +970,7 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                     $('#updateShortDescription').val(bolProductShortDescription);
                     $('#updateHasSerialNumber').prop('checked', hasSerialNumber);
                     $('#updateSerialNumberGroup').toggle(hasSerialNumber);
-                    $('#updateSerialNumber').val('');
+                    window.dgm307ClearSerialInputs('#updateSerialNumberInputs');
 
                     // Set shipping information fields with parent fallback
                     let bolNLDeliveryTime = '', bolBEDeliveryTime = '', bolCondition = '', bolConditionDescription = '';
@@ -1102,6 +1133,12 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                 $('#updateSerialNumberGroup').toggle($(this).is(':checked'));
             });
 
+            // DGM-307 follow-up #2 — regenerate one serial-number input per unit
+            // whenever the new-stock quantity changes.
+            $(document).on('input change', '#updateNewStock', function() {
+                window.dgm307RegenerateSerialInputs('#updateSerialNumberInputs', $(this).val());
+            });
+
             // Handle Step 3 product update form submission
             $(document).on('submit', '#product-update-form', function(e) {
                 e.preventDefault();
@@ -1216,7 +1253,10 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                     // dgm310NewVariantRequiresSerialNumber() above.
                     const parentRequiresSerialNumber = dgm310NewVariantRequiresSerialNumber(productData);
                     $('#serialNumberGroup').toggle(parentRequiresSerialNumber);
-                    $('#serialNumber').val('');
+                    window.dgm307ClearSerialInputs('#serialNumberInputs');
+                    if (parentRequiresSerialNumber) {
+                        window.dgm307RegenerateSerialInputs('#serialNumberInputs', $('#stock').val());
+                    }
 
                     // For the `productNumber` field, if there's a `productNumber` field in your data:
                     $('#productNumber').val(productData.attributes.productNumber || '');
