@@ -669,14 +669,21 @@ class ProductController extends Controller
             'bolNLDeliveryTime' => 'nullable|string',
             'bin_location_id' => 'required|string',
             'serialNumbers' => 'nullable|array',
-            'serialNumbers.*' => 'required|string|max:255',
+            // DGM-307 fix: was 'required', which 422'd the whole request on any blank
+            // array entry before reaching the hasSerialNumber-gated check below — the
+            // actual cause of unrelated products failing to save. Emptiness is now
+            // enforced only there, where it belongs.
+            'serialNumbers.*' => 'nullable|string|max:255',
         ]);
 
         // DGM-307 feedback (Rory, 2026-10-26): don't force-inherit "Vereist serienummer"
         // from the parent — it blocked saving unrelated products (shoes, LPs, etc.)
         // whose parent happened to have the flag set. Only require it when the form
         // itself says so.
-        $serialNumbers = $validatedData['serialNumbers'] ?? [];
+        // Blank entries are now allowed through validation above (see note there) so they
+        // don't block unrelated saves — drop them here before the real count/duplicate
+        // checks below, so a genuinely-required blank serial still gets caught correctly.
+        $serialNumbers = array_values(array_filter($validatedData['serialNumbers'] ?? [], fn ($s) => trim((string) $s) !== ''));
 
         if (!empty($validatedData['hasSerialNumber']) && intval($validatedData['stock']) > 0) {
             if (empty($serialNumbers)) {

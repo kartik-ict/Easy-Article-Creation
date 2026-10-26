@@ -1133,6 +1133,18 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                 $('#updateSerialNumberGroup').toggle($(this).is(':checked'));
             });
 
+            // DGM-307 fix: same manual sync for the "create new variant" modal's own
+            // toggle — lets the user override the parent-derived default.
+            $(document).on('change', '#newVariantHasSerialNumber', function() {
+                const checked = $(this).is(':checked');
+                $('#serialNumberGroup').toggle(checked);
+                if (checked) {
+                    window.dgm307RegenerateSerialInputs('#serialNumberInputs', $('#stock').val());
+                } else {
+                    window.dgm307ClearSerialInputs('#serialNumberInputs');
+                }
+            });
+
             // DGM-307 follow-up #2 — regenerate one serial-number input per unit
             // whenever the new-stock quantity changes.
             $(document).on('input change', '#updateNewStock', function() {
@@ -1246,12 +1258,14 @@ const rowProductName = product.attributes.translated?.name || product.attributes
                     $('#stock').val(productData.attributes.stock || 1);
                     $('#description').val(productData.attributes.description || '');
 
-                    // DGM-307 feedback: the variant always inherits "Vereist serienummer"
-                    // from this parent — the serial input only needs to show up here when
-                    // the parent requires it, since the backend enforces the inheritance.
-                    // DGM-310: falls back to the parent's own flag too — see
-                    // dgm310NewVariantRequiresSerialNumber() above.
+                    // DGM-307 fix (Rory, 2026-10-26): this modal had no manual way to turn
+                    // "Vereist serienummer" off, so any variant under a parent that happened
+                    // to require it could never be saved. Default the checkbox from the
+                    // parent for convenience, but let the user override it — see
+                    // dgm310NewVariantRequiresSerialNumber() above and the
+                    // #newVariantHasSerialNumber change handler below.
                     const parentRequiresSerialNumber = dgm310NewVariantRequiresSerialNumber(productData);
+                    $('#newVariantHasSerialNumber').prop('checked', parentRequiresSerialNumber);
                     $('#serialNumberGroup').toggle(parentRequiresSerialNumber);
                     window.dgm307ClearSerialInputs('#serialNumberInputs');
                     if (parentRequiresSerialNumber) {
