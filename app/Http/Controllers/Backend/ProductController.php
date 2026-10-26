@@ -672,14 +672,10 @@ class ProductController extends Controller
             'serialNumbers.*' => 'required|string|max:255',
         ]);
 
-        // DGM-307 feedback: a variant always inherits "Vereist serienummer" from its
-        // parent — enforced here server-side, not left to whatever the creation form
-        // happened to submit.
-        $parentHasSerialNumber = $parentProduct['data']['attributes']['customFields']['has_serial_number'] ?? false;
-        if ($parentHasSerialNumber) {
-            $validatedData['hasSerialNumber'] = '1';
-        }
-
+        // DGM-307 feedback (Rory, 2026-10-26): don't force-inherit "Vereist serienummer"
+        // from the parent — it blocked saving unrelated products (shoes, LPs, etc.)
+        // whose parent happened to have the flag set. Only require it when the form
+        // itself says so.
         $serialNumbers = $validatedData['serialNumbers'] ?? [];
 
         if (!empty($validatedData['hasSerialNumber']) && intval($validatedData['stock']) > 0) {
