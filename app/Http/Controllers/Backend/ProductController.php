@@ -1456,34 +1456,6 @@ class ProductController extends Controller
         }
     }
 
-    /**
-     * DGM-307 hotfix — a variant created before the inheritance feature existed never had
-     * its own has_serial_number field written, so it reads as false even though the parent
-     * requires serial tracking. The storefront/admin display already falls back to the
-     * parent's value for these (shows the toggle as checked), but updateProduct's
-     * requirement check read only the variant's own field, so real stock updates on these
-     * older variants could bypass the serial-number requirement entirely — confirmed live
-     * on AS0711719453895 (a pre-existing variant under a serial-required parent). This
-     * mirrors that same display fallback on the backend side.
-     *
-     * @param array $productAttributes A product's attributes, as returned by the Admin API
-     */
-    private function productOrParentRequiresSerialNumber(array $productAttributes): bool
-    {
-        if (!empty($productAttributes['customFields']['has_serial_number'])) {
-            return true;
-        }
-
-        $parentId = $productAttributes['parentId'] ?? null;
-        if (!$parentId) {
-            return false;
-        }
-
-        $parentResponse = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $parentId);
-
-        return !empty($parentResponse['data']['attributes']['customFields']['has_serial_number']);
-    }
-
     public function updateProduct(Request $request)
     {
         $currencyId = $this->currencyId->getCurrencyId();
@@ -1518,18 +1490,21 @@ class ProductController extends Controller
             'bolLetterboxPackageUp' => 'nullable|in:0,1',
             'bolPickUpOnly' => 'nullable|in:0,1',
             'serialNumbers' => 'nullable|array',
-            'serialNumbers.*' => 'required|string|max:255',
+            // DGM-307 fix: was 'required', which 422'd the whole request on any blank
+            // array entry regardless of whether a serial is actually required.
+            'serialNumbers.*' => 'nullable|string|max:255',
         ]);
 
-        // DGM-307 feedback: a serial number is required before stock can be added for a
-        // product that has "Vereist serienummer" enabled. Checked against the product's
-        // state BEFORE any writes below — setCustomFieldd() below overwrites customFields
-        // wholesale from this request alone, so has_serial_number must be read here first
-        // or a restock that omits the (hidden, unrelated-to-this-form) field would silently
-        // reset it to false before the check ever ran.
+        // DGM-307 fix (Rory, 2026-10-26): previously re-derived the requirement from the
+        // product's/parent's own has_serial_number field, ignoring whatever the "Vereist
+        // serienummer" toggle on this form was set to — so unchecking it had no effect.
+        // Confirmed with Rory/Giel: the manually-submitted toggle should always be the
+        // source of truth, not an inherited default. Still fetched for $oldStock below.
         $currentProductForSerialCheck = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
-        $requiresSerialNumber = $this->productOrParentRequiresSerialNumber($currentProductForSerialCheck['data']['attributes'] ?? []);
-        $serialNumbers = $validatedData['serialNumbers'] ?? [];
+        $requiresSerialNumber = !empty($validatedData['hasSerialNumber']);
+        // Blank entries are allowed through validation above so they don't block
+        // unrelated saves — drop them here before the real count/duplicate checks.
+        $serialNumbers = array_values(array_filter($validatedData['serialNumbers'] ?? [], fn ($s) => trim((string) $s) !== ''));
 
         if ($requiresSerialNumber && !empty($validatedData['new_stock'])) {
             if (empty($serialNumbers)) {
