@@ -60,6 +60,13 @@
                             <div class="col-md-6 form-group mb-3">
                                 <label for="stock">@lang('product.stock'):</label>
                                 <input type="number" class="form-control" id="stock" name="stock" required>
+                                <div class="form-group mt-3">
+                                    <input type="hidden" name="hasSerialNumber" value="0">
+                                    <label for="newVariantHasSerialNumber" class="hasSerialNumber">{{ __('product.requires_serial_number') }}</label>
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" name="hasSerialNumber" id="newVariantHasSerialNumber" value="1">
+                                    </div>
+                                </div>
                                 <div class="form-group mt-3" id="serialNumberGroup" style="display: none;">
                                     <label>@lang('product.serial_number') <span class="text-danger">*</span></label>
                                     <small class="form-text text-muted">@lang('product.one_serial_per_unit')</small>

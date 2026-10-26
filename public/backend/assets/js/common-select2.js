@@ -398,8 +398,12 @@ $('#priceNet').on('input', function () {
 
 // DGM-307 follow-up #2 — regenerate one serial-number input per unit whenever the
 // stock quantity changes on the create-variant form (Stap 3).
+// DGM-307 fix (Rory, 2026-10-26): this ran unconditionally, so even a product that
+// doesn't require a serial number got a hidden-but-submitted serialNumbers[] input
+// regenerated the moment stock was touched — blocking save with "serialNumbers.0 is
+// verplicht" for completely unrelated products. Only regenerate while the toggle is on.
 $(document).on('input change', '#stock', function() {
-    if (typeof window.dgm307RegenerateSerialInputs === 'function') {
+    if (typeof window.dgm307RegenerateSerialInputs === 'function' && $('#newVariantHasSerialNumber').is(':checked')) {
         window.dgm307RegenerateSerialInputs('#serialNumberInputs', $(this).val());
     }
 });
@@ -1593,6 +1597,7 @@ $('#addPropertyOptionBtn').on('click', function () {
             // for that other flow, rather than duplicating the fallback logic again.
             if (typeof dgm310NewVariantRequiresSerialNumber === 'function') {
                 const requiresSerialNumber = dgm310NewVariantRequiresSerialNumber(product);
+                $('#newVariantHasSerialNumber').prop('checked', requiresSerialNumber);
                 $('#serialNumberGroup').toggle(requiresSerialNumber);
                 // Reset first (a previous product's modal session may have left stale
                 // inputs), then regenerate fresh ones matching the just-set stock value.
