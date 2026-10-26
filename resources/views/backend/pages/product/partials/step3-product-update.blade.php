@@ -50,8 +50,9 @@
                             </select>
                         </div>
                         <div class="col-md-6 form-group mb-3" id="updateSerialNumberGroup" style="display: none;">
-                            <label for="updateSerialNumber">@lang('product.serial_number') <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="updateSerialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
+                            <label>@lang('product.serial_number') <span class="text-danger">*</span></label>
+                            <small class="form-text text-muted">@lang('product.one_serial_per_unit')</small>
+                            <div id="updateSerialNumberInputs"></div>
                         </div>
                     </div>
                     <div class="row">

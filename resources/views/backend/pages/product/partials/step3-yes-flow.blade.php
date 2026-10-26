@@ -61,8 +61,9 @@
                                 <label for="stock">@lang('product.stock'):</label>
                                 <input type="number" class="form-control" id="stock" name="stock" required>
                                 <div class="form-group mt-3" id="serialNumberGroup" style="display: none;">
-                                    <label for="serialNumber">@lang('product.serial_number') <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="serialNumber" name="serialNumber" placeholder="@lang('product.enter_serial_number')">
+                                    <label>@lang('product.serial_number') <span class="text-danger">*</span></label>
+                                    <small class="form-text text-muted">@lang('product.one_serial_per_unit')</small>
+                                    <div id="serialNumberInputs"></div>
                                 </div>
                             </div>
 

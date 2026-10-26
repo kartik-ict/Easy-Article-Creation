@@ -123,6 +123,9 @@ Route::group(['prefix' => 'admin'], function () {
         // DGM-307 — Serial Numbers lookup (read-only). Additive — new routes only.
         Route::get('/serial-numbers', [ProductController::class, 'serialNumbersIndex'])->name('serial-numbers.index')->middleware('can:product.create');
         Route::post('/serial-numbers/search', [ProductController::class, 'searchSerialNumbers'])->name('serial-numbers.search')->middleware('can:product.create');
+        // DGM-307 follow-up — in-stock summary + mark-as-stale. Additive — new routes only.
+        Route::post('/serial-numbers/in-stock', [ProductController::class, 'inStockSummary'])->name('serial-numbers.in-stock')->middleware('can:product.create');
+        Route::post('/serial-numbers/mark-stale', [ProductController::class, 'markSerialStale'])->name('serial-numbers.mark-stale')->middleware('can:product.create');
 
         // Bol circular-pilot image import — additive, own controller (bigger surface than a lookup-only page).
         Route::get('/bol-image-import', [BolImageImportController::class, 'index'])->name('bol-image-import.index')->middleware('can:product.create');

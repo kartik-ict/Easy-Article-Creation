@@ -668,7 +668,8 @@ class ProductController extends Controller
             'bolBEDeliveryTime' => 'nullable|string',
             'bolNLDeliveryTime' => 'nullable|string',
             'bin_location_id' => 'required|string',
-            'serialNumber' => 'nullable|string|max:255',
+            'serialNumbers' => 'nullable|array',
+            'serialNumbers.*' => 'required|string|max:255',
         ]);
 
         // DGM-307 feedback: a variant always inherits "Vereist serienummer" from its
@@ -679,8 +680,24 @@ class ProductController extends Controller
             $validatedData['hasSerialNumber'] = '1';
         }
 
-        if (!empty($validatedData['hasSerialNumber']) && intval($validatedData['stock']) > 0 && empty($validatedData['serialNumber'])) {
-            return response()->json(['errors' => __('product.serial_number_required')], 422);
+        $serialNumbers = $validatedData['serialNumbers'] ?? [];
+
+        if (!empty($validatedData['hasSerialNumber']) && intval($validatedData['stock']) > 0) {
+            if (empty($serialNumbers)) {
+                return response()->json(['errors' => __('product.serial_number_required')], 422);
+            }
+
+            // DGM-307 follow-up — every unit needs its own distinct serial number, per
+            // Giel's confirmation. A count mismatch here is exactly the class of bug we
+            // just found and fixed, so it's rejected outright rather than silently
+            // under/over-filled.
+            if (count($serialNumbers) !== intval($validatedData['stock'])) {
+                return response()->json(['errors' => __('product.serial_number_count_mismatch')], 422);
+            }
+
+            if (count(array_unique($serialNumbers)) !== count($serialNumbers)) {
+                return response()->json(['errors' => __('product.serial_number_duplicate')], 422);
+            }
         }
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -833,12 +850,11 @@ class ProductController extends Controller
                         return response()->json(['errors' => __('product.failed_to_update_product')], 400);
                     }
 
-                    if (!empty($validatedData['serialNumber']) && intval($validatedData['stock']) > 0) {
+                    if (!empty($serialNumbers) && intval($validatedData['stock']) > 0) {
                         $this->saveSerialNumbers(
                             $productVariantId,
                             $validatedData['bin_location_id'],
-                            $validatedData['serialNumber'],
-                            intval($validatedData['stock'])
+                            $serialNumbers
                         );
                     }
 
@@ -1407,14 +1423,16 @@ class ProductController extends Controller
     }
 
     /**
-     * Creates one ictech_serial_number row per unit of stock, all sharing the same
-     * serial string the user entered — one input field regardless of quantity, per
-     * DGM-307 follow-up feedback. Each row stays individually trackable afterwards
-     * (return-flow mismatch matching etc.), only the entry step is batched.
+     * DGM-307 follow-up #2 — creates one ictech_serial_number row per given serial,
+     * each with its own distinct value (per Giel's confirmation: every physical unit
+     * needs a unique serial, not one shared across the whole quantity). Callers are
+     * responsible for ensuring count($serials) matches the stock quantity being added.
+     *
+     * @param string[] $serials
      */
-    private function saveSerialNumbers(string $productId, ?string $binLocationId, string $serial, int $quantity): void
+    private function saveSerialNumbers(string $productId, ?string $binLocationId, array $serials): void
     {
-        for ($i = 0; $i < $quantity; $i++) {
+        foreach ($serials as $serial) {
             $payload = [
                 'id' => str_replace('-', '', (string) Str::uuid()),
                 'serial' => $serial,
@@ -1496,7 +1514,8 @@ class ProductController extends Controller
             'bolLetterboxPackage' => 'nullable|in:0,1',
             'bolLetterboxPackageUp' => 'nullable|in:0,1',
             'bolPickUpOnly' => 'nullable|in:0,1',
-            'serialNumber' => 'nullable|string|max:255',
+            'serialNumbers' => 'nullable|array',
+            'serialNumbers.*' => 'required|string|max:255',
         ]);
 
         // DGM-307 feedback: a serial number is required before stock can be added for a
@@ -1507,8 +1526,21 @@ class ProductController extends Controller
         // reset it to false before the check ever ran.
         $currentProductForSerialCheck = $this->shopwareApiService->makeApiRequest('GET', '/api/product/' . $validatedData['product_id']);
         $requiresSerialNumber = $this->productOrParentRequiresSerialNumber($currentProductForSerialCheck['data']['attributes'] ?? []);
-        if ($requiresSerialNumber && !empty($validatedData['new_stock']) && empty($validatedData['serialNumber'])) {
-            return response()->json(['success' => false, 'message' => __('product.serial_number_required')], 422);
+        $serialNumbers = $validatedData['serialNumbers'] ?? [];
+
+        if ($requiresSerialNumber && !empty($validatedData['new_stock'])) {
+            if (empty($serialNumbers)) {
+                return response()->json(['success' => false, 'message' => __('product.serial_number_required')], 422);
+            }
+
+            // DGM-307 follow-up — every unit needs its own distinct serial number.
+            if (count($serialNumbers) !== intval($validatedData['new_stock'])) {
+                return response()->json(['success' => false, 'message' => __('product.serial_number_count_mismatch')], 422);
+            }
+
+            if (count(array_unique($serialNumbers)) !== count($serialNumbers)) {
+                return response()->json(['success' => false, 'message' => __('product.serial_number_duplicate')], 422);
+            }
         }
 
         $customFields = $this->setCustomFieldd($validatedData);
@@ -1646,12 +1678,11 @@ class ProductController extends Controller
                     "{$oldStock} → {$validatedData['new_stock']} → {$binLocationName}"
                 );
 
-                if (!empty($validatedData['serialNumber'])) {
+                if (!empty($serialNumbers)) {
                     $this->saveSerialNumbers(
                         $validatedData['product_id'],
                         $validatedData['bin_location_id'],
-                        $validatedData['serialNumber'],
-                        intval($validatedData['new_stock'])
+                        $serialNumbers
                     );
                 }
             }
@@ -2363,32 +2394,32 @@ class ProductController extends Controller
     /**
      * DGM-307 — AJAX search: by serial number (partial match) or by product number/EAN (exact),
      * whichever the query looks like. Read-only, queries the Admin API only, no writes.
+     *
+     * An empty query lists the most recently recorded serials instead of searching — lets the
+     * page show a default list on load, same table, same render path as a real search.
      */
     public function searchSerialNumbers(Request $request)
     {
         $validated = $request->validate([
-            'query' => ['required', 'string', 'max:255'],
+            'query' => ['nullable', 'string', 'max:255'],
         ]);
-        $query = trim($validated['query']);
+        $query = trim((string) ($validated['query'] ?? ''));
 
-        $filter = [
-            [
-                'type'  => 'contains',
-                'field' => 'serial',
-                'value' => $query,
-            ],
-        ];
-
-        // If nothing matches by serial, try resolving the query as a product number/EAN instead.
         $searchResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/ictech-serial-number', [
-            'filter'      => $filter,
+            'filter'      => $query === '' ? [] : [
+                [
+                    'type'  => 'contains',
+                    'field' => 'serial',
+                    'value' => $query,
+                ],
+            ],
             'associations' => ['product' => new \stdClass()],
             'limit'       => 100,
             'sort'        => [['field' => 'createdAt', 'order' => 'DESC']],
         ]);
         $rows = $searchResponse['data'] ?? [];
 
-        if (empty($rows)) {
+        if (empty($rows) && $query !== '') {
             $productResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/product', [
                 'filter' => [
                     [
@@ -2432,6 +2463,7 @@ class ProductController extends Controller
             $productAttrs = $productId ? ($includedProductsById[$productId] ?? []) : [];
 
             return [
+                'id'              => $row['id'] ?? null,
                 'serial'          => $attrs['serial'] ?? null,
                 'status'          => $attrs['status'] ?? null,
                 'productId'       => $productId,
@@ -2443,6 +2475,77 @@ class ProductController extends Controller
         }, $rows);
 
         return response()->json(['results' => $results]);
+    }
+
+    /**
+     * DGM-307 follow-up — currently in-stock serials, grouped by product. Read-only, same
+     * Admin API search this page already uses, filtered to status=in_stock and unattached.
+     */
+    public function inStockSummary(Request $request)
+    {
+        $searchResponse = $this->shopwareApiService->makeApiRequest('POST', '/api/search/ictech-serial-number', [
+            'filter' => [
+                ['type' => 'equals', 'field' => 'status', 'value' => 'in_stock'],
+                ['type' => 'equals', 'field' => 'orderLineItemId', 'value' => null],
+            ],
+            'associations' => ['product' => new \stdClass()],
+            'limit'        => 500,
+            'sort'         => [['field' => 'createdAt', 'order' => 'ASC']],
+        ]);
+        $rows = $searchResponse['data'] ?? [];
+
+        $includedProductsById = [];
+        foreach (($searchResponse['included'] ?? []) as $included) {
+            if (($included['type'] ?? null) === 'product') {
+                $includedProductsById[$included['id']] = $included['attributes'] ?? [];
+            }
+        }
+
+        $byProduct = [];
+        foreach ($rows as $row) {
+            $attrs = $row['attributes'] ?? [];
+            $productId = $attrs['productId'] ?? null;
+            $productAttrs = $productId ? ($includedProductsById[$productId] ?? []) : [];
+            $productNumber = $productAttrs['productNumber'] ?? 'unknown';
+
+            if (!isset($byProduct[$productNumber])) {
+                $byProduct[$productNumber] = [
+                    'productNumber' => $productNumber,
+                    'productName'   => $productAttrs['translated']['name'] ?? ($productAttrs['name'] ?? null),
+                    'serials'       => [],
+                ];
+            }
+
+            $byProduct[$productNumber]['serials'][] = [
+                'id'     => $row['id'] ?? null,
+                'serial' => $attrs['serial'] ?? null,
+            ];
+        }
+
+        return response()->json(['products' => array_values($byProduct)]);
+    }
+
+    /**
+     * DGM-307 follow-up — marks a serial as stale/sold (non-destructive, keeps the row for
+     * history) instead of deleting it. Calls the new Shopware-side action endpoint.
+     */
+    public function markSerialStale(Request $request)
+    {
+        $validated = $request->validate([
+            'serialId' => ['required', 'string'],
+        ]);
+
+        $response = $this->shopwareApiService->makeApiRequest(
+            'POST',
+            '/api/_action/ictech/serial-number/mark-stale',
+            ['serialId' => $validated['serialId']]
+        );
+
+        if (!empty($response['error'])) {
+            return response()->json(['error' => $response['message'] ?? $response['error']], 500);
+        }
+
+        return response()->json(['marked' => true]);
     }
 
 }

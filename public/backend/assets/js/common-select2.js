@@ -396,6 +396,14 @@ $('#priceNet').on('input', function () {
     $('#priceGross').val(priceGross.toFixed(2));
 });
 
+// DGM-307 follow-up #2 — regenerate one serial-number input per unit whenever the
+// stock quantity changes on the create-variant form (Stap 3).
+$(document).on('input change', '#stock', function() {
+    if (typeof window.dgm307RegenerateSerialInputs === 'function') {
+        window.dgm307RegenerateSerialInputs('#serialNumberInputs', $(this).val());
+    }
+});
+
 // net price to gross price convert for purchase price
 $(document).on('input', '#swPurchasePriceNet, #purchasePriceNet', function() {
     const purchasePriceNet = parseFloat($(this).val()) || 0;
@@ -1586,7 +1594,14 @@ $('#addPropertyOptionBtn').on('click', function () {
             if (typeof dgm310NewVariantRequiresSerialNumber === 'function') {
                 const requiresSerialNumber = dgm310NewVariantRequiresSerialNumber(product);
                 $('#serialNumberGroup').toggle(requiresSerialNumber);
-                $('#serialNumber').val('');
+                // Reset first (a previous product's modal session may have left stale
+                // inputs), then regenerate fresh ones matching the just-set stock value.
+                if (typeof window.dgm307ClearSerialInputs === 'function') {
+                    window.dgm307ClearSerialInputs('#serialNumberInputs');
+                }
+                if (requiresSerialNumber && typeof window.dgm307RegenerateSerialInputs === 'function') {
+                    window.dgm307RegenerateSerialInputs('#serialNumberInputs', $('#stock').val());
+                }
             }
 
             // Product data is available in global allProductData
